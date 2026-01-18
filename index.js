@@ -220,7 +220,51 @@ app.get('/faq', pagesController.showFaq);
 app.get('/docs', pagesController.showDocs);
 
 // Getting Started Guide
-app.get('/getting-started', gettingStartedController.showGettingStarted);
+app.get('/getting-started', requireAuth, gettingStartedController.showGettingStarted);
+
+// Server Request Handler
+app.post('/request-server', requireAuth, async (req, res) => {
+  try {
+    const { region, server_name, use_case } = req.body;
+    
+    // Check if user has already paid
+    const paymentCheck = await pool.query(
+      'SELECT * FROM payments WHERE user_id = $1 AND status = $2 LIMIT 1',
+      [req.session.userId, 'succeeded']
+    );
+    
+    if (paymentCheck.rows.length === 0) {
+      return res.redirect('/pricing?error=payment_required');
+    }
+    
+    // Check if user already has a server
+    const serverCheck = await pool.query(
+      'SELECT * FROM servers WHERE user_id = $1',
+      [req.session.userId]
+    );
+    
+    if (serverCheck.rows.length > 0) {
+      return res.redirect('/dashboard?error=server_exists');
+    }
+    
+    // Store server request (you'll process this manually)
+    await pool.query(
+      `INSERT INTO support_tickets (user_id, subject, message, status) 
+       VALUES ($1, $2, $3, $4)`,
+      [
+        req.session.userId,
+        'Server Setup Request',
+        `Region: ${region}\nServer Name: ${server_name || 'Not specified'}\nUse Case: ${use_case || 'Not specified'}`,
+        'open'
+      ]
+    );
+    
+    res.redirect('/getting-started?success=request_submitted');
+  } catch (err) {
+    console.error('Server request error:', err);
+    res.status(500).send('Server error');
+  }
+});
 
 // Payment Success page
 app.get('/payment-success', requireAuth, paymentController.paymentSuccess);
