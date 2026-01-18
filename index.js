@@ -1,29 +1,46 @@
 const express = require('express');
 require('dotenv').config();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const axios = require('axios');
+const { Client } = require('ssh2');
+const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
+const { body, validationResult } = require('express-validator');
 const cookieParser = require('cookie-parser');
+const csrf = require('csurf');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const pool = require('./db');
-const { generalLimiter } = require('./middleware/rateLimiter');
-const { syncDigitalOceanDroplets } = require('./services/digitalocean');
+const bcrypt = require('bcrypt');
+const { getHTMLHead, getDashboardHead, getScripts, getFooter, getAuthLinks, getResponsiveNav } = require('./helpers');
+const { createRealServer: createRealServerService, syncDigitalOceanDroplets: syncDigitalOceanDropletsService } = require('./services/digitalocean');
+const { requireAuth } = require('./middleware/auth');
+const { generalLimiter, contactLimiter, paymentLimiter } = require('./middleware/rateLimiter');
+const pagesController = require('./controllers/pagesController');
+const authController = require('./controllers/authController');
+const dashboardController = require('./controllers/dashboardController');
+const paymentController = require('./controllers/paymentController');
+const serverController = require('./controllers/serverController');
+const errorHandler = require('./middleware/errorHandler');
+const logger = require('./middleware/logger');
 
 const app = express();
+
+// Apply general rate limiter to all routes
+app.use(generalLimiter);
+
+// Request logger
+app.use(logger);
 
 // Security headers
 app.use(helmet({
   contentSecurityPolicy: false, // Allow inline scripts for Stripe
 }));
 
-// Apply general rate limiter to all routes
-app.use(generalLimiter);
-
-// Static files
 app.use(express.static('public'));
 
-// Body parsers
 app.use(cookieParser());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false })); // lets us read form bodies
 
 // Session configuration
 app.use(session({
@@ -41,6 +58,9 @@ app.use(session({
   }
 }));
 
+// CSRF protection
+const csrfProtection = csrf({ cookie: true });
+
 // HTTPS redirect middleware (only in production)
 app.use((req, res, next) => {
   if (process.env.NODE_ENV === 'production' && req.headers['x-forwarded-proto'] !== 'https') {
@@ -49,25 +69,179 @@ app.use((req, res, next) => {
   next();
 });
 
-// Import routes
-const authRoutes = require('./routes/auth');
-const serverRoutes = require('./routes/servers');
-const dashboardRoutes = require('./routes/dashboard');
-const paymentRoutes = require('./routes/payments');
-const pageRoutes = require('./routes/pages');
+// ======================
+// ROUTES
+// ======================
 
-// Mount routes
-app.use('/', authRoutes);          // /register, /login, /logout
-app.use('/', serverRoutes);        // /server-action, /delete-server, /deploy, /add-domain, /enable-ssl
-app.use('/', dashboardRoutes);     // /dashboard
-app.use('/', paymentRoutes);       // /pay, /create-checkout-session, /payment-success, /payment-cancel, /webhook/stripe
-app.use('/', pageRoutes);          // /, /about, /pricing, /terms, /privacy, /faq, /docs, /contact
+// Health check endpoint (for load balancers and monitoring)
+app.get('/health', async (req, res) => {
+  try {
+    // Check database connection
+    const dbCheck = await pool.query('SELECT NOW()');
+    
+    res.status(200).json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      uptime: process.uptime(),
+      database: dbCheck.rows.length > 0 ? 'connected' : 'error'
+    });
+  } catch (error) {
+    console.error('[HEALTH] Database check failed:', error.message);
+    res.status(503).json({
+      status: 'degraded',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      uptime: process.uptime(),
+      database: 'disconnected',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Database unavailable'
+    });
+  }
+});
+
+app.get('/', pagesController.showHome);
+app.get('/about', pagesController.showAbout);
+
+// Register route (GET)
+app.get('/register', csrfProtection, authController.showRegister);
+app.get('/contact', csrfProtection, pagesController.showContact);
+
+app.post('/contact', 
+  contactLimiter,
+  csrfProtection,
+  [
+    body('name').trim().notEmpty().withMessage('Name is required').isLength({ max: 100 }),
+    body('email').trim().isEmail().normalizeEmail().withMessage('Valid email is required'),
+    body('message').trim().notEmpty().withMessage('Message is required').isLength({ max: 1000 })
+  ],
+  pagesController.submitContact
+);
+
+// Register POST handler
+app.post('/register',
+  csrfProtection,
+  [
+    body('email').trim().isEmail().normalizeEmail(),
+    body('password').isLength({ min: 8 }),
+    body('confirmPassword').custom((value, { req }) => value === req.body.password)
+  ],
+  authController.handleRegister
+);
+
+// Login GET route
+app.get('/login', csrfProtection, authController.showLogin);
+
+// Login POST handler
+app.post('/login',
+  csrfProtection,
+  [
+    body('email').trim().isEmail().normalizeEmail(),
+    body('password').notEmpty()
+  ],
+  authController.handleLogin
+);
+
+// Logout route
+app.get('/logout', authController.handleLogout);
+
+// Server action route (restart/stop)
+app.post('/server-action', requireAuth, serverController.serverAction);
+
+// Delete server route
+app.post('/delete-server', requireAuth, serverController.deleteServer);
+
+// Deploy route
+app.post('/deploy', requireAuth, serverController.deploy);
+
+// Add domain route
+app.post('/add-domain', requireAuth, serverController.addDomain);
+
+
+// Enable SSL route
+app.post('/enable-ssl', requireAuth, serverController.enableSSL);
+
+// Dashboard route
+app.get('/dashboard', requireAuth, dashboardController.showDashboard);
+
+// Pricing page
+app.get('/pricing', pagesController.showPricing);
+
+app.get('/terms', pagesController.showTerms);
+
+app.get('/privacy', pagesController.showPrivacy);
+
+// FAQ page
+app.get('/faq', pagesController.showFaq);
+
+// Documentation page
+app.get('/docs', pagesController.showDocs);
+
+// Payment Success page
+app.get('/payment-success', requireAuth, paymentController.paymentSuccess);
+
+// Payment Cancel page
+app.get('/payment-cancel', requireAuth, paymentController.paymentCancel);
+
+app.get('/pay', requireAuth, csrfProtection, paymentController.showCheckout);
+
+app.post('/create-checkout-session', requireAuth, paymentLimiter, csrfProtection, paymentController.createCheckoutSession);
+
+// Stripe webhook endpoint - MUST be before express.json() middleware
+// Webhooks need raw body for signature verification
+app.post('/webhook/stripe', express.raw({type: 'application/json'}), paymentController.stripeWebhook);
+
+// Logout route
+app.get('/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Logout error:', err);
+    }
+    res.redirect('/?message=Logged out successfully');
+  });
+});
+
+// 404 error page - must be last route
+app.use((req, res) => {
+  res.status(404).send(`
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Page Not Found</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { background: #0a0812; color: #e0e6f0; font-family: 'JetBrains Mono', monospace; --glow: #88FE00; }
+        body { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+        .container { text-align: center; max-width: 500px; }
+        h1 { font-size: 120px; color: var(--glow); text-shadow: 0 0 40px rgba(136, 254, 0, 0.5); margin-bottom: 20px; }
+        h2 { font-size: 24px; margin-bottom: 16px; }
+        p { color: #8892a0; line-height: 1.6; margin-bottom: 32px; }
+        a { display: inline-block; padding: 14px 32px; background: var(--glow); color: #0a0812; text-decoration: none; border-radius: 4px; font-weight: 600; transition: all 0.3s; }
+        a:hover { box-shadow: 0 0 30px rgba(136, 254, 0, 0.6); transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>404</h1>
+        <h2>Page Not Found</h2>
+        <p>The page you're looking for doesn't exist or has been moved. Let's get you back on track.</p>
+        <a href="/">Go Home</a>
+    </div>
+</body>
+</html>
+  `);
+});
 
 // Run sync every hour (3600000 ms)
-setInterval(syncDigitalOceanDroplets, 3600000);
+setInterval(syncDigitalOceanDropletsService, 3600000);
 
 // Run sync on startup (after 30 seconds to let server initialize)
-setTimeout(syncDigitalOceanDroplets, 30000);
+setTimeout(syncDigitalOceanDropletsService, 30000);
+
+// Global error handler (must be last)
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server on http://localhost:${PORT}`));
