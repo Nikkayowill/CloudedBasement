@@ -2,6 +2,8 @@ const bcrypt = require('bcrypt');
 const pool = require('../db');
 const { validationResult } = require('express-validator');
 const { getHTMLHead, getFooter, getScripts, getResponsiveNav } = require('../helpers');
+const { createEmailToken, isTokenValid } = require('../utils/emailToken');
+const { sendConfirmationEmail } = require('../services/email');
 
 // GET /register - Display registration form with CSRF token
 const showRegister = (req, res) => {
@@ -47,7 +49,7 @@ ${getHTMLHead('Register - Basement')}
   `);
 };
 
-// POST /register - Handle registration with validation, bcrypt hashing, database insert
+// POST /register - Handle registration with email confirmation
 const handleRegister = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -70,13 +72,25 @@ const handleRegister = async (req, res) => {
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
     
-    // Insert user
+    // Generate email confirmation token
+    const { token, expiresAt } = createEmailToken();
+    
+    // Insert user with token
     await pool.query(
-      'INSERT INTO users (email, password_hash) VALUES ($1, $2)',
-      [email, passwordHash]
+      'INSERT INTO users (email, password_hash, email_token, token_expires_at) VALUES ($1, $2, $3, $4)',
+      [email, passwordHash, token, expiresAt]
     );
 
-    res.redirect('/login');
+    // Send confirmation email
+    const emailResult = await sendConfirmationEmail(email, token);
+    
+    if (emailResult.success) {
+      req.session.flashMessage = `Confirmation email sent to ${email}. Check your inbox!`;
+      res.redirect('/login');
+    } else {
+      console.error('Failed to send confirmation email:', emailResult.error);
+      res.status(500).send('Registration successful but email delivery failed. Please contact support.');
+    }
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).send('Registration failed');
@@ -226,6 +240,11 @@ const handleLogin = async (req, res) => {
       return res.redirect('/login?error=Invalid email or password');
     }
 
+    // Check if email is confirmed
+    if (!user.email_confirmed) {
+      return res.redirect('/login?error=Please confirm your email before logging in. Check your inbox.');
+    }
+
     // Set session
     req.session.userId = user.id;
     req.session.userEmail = user.email;
@@ -235,6 +254,115 @@ const handleLogin = async (req, res) => {
   } catch (error) {
     console.error('Login error:', error);
     return res.redirect('/login?error=An error occurred. Please try again.');
+  }
+};
+
+// GET /confirm-email/:token - Verify email token and activate account
+const confirmEmail = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    // Find user with this token
+    const userResult = await pool.query(
+      'SELECT id, email, email_confirmed, token_expires_at FROM users WHERE email_token = $1',
+      [token]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(400).send(`
+${getHTMLHead('Invalid Token - Basement')}
+    <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body>
+    <div class="matrix-bg"></div>
+    ${getResponsiveNav(req)}
+    <div class="auth-container">
+        <div class="auth-card" style="text-align: center;">
+            <h1 style="color: #ff6b6b;">Invalid Token</h1>
+            <p>This confirmation link is invalid or has already been used.</p>
+            <a href="/register" class="btn" style="display: inline-block; margin-top: 20px;">Register Again</a>
+        </div>
+    </div>
+    ${getFooter()}
+</body>
+</html>
+      `);
+    }
+
+    const user = userResult.rows[0];
+
+    // Check if token is expired
+    if (!isTokenValid(user.token_expires_at)) {
+      return res.status(400).send(`
+${getHTMLHead('Token Expired - Basement')}
+    <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body>
+    <div class="matrix-bg"></div>
+    ${getResponsiveNav(req)}
+    <div class="auth-container">
+        <div class="auth-card" style="text-align: center;">
+            <h1 style="color: #ff6b6b;">Link Expired</h1>
+            <p>This confirmation link has expired (valid for 24 hours).</p>
+            <a href="/register" class="btn" style="display: inline-block; margin-top: 20px;">Register Again</a>
+        </div>
+    </div>
+    ${getFooter()}
+</body>
+</html>
+      `);
+    }
+
+    // Check if already confirmed
+    if (user.email_confirmed) {
+      return res.status(400).send(`
+${getHTMLHead('Already Confirmed - Basement')}
+    <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body>
+    <div class="matrix-bg"></div>
+    ${getResponsiveNav(req)}
+    <div class="auth-container">
+        <div class="auth-card" style="text-align: center;">
+            <h1 style="color: #88FE00;">Already Confirmed</h1>
+            <p>This email has already been confirmed.</p>
+            <a href="/login" class="btn" style="display: inline-block; margin-top: 20px;">Login</a>
+        </div>
+    </div>
+    ${getFooter()}
+</body>
+</html>
+      `);
+    }
+
+    // Mark email as confirmed and clear token
+    await pool.query(
+      'UPDATE users SET email_confirmed = true, email_token = NULL, token_expires_at = NULL WHERE id = $1',
+      [user.id]
+    );
+
+    res.send(`
+${getHTMLHead('Email Confirmed - Basement')}
+    <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body>
+    <div class="matrix-bg"></div>
+    ${getResponsiveNav(req)}
+    <div class="auth-container">
+        <div class="auth-card" style="text-align: center;">
+            <h1 style="color: #88FE00;">✓ Email Confirmed!</h1>
+            <p>Your email has been successfully verified.</p>
+            <p style="color: #8892a0; margin-top: 20px;">You can now login with your account.</p>
+            <a href="/login" class="btn" style="display: inline-block; margin-top: 30px;">Go to Login</a>
+        </div>
+    </div>
+    ${getFooter()}
+</body>
+</html>
+    `);
+  } catch (error) {
+    console.error('Email confirmation error:', error);
+    res.status(500).send('Email confirmation failed');
   }
 };
 
@@ -252,5 +380,6 @@ module.exports = {
   handleRegister,
   showLogin,
   handleLogin,
+  confirmEmail,
   handleLogout
 };
