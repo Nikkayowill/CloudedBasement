@@ -62,6 +62,7 @@ function getFooter() {
                     <li style="margin-bottom: 8px;"><a href="/about" style="color: var(--text-secondary); font-size: 12px;">About</a></li>
                     <li style="margin-bottom: 8px;"><a href="/pricing" style="color: var(--text-secondary); font-size: 12px;">Pricing</a></li>
                     <li style="margin-bottom: 8px;"><a href="/docs" style="color: var(--text-secondary); font-size: 12px;">Documentation</a></li>
+                    <li style="margin-bottom: 8px;"><a href="/faq" style="color: var(--text-secondary); font-size: 12px;">FAQ</a></li>
                 </ul>
             </div>
             <div>
