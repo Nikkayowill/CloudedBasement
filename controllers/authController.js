@@ -254,7 +254,12 @@ const handleLogin = async (req, res) => {
     req.session.userEmail = user.email;
     req.session.userRole = user.role;
 
-    res.redirect('/');
+    // Redirect based on role
+    if (user.role === 'admin') {
+      res.redirect('/admin');
+    } else {
+      res.redirect('/dashboard');
+    }
   } catch (error) {
     console.error('Login error:', error);
     return res.redirect('/login?error=An error occurred. Please try again.');
