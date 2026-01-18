@@ -9,7 +9,7 @@ const listUsers = async (req, res) => {
       'SELECT id, email, role, email_confirmed, created_at FROM users ORDER BY created_at DESC'
     );
     const domainsResult = await pool.query(
-      'SELECT id, name, status, provider, renewal_date, notes, created_at FROM domains ORDER BY created_at DESC'
+      'SELECT id, domain, ssl_enabled, ssl_expires_at, created_at FROM domains ORDER BY created_at DESC'
     );
     const serversResult = await pool.query(
       'SELECT s.id, s.plan, s.status, s.ip_address, s.domain, s.ssl_status, s.created_at, u.email as owner_email FROM servers s LEFT JOIN users u ON s.user_id = u.id ORDER BY s.created_at DESC'
@@ -56,8 +56,7 @@ const listUsers = async (req, res) => {
     const adminUsers = users.filter(u => u.role === 'admin').length;
     
     const totalDomains = domains.length;
-    const activeDomains = domains.filter(d => d.status === 'active').length;
-    const hostingerDomains = domains.filter(d => d.provider === 'hostinger').length;
+    const sslEnabledDomains = domains.filter(d => d.ssl_enabled).length;
     
     const totalServers = servers.length;
     const runningServers = servers.filter(s => s.status === 'running').length;
@@ -277,22 +276,19 @@ ${getHTMLHead('Admin Dashboard')}
                 <thead>
                   <tr>
                     <th>Domain</th>
-                    <th>Status</th>
-                    <th>Provider</th>
-                    <th>Renewal Date</th>
+                    <th>SSL Enabled</th>
+                    <th>SSL Expires</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   ${domains.map(domain => `
                     <tr>
-                      <td class="domain-name">${domain.name}</td>
-                      <td><span class="badge ${domain.status === 'active' ? 'active' : domain.status === 'pending' ? 'pending' : 'expired'}">${domain.status || 'active'}</span></td>
-                      <td><span class="badge hostinger">${domain.provider || 'hostinger'}</span></td>
-                      <td>${domain.renewal_date ? new Date(domain.renewal_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '-'}</td>
+                      <td class="domain-name">${domain.domain}</td>
+                      <td><span class="badge ${domain.ssl_enabled ? 'active' : 'expired'}">${domain.ssl_enabled ? 'Yes' : 'No'}</span></td>
+                      <td>${domain.ssl_expires_at ? new Date(domain.ssl_expires_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '-'}</td>
                       <td class="action-cell">
-                        <button class="action-btn" onclick="openEditDomainModal(${domain.id}, '${domain.name}', '${domain.status}', '${domain.provider}', '${domain.renewal_date || ''}', '${(domain.notes || '').replace(/'/g, "\\'")}')">Edit</button>
-                        <button class="action-btn danger" onclick="openDeleteDomainModal(${domain.id}, '${domain.name}')">Delete</button>
+                        <button class="action-btn danger" onclick="openDeleteDomainModal(${domain.id}, '${domain.domain}')">Delete</button>
                       </td>
                     </tr>
                   `).join('')}
