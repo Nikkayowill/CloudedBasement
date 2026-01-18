@@ -284,7 +284,7 @@ ${getHTMLHead('Admin Dashboard')}
                       <td><span class="badge ${domain.ssl_enabled ? 'active' : 'expired'}">${domain.ssl_enabled ? 'Yes' : 'No'}</span></td>
                       <td>${domain.ssl_expires_at ? new Date(domain.ssl_expires_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '-'}</td>
                       <td class="action-cell">
-                        <button class="action-btn danger" onclick="openDeleteDomainModal(${domain.id}, '${domain.domain}')">Delete</button>
+                        <button class="action-btn danger" onclick="openDeleteDomainModal(${domain.id}, '${domain.domain ? domain.domain.replace(/'/g, "\\'") : ''}')">Delete</button>
                       </td>
                     </tr>
                   `).join('')}
