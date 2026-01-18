@@ -1131,62 +1131,88 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
       /* Responsive: Mobile */
       @media (max-width: 480px) {
         .section {
-          padding: 48px 5vw;
+          padding: 40px 20px;
+          max-width: 100%;
         }
         
         .section-title {
-          font-size: 24px;
-          margin-bottom: 32px;
+          font-size: 22px;
+          margin-bottom: 28px;
+          line-height: 1.3;
         }
         
         .cards {
           grid-template-columns: 1fr;
-          gap: 16px;
-          margin-bottom: 40px;
+          gap: 14px;
+          margin-bottom: 36px;
         }
         
         .card {
-          padding: 24px 18px;
+          padding: 20px 16px;
         }
         
         .card h3 {
-          font-size: 16px;
+          font-size: 15px;
+          margin-bottom: 10px;
         }
         
         .card p {
-          font-size: 13px;
+          font-size: 12px;
+          line-height: 1.5;
+        }
+        
+        .features {
+          max-width: 100%;
+          padding: 0 10px;
         }
         
         .features ul {
-          gap: 12px;
+          gap: 10px;
         }
         
         .features li {
-          padding: 14px;
-          font-size: 13px;
+          padding: 12px 14px;
+          font-size: 12px;
+        }
+        
+        .features li::before {
+          font-size: 14px;
         }
         
         .step {
-          padding: 20px;
+          padding: 16px;
         }
         
         .step-number {
-          width: 40px;
-          height: 40px;
+          width: 38px;
+          height: 38px;
+          font-size: 18px;
+          margin-bottom: 10px;
+        }
+        
+        .step h3 {
+          font-size: 15px;
+          margin-bottom: 6px;
+        }
+        
+        .step p {
+          font-size: 12px;
+          line-height: 1.5;
+        }
+        
+        .cta-final {
+          padding: 36px 20px;
+        }
+        
+        .cta-final h2 {
           font-size: 20px;
           margin-bottom: 12px;
         }
         
-        .step h3 {
-          font-size: 16px;
-        }
-        
-        .step p {
+        .cta-final p {
           font-size: 13px;
-        }
-        
-        .cta-final {
-          padding: 40px 5vw;
+          max-width: 90%;
+          margin: 0 auto 20px;
         }
       }
       
