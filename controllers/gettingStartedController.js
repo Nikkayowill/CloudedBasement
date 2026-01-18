@@ -1,96 +1,382 @@
-const { getHTMLHead, getFooter, getScripts, getResponsiveNav } = require('../helpers');
+const pool = require('../db');
+const { getDashboardHead, getFooter, getScripts, getResponsiveNav } = require('../helpers');
 
-exports.showGettingStarted = (req, res) => {
+exports.showGettingStarted = async (req, res) => {
+  // Check payment and server status
+  try {
+    const paymentCheck = await pool.query(
+      'SELECT * FROM payments WHERE user_id = $1 AND status = $2 ORDER BY created_at DESC LIMIT 1',
+      [req.session.userId, 'succeeded']
+    );
+    
+    const hasPaid = paymentCheck.rows.length > 0;
+    const plan = hasPaid ? paymentCheck.rows[0].plan : null;
+    
+    const serverCheck = await pool.query(
+      'SELECT * FROM servers WHERE user_id = $1',
+      [req.session.userId]
+    );
+    
+    const hasServer = serverCheck.rows.length > 0;
+    
+    const userResult = await pool.query(
+      'SELECT email FROM users WHERE id = $1',
+      [req.session.userId]
+    );
+    const userEmail = userResult.rows[0].email;
+  
   res.send(`
-${getHTMLHead('Getting Started - Basement')}
-    <link rel="stylesheet" href="/css/pages.css">
+${getDashboardHead('Getting Started - Clouded Basement')}
+    <style>
+      .wizard-container {
+        max-width: 800px;
+        margin: 80px auto 40px;
+        padding: 0 20px;
+      }
+      
+      .wizard-steps {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 48px;
+        position: relative;
+      }
+      
+      .wizard-steps::before {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 40px;
+        right: 40px;
+        height: 2px;
+        background: rgba(45, 167, 223, 0.2);
+        z-index: 0;
+      }
+      
+      .wizard-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 1;
+      }
+      
+      .step-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(2, 8, 20, 0.8);
+        border: 2px solid rgba(45, 167, 223, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: #8892a0;
+        margin-bottom: 8px;
+      }
+      
+      .step-circle.active {
+        background: #2DA7DF;
+        border-color: #2DA7DF;
+        color: #000;
+      }
+      
+      .step-circle.completed {
+        background: rgba(45, 167, 223, 0.2);
+        border-color: #2DA7DF;
+        color: #2DA7DF;
+      }
+      
+      .step-label {
+        font-size: 13px;
+        color: #8892a0;
+        text-align: center;
+      }
+      
+      .step-label.active {
+        color: #2DA7DF;
+        font-weight: 600;
+      }
+      
+      .onboarding-card {
+        background: rgba(2, 8, 20, 0.6);
+        border: 1px solid rgba(45, 167, 223, 0.2);
+        border-radius: 12px;
+        padding: 40px;
+        margin-bottom: 24px;
+      }
+      
+      .onboarding-card h2 {
+        color: #fff;
+        margin-top: 0;
+        margin-bottom: 16px;
+        font-size: 28px;
+      }
+      
+      .onboarding-card p {
+        color: #a0a8b8;
+        line-height: 1.6;
+        margin-bottom: 16px;
+      }
+      
+      .info-box {
+        background: rgba(45, 167, 223, 0.05);
+        border-left: 3px solid #2DA7DF;
+        padding: 16px 20px;
+        margin: 24px 0;
+        border-radius: 4px;
+      }
+      
+      .info-box p {
+        margin: 0;
+        color: #e0e6f0;
+        font-size: 14px;
+      }
+      
+      .checklist {
+        list-style: none;
+        padding: 0;
+        margin: 24px 0;
+      }
+      
+      .checklist li {
+        padding: 12px 0;
+        color: #a0a8b8;
+        display: flex;
+        align-items: start;
+        gap: 12px;
+      }
+      
+      .checklist li::before {
+        content: "✓";
+        color: #2DA7DF;
+        font-weight: 700;
+        font-size: 18px;
+        flex-shrink: 0;
+      }
+      
+      .btn-group {
+        display: flex;
+        gap: 12px;
+        margin-top: 32px;
+      }
+      
+      .btn {
+        flex: 1;
+        text-align: center;
+        padding: 14px 24px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-block;
+        transition: all 0.2s;
+      }
+      
+      .btn.primary {
+        background: #2DA7DF;
+        color: #000;
+      }
+      
+      .btn.primary:hover {
+        background: #20B1DC;
+        transform: translateY(-2px);
+      }
+      
+      .btn:not(.primary) {
+        background: rgba(45, 167, 223, 0.1);
+        border: 1px solid rgba(45, 167, 223, 0.3);
+        color: #2DA7DF;
+      }
+      
+      .server-request-form {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(45, 167, 223, 0.2);
+        border-radius: 8px;
+        padding: 24px;
+        margin: 24px 0;
+      }
+      
+      .form-group {
+        margin-bottom: 20px;
+      }
+      
+      .form-group label {
+        display: block;
+        color: #e0e6f0;
+        margin-bottom: 8px;
+        font-weight: 500;
+      }
+      
+      .form-group select,
+      .form-group input {
+        width: 100%;
+        padding: 12px;
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(45, 167, 223, 0.2);
+        border-radius: 6px;
+        color: #e0e6f0;
+        font-size: 14px;
+        box-sizing: border-box;
+      }
+      
+      .form-group input::placeholder {
+        color: #6b7280;
+      }
+      
+      button[type="submit"] {
+        width: 100%;
+        margin-top: 16px;
+        cursor: pointer;
+      }
+      
+      @media (max-width: 768px) {
+        .wizard-container {
+          margin-top: 60px;
+        }
+        
+        .wizard-steps {
+          flex-direction: column;
+          gap: 24px;
+        }
+        
+        .wizard-steps::before {
+          display: none;
+        }
+        
+        .wizard-step {
+          flex-direction: row;
+          gap: 16px;
+          align-items: center;
+        }
+        
+        .onboarding-card {
+          padding: 24px;
+        }
+        
+        .onboarding-card h2 {
+          font-size: 22px;
+        }
+        
+        .btn-group {
+          flex-direction: column;
+        }
+      }
+    </style>
 </head>
 <body>
     <div class="matrix-bg"></div>
     
     ${getResponsiveNav(req)}
     
-    <div class="content">
-        <h1>Getting Started with Your Server</h1>
-        
-        <h2 style="color: var(--glow); font-size: 24px; margin: 32px 0 16px;">Step 1: Point Your Domain</h2>
-        
-        <p>When you purchase a server, we automatically create it and install everything needed. Now you need to point your domain to your new server.</p>
-        
-        <h3 style="color: #88FE00; margin: 24px 0 16px;">Getting Your Server's IP Address</h3>
-        <p>1. Log in to your <a href="/dashboard" style="color: var(--glow); text-decoration: underline;">dashboard</a></p>
-        <p>2. Go to "My Servers" and find your server</p>
-        <p>3. Copy the <strong>IP Address</strong> (looks like: 64.23.145.12)</p>
-        
-        <h3 style="color: #88FE00; margin: 24px 0 16px;">Update Your Domain's DNS Records</h3>
-        <p>You bought your domain from somewhere like GoDaddy, Namecheap, or another registrar. Log in there and find your DNS settings.</p>
-        
-        <p><strong>Common Steps:</strong></p>
-        <ol style="padding-left: 24px; line-height: 2;">
-            <li>Log into your domain registrar (GoDaddy, Namecheap, Bluehost, etc.)</li>
-            <li>Find "DNS Settings", "Manage DNS", or "Name Servers"</li>
-            <li>Look for "A Record"</li>
-            <li>Set the A Record to point to your server's IP address
-                <div style="background: rgba(136, 254, 0, 0.05); border-left: 3px solid var(--glow); padding: 12px; margin: 12px 0; font-family: monospace; font-size: 12px;">
-                    Type: A<br>
-                    Host: @ (or your domain name)<br>
-                    Value: 64.23.145.12 (your server IP)
-                </div>
-            </li>
-            <li>Save the changes</li>
-        </ol>
-        
-        <h2 style="color: var(--glow); font-size: 24px; margin: 32px 0 16px;">Step 2: Wait for DNS Propagation</h2>
-        <p>DNS changes take <strong>24-48 hours</strong> to fully propagate across the internet. Sometimes it's faster (minutes), sometimes slower (days). Be patient.</p>
-        
-        <p>To check if your domain is pointing correctly:</p>
-        <p>
-            Visit <a href="https://mxtoolbox.com/dnsrecord.aspx" target="_blank" style="color: var(--glow); text-decoration: underline;">MXToolbox DNS Lookup</a> 
-            and enter your domain. It should show your server's IP address.
-        </p>
-        
-        <h2 style="color: var(--glow); font-size: 24px; margin: 32px 0 16px;">Step 3: Get Free SSL Certificate</h2>
-        
-        <p>Once your domain is pointing to your server (DNS has propagated):</p>
-        
-        <ol style="padding-left: 24px; line-height: 2;">
-            <li>Go back to <a href="/dashboard" style="color: var(--glow); text-decoration: underline;">your dashboard</a></li>
-            <li>Find your server in "My Servers"</li>
-            <li>Click the <strong>blue "Domain" button</strong></li>
-            <li>Enter your domain name (example.com) and click "Assign & Activate SSL"</li>
-        </ol>
-        
-        <p style="background: rgba(136, 254, 0, 0.05); border-left: 3px solid var(--glow); padding: 12px; margin: 12px 0;">
-            <strong>⚠️ Important:</strong> Don't click this until your domain is actually pointing to your server. 
-            It will fail if DNS hasn't propagated yet.
-        </p>
-        
-        <h2 style="color: var(--glow); font-size: 24px; margin: 32px 0 16px;">Step 4: SSH Into Your Server</h2>
-        
-        <p>Once everything is set up, you can SSH into your server to deploy code, configure services, etc.</p>
-        
-        <div style="background: rgba(136, 254, 0, 0.05); border-left: 3px solid var(--glow); padding: 12px; margin: 12px 0; font-family: monospace; font-size: 12px;">
-            ssh root@your-ip-address<br>
-            (enter password when prompted)
+    <div class="wizard-container">
+      <h1 style="text-align: center; margin-bottom: 48px; color: #fff; font-size: 36px;">Welcome to Clouded Basement</h1>
+      
+      <div class="wizard-steps">
+        <div class="wizard-step">
+          <div class="step-circle ${hasPaid ? 'completed' : 'active'}">1</div>
+          <span class="step-label ${!hasPaid ? 'active' : ''}">Payment</span>
         </div>
-        
-        <h2 style="color: var(--glow); font-size: 24px; margin: 32px 0 16px;">What's Already Installed?</h2>
-        
-        <ul style="padding-left: 24px; line-height: 2;">
-            <li><strong>Nginx</strong> - Web server (ready to serve your sites)</li>
-            <li><strong>Certbot</strong> - Automatic SSL certificate management</li>
-            <li><strong>Firewall</strong> - Basic security configured</li>
-            <li><strong>Ubuntu 22.04</strong> - Latest stable Linux version</li>
-        </ul>
-        
-        <h2 style="color: var(--glow); font-size: 24px; margin: 32px 0 16px;">Need Help?</h2>
-        
-        <p><a href="/docs" style="color: var(--glow); text-decoration: underline;">Check our docs</a> or <a href="/contact" style="color: var(--glow); text-decoration: underline;">contact support</a></p>
-        
-        <a href="/dashboard" class="link-back">Back to dashboard</a>
+        <div class="wizard-step">
+          <div class="step-circle ${hasPaid && !hasServer ? 'active' : hasServer ? 'completed' : ''}">2</div>
+          <span class="step-label ${hasPaid && !hasServer ? 'active' : ''}">Request Server</span>
+        </div>
+        <div class="wizard-step">
+          <div class="step-circle ${hasServer ? 'active' : ''}">3</div>
+          <span class="step-label ${hasServer ? 'active' : ''}">Deploy</span>
+        </div>
+      </div>
+      
+      ${!hasPaid ? `
+        <div class="onboarding-card">
+          <h2>Step 1: Choose Your Plan</h2>
+          <p>You're almost there! To get started, you'll need to select a hosting plan.</p>
+          
+          <div class="info-box">
+            <p><strong>Founder Plan:</strong> $10/month for life — Lock in this price forever. Only 10 spots available!</p>
+          </div>
+          
+          <ul class="checklist">
+            <li>1GB RAM, 25GB SSD Storage</li>
+            <li>Full SSH Root Access</li>
+            <li>Pre-installed: Node.js, Python, Git, Nginx</li>
+            <li>Custom Domain + Free SSL</li>
+            <li>Direct support from the founder</li>
+          </ul>
+          
+          <div class="btn-group">
+            <a href="/pricing" class="btn primary">View Plans & Purchase</a>
+            <a href="/docs" class="btn">Learn More</a>
+          </div>
+        </div>
+      ` : !hasServer ? `
+        <div class="onboarding-card">
+          <h2>Step 2: Request Your Server</h2>
+          <p>Great! Your ${plan} plan is confirmed. Now let's set up your server.</p>
+          
+          <div class="info-box">
+            <p><strong>Setup time:</strong> Your server will be ready within 1-2 hours. We'll email you at <strong>${userEmail}</strong> when it's live with login credentials.</p>
+          </div>
+          
+          <div class="server-request-form">
+            <form action="/request-server" method="POST">
+              <div class="form-group">
+                <label for="region">Preferred Region</label>
+                <select id="region" name="region" required>
+                  <option value="">Select a region...</option>
+                  <option value="nyc1">New York (NYC)</option>
+                  <option value="sfo3">San Francisco (SFO)</option>
+                  <option value="tor1">Toronto (TOR)</option>
+                  <option value="lon1">London (LON)</option>
+                  <option value="ams3">Amsterdam (AMS)</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label for="server_name">Server Name <span style="color: #8892a0; font-size: 12px;">(optional)</span></label>
+                <input type="text" id="server_name" name="server_name" placeholder="my-server" />
+                <p style="font-size: 12px; color: #8892a0; margin-top: 8px; margin-bottom: 0;">Give your server a memorable name (e.g., "my-website", "api-server")</p>
+              </div>
+              
+              <div class="form-group">
+                <label for="use_case">What will you use it for? <span style="color: #8892a0; font-size: 12px;">(optional)</span></label>
+                <input type="text" id="use_case" name="use_case" placeholder="Node.js API, WordPress site, Python app, etc." />
+                <p style="font-size: 12px; color: #8892a0; margin-top: 8px; margin-bottom: 0;">This helps us optimize your server setup</p>
+              </div>
+              
+              <button type="submit" class="btn primary">Request Server Setup</button>
+            </form>
+          </div>
+          
+          <p style="text-align: center; margin-top: 24px; color: #8892a0; font-size: 14px;">
+            Questions? Email <a href="mailto:support@cloudedbasement.ca" style="color: #2DA7DF; text-decoration: none;">support@cloudedbasement.ca</a>
+          </p>
+        </div>
+      ` : `
+        <div class="onboarding-card">
+          <h2>🎉 Your Server is Ready!</h2>
+          <p>Congrats! Your server is set up and ready to use.</p>
+          
+          <ul class="checklist">
+            <li>Check your email for SSH credentials</li>
+            <li>Connect via SSH: <code style="background: rgba(0,0,0,0.4); padding: 2px 6px; border-radius: 3px;">ssh root@your-server-ip</code></li>
+            <li>Deploy your first app using our guides</li>
+            <li>Add a custom domain (optional)</li>
+          </ul>
+          
+          <div class="btn-group">
+            <a href="/dashboard" class="btn primary">Go to Dashboard</a>
+            <a href="/docs" class="btn">View Documentation</a>
+          </div>
+        </div>
+      `}
     </div>
     
     ${getFooter()}
-    ${getScripts('nav.js')}
+</body>
+</html>
   `);
+  
+  } catch (err) {
+    console.error('Getting started page error:', err);
+    res.status(500).send('Server error');
+  }
 };

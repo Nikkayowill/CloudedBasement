@@ -4,133 +4,32 @@ const { getDashboardHead, getFooter, getScripts, getResponsiveNav } = require('.
 // GET /dashboard
 exports.showDashboard = async (req, res) => {
   try {
+    // Check if user has paid
+    const paymentCheck = await pool.query(
+      'SELECT * FROM payments WHERE user_id = $1 AND status = $2 ORDER BY created_at DESC LIMIT 1',
+      [req.session.userId, 'succeeded']
+    );
+    
+    const hasPaid = paymentCheck.rows.length > 0;
+    
     // Get user's server info
     const serverResult = await pool.query(
       'SELECT * FROM servers WHERE user_id = $1',
       [req.session.userId]
     );
 
+    // If user hasn't paid or has no server, redirect to getting started
+    if (!hasPaid || serverResult.rows.length === 0) {
+      return res.redirect('/getting-started');
+    }
+
     // Get user settings for display
     const userResult = await pool.query('SELECT email, role, created_at FROM users WHERE id = $1', [req.session.userId]);
     const user = userResult.rows[0];
-
-    // No server state - show dashboard with servers/settings tabs
-    if (serverResult.rows.length === 0) {
-      return res.send(`
-${getDashboardHead('Dashboard - Basement')}
     
-    ${getResponsiveNav(req)}
-    
-    <div class="content">
-        <h1>Dashboard</h1>
-        
-        ${req.query.success ? `<div class="alert success">${req.query.success}<span class="alert-close" onclick="this.parentElement.style.display='none'">&times;</span></div>` : ''}
-        ${req.query.error ? `<div class="alert error">${req.query.error}<span class="alert-close" onclick="this.parentElement.style.display='none'">&times;</span></div>` : ''}
-        ${req.query.message ? `<div class="alert success">${req.query.message}<span class="alert-close" onclick="this.parentElement.style.display='none'">&times;</span></div>` : ''}
-        
-        <div style="display: flex; gap: 12px; margin-bottom: 24px; border-bottom: 1px solid rgba(136, 254, 0, 0.1); padding-bottom: 12px;">
-          <button class="tab active" style="padding: 8px 16px; background: none; border: none; color: var(--glow); cursor: pointer; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid var(--glow);" onclick="switchTab(event, 'servers')">Get Started</button>
-          <button class="tab" style="padding: 8px 16px; background: none; border: none; color: #8892a0; cursor: pointer; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid transparent;" onclick="switchTab(event, 'settings')">Settings</button>
-        </div>
-        
-        <div id="servers-tab" class="tab-content active">
-          <div class="card" style="text-align: center; padding: 64px 32px;">
-              <h2 style="font-size: 32px; margin-bottom: 16px;">Welcome to Basement</h2>
-              <p style="color: #8892a0; font-size: 16px; margin-bottom: 32px;">You don't have a server yet. Get started by choosing a plan.</p>
-              <a href="/pricing" class="btn" style="display: inline-block; padding: 16px 32px; font-size: 16px;">View Plans</a>
-          </div>
-          
-          <div class="dashboard-grid" style="margin-top: 32px;">
-              <div class="card">
-                  <h3 style="color: var(--glow); margin-bottom: 16px;">📊 Monitor</h3>
-                  <p style="color: #8892a0; font-size: 14px;">Track your server's performance, CPU usage, memory, and disk space in real-time.</p>
-              </div>
-              
-              <div class="card">
-                  <h3 style="color: var(--glow); margin-bottom: 16px;">🚀 Deploy</h3>
-                  <p style="color: #8892a0; font-size: 14px;">Connect your Git repository and deploy applications with a single click.</p>
-              </div>
-              
-              <div class="card">
-                  <h3 style="color: var(--glow); margin-bottom: 16px;">🌐 Domains</h3>
-                  <p style="color: #8892a0; font-size: 14px;">Add custom domains and manage DNS settings for your applications.</p>
-              </div>
-              
-              <div class="card">
-                  <h3 style="color: var(--glow); margin-bottom: 16px;">🔒 SSH Access</h3>
-                  <p style="color: #8892a0; font-size: 14px;">Full SSH access to your server with secure credentials and connection details.</p>
-              </div>
-          </div>
-        </div>
-        
-        <div id="settings-tab" class="tab-content" style="display: none;">
-          <div class="card">
-            <h2 style="margin-top: 0;">Account Settings</h2>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
-              <div>
-                <label style="display: block; color: #8892a0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Email</label>
-                <p style="margin: 0; color: #e0e6f0; padding: 12px; background: rgba(0, 0, 0, 0.3); border-radius: 4px; border: 1px solid rgba(136, 254, 0, 0.1);">${user.email}</p>
-              </div>
-              <div>
-                <label style="display: block; color: #8892a0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Account Type</label>
-                <p style="margin: 0; color: #e0e6f0; padding: 12px; background: rgba(0, 0, 0, 0.3); border-radius: 4px; border: 1px solid rgba(136, 254, 0, 0.1);">${user.role === 'admin' ? 'Admin' : 'User'}</p>
-              </div>
-              <div>
-                <label style="display: block; color: #8892a0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Member Since</label>
-                <p style="margin: 0; color: #e0e6f0; padding: 12px; background: rgba(0, 0, 0, 0.3); border-radius: 4px; border: 1px solid rgba(136, 254, 0, 0.1);">${new Date(user.created_at).toLocaleDateString()}</p>
-              </div>
-            </div>
-
-            <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(136, 254, 0, 0.1);">
-              <h3 style="color: var(--glow); font-size: 14px; margin-bottom: 16px;">Change Password</h3>
-              <form onsubmit="changePassword(event)" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
-                <div>
-                  <label style="display: block; color: #8892a0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Current Password</label>
-                  <input type="password" id="currentPassword" required style="width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(136, 254, 0, 0.2); border-radius: 4px; color: #e0e6f0; font-family: inherit; box-sizing: border-box;">
-                </div>
-                <div>
-                  <label style="display: block; color: #8892a0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">New Password</label>
-                  <input type="password" id="newPassword" required style="width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(136, 254, 0, 0.2); border-radius: 4px; color: #e0e6f0; font-family: inherit; box-sizing: border-box;">
-                </div>
-                <div>
-                  <label style="display: block; color: #8892a0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Confirm Password</label>
-                  <input type="password" id="confirmPassword" required style="width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(136, 254, 0, 0.2); border-radius: 4px; color: #e0e6f0; font-family: inherit; box-sizing: border-box;">
-                </div>
-                <div style="display: flex; align-items: flex-end;">
-                  <button type="submit" class="btn" style="background: rgba(136, 254, 0, 0.9); color: #000; width: 100%;">Update Password</button>
-                </div>
-              </form>
-            </div>
-
-            <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(136, 254, 0, 0.1);">
-              <h3 style="color: var(--glow); font-size: 14px; margin-bottom: 16px;">Account Actions</h3>
-              <a href="/logout" class="btn" style="display: inline-block; padding: 12px 24px; background: rgba(255, 68, 68, 0.2); color: #ff4444; text-decoration: none; border-radius: 4px;">Logout</a>
-            </div>
-          </div>
-        </div>
-    </div>
-    
-    <script>
-      function switchTab(event, tabName) {
-        event.preventDefault();
-        document.querySelectorAll('.tab').forEach(t => {
-          t.style.color = '#8892a0';
-          t.style.borderBottom = '2px solid transparent';
-        });
-        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
-        
-        event.target.style.color = 'var(--glow)';
-        event.target.style.borderBottom = '2px solid var(--glow)';
-        document.getElementById(tabName + '-tab').style.display = 'block';
-      }
-    </script>
-    <script src="/js/nav.js"></script>
-</body>
-</html>
-      `);
-    }
-
-    const server = serverResult.rows[0];
+    // User has server - show full dashboard
+    const servers = serverResult.rows;
+    const server = servers[0];
     
     // Get deployment history
     const deploymentsResult = await pool.query(
