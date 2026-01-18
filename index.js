@@ -141,6 +141,9 @@ app.post('/login',
   authController.handleLogin
 );
 
+// Email confirmation route
+app.get('/confirm-email/:token', authController.confirmEmail);
+
 // Logout route
 app.get('/logout', authController.handleLogout);
 
