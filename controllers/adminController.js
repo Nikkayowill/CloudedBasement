@@ -335,8 +335,6 @@ ${getHTMLHead('Admin Dashboard')}
                     <th>Plan</th>
                     <th>Status</th>
                     <th>IP Address</th>
-                    <th>Domain</th>
-                    <th>SSL</th>
                     <th>Created</th>
                     <th>Actions</th>
                   </tr>
@@ -349,12 +347,8 @@ ${getHTMLHead('Admin Dashboard')}
                       <td><span class="badge ${server.plan === 'premium' ? 'admin' : server.plan === 'priority' ? 'hostinger' : 'user'}">${server.plan}</span></td>
                       <td><span class="badge ${server.status === 'running' ? 'active' : server.status === 'provisioning' ? 'pending' : 'expired'}">${server.status}</span></td>
                       <td>${server.ip_address || 'Pending'}</td>
-                      <td>${server.domain || '<span style="color: #8892a0;">Not set</span>'}</td>
-                      <td><span class="badge ${server.ssl_status === 'active' ? 'active' : server.ssl_status === 'pending' ? 'pending' : server.ssl_status === 'failed' ? 'expired' : 'expired'}">${server.ssl_status}</span></td>
                       <td>${new Date(server.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
                       <td class="action-cell">
-                        <button class="action-btn" onclick="openEditServerModal(${server.id}, '${server.owner_email}', '${server.plan}', '${server.status}', '${server.ip_address || ''}', '${server.domain || ''}')">Edit</button>
-                        <button class="action-btn" onclick="openAssignDomainModal(${server.id}, '${server.domain || ''}')">Domain</button>
                         <button class="action-btn warning" onclick="openServerActionModal('restart', ${server.id}, '${server.owner_email}')">Restart</button>
                         <button class="action-btn danger" onclick="openDeleteServerModal(${server.id}, '${server.owner_email}')">Delete</button>
                       </td>
