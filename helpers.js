@@ -84,12 +84,10 @@ function getFooter() {
 // Auth Links
 function getAuthLinks(req) {
   if (req.session.userId) {
-    const isSuperAdmin = req.session.userEmail === 'nikkayowillpbiz@gmail.com';
+    const isAdmin = req.session.userRole === 'admin';
     
-    if (isSuperAdmin) {
+    if (isAdmin) {
       return '<li><a href="/admin">Admin</a></li><li><a href="/logout">Logout</a></li>';
-    } else if (req.session.isAdmin) {
-      return '<li><a href="/admin">Admin</a></li><li><a href="/dashboard">Dashboard</a></li><li><a href="/logout">Logout</a></li>';
     } else {
       return '<li><a href="/dashboard">Dashboard</a></li><li><a href="/logout">Logout</a></li>';
     }
@@ -100,14 +98,14 @@ function getAuthLinks(req) {
 
 // Responsive Nav
 function getResponsiveNav(req) {
-  const isSuperAdmin = req.session?.userEmail === 'nikkayowillpbiz@gmail.com';
+  const isAdmin = req.session?.userRole === 'admin';
   
   let navLinks = '';
-  if (isSuperAdmin) {
+  if (isAdmin) {
     navLinks = `
-      <li><a href="/docs">Docs</a></li>
       <li><a href="/admin">Admin</a></li>
-      ${req.session.userId ? '<li><a href="/logout">Logout</a></li>' : '<li><a href="/login">Login</a></li>'}
+      <li><a href="/docs">Docs</a></li>
+      <li><a href="/logout">Logout</a></li>
     `;
   } else {
     navLinks = `
