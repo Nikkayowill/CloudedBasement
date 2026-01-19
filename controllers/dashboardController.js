@@ -53,6 +53,7 @@ exports.showDashboard = async (req, res) => {
     const domains = domainsResult.rows;
     const tickets = ticketsResult.rows;
     const specs = typeof server.specs === 'string' ? JSON.parse(server.specs) : server.specs;
+    const csrfToken = req.csrfToken(); // Get CSRF token
 
     res.send(`
 ${getDashboardHead('Dashboard - Basement')}
@@ -178,9 +179,10 @@ ${getDashboardHead('Dashboard - Basement')}
             </div>
             
             <p><strong>Password:</strong></p>
-            <div class="copy-box">
-                <span>${server.ssh_password}</span>
-                <button class="copy-btn" onclick="copyToClipboard('${server.ssh_password}')">Copy</button>
+            <div class="copy-box" id="password-box">
+                <span id="password-display" style="filter: blur(4px); user-select: none;">••••••••••••</span>
+                <button class="copy-btn" id="reveal-btn" onclick="revealPassword('${server.ssh_password}')">Reveal</button>
+                <button class="copy-btn" id="copy-password-btn" style="display: none;" onclick="copyPassword()">Copy</button>
             </div>
             
             <p><strong>Connection command:</strong></p>
@@ -196,21 +198,25 @@ ${getDashboardHead('Dashboard - Basement')}
             
             ${server.status === 'stopped' ? `
                 <form action="/server-action" method="POST" style="display: inline;">
+                    <input type="hidden" name="_csrf" value="${csrfToken}">
                     <input type="hidden" name="action" value="start">
                     <button type="submit" class="btn">Start Server</button>
                 </form>
             ` : `
                 <form action="/server-action" method="POST" style="display: inline;">
+                    <input type="hidden" name="_csrf" value="${csrfToken}">
                     <input type="hidden" name="action" value="restart">
                     <button type="submit" class="btn">Restart Server</button>
                 </form>
                 <form action="/server-action" method="POST" style="display: inline;">
+                    <input type="hidden" name="_csrf" value="${csrfToken}">
                     <input type="hidden" name="action" value="stop">
                     <button type="submit" class="btn">Stop Server</button>
                 </form>
             `}
             
             <form action="/delete-server" method="POST" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid rgba(255, 68, 68, 0.2);" onsubmit="return confirm('Are you sure? This will permanently destroy your server and all data on it.');">
+                <input type="hidden" name="_csrf" value="${csrfToken}">
                 <p style="color: #ff4444; font-size: 13px; margin-bottom: 12px;">⚠️ Danger Zone</p>
                 <button type="submit" class="btn" style="background: transparent; border-color: #ff4444; color: #ff4444;">Delete Server</button>
             </form>
@@ -250,6 +256,7 @@ ${getDashboardHead('Dashboard - Basement')}
             <p style="margin-bottom: 16px; color: #8892a0;">Connect a domain you own to your server</p>
             
             <form action="/add-domain" method="POST" style="margin-bottom: 24px;">
+                <input type="hidden" name="_csrf" value="${csrfToken}">
                 <label style="display: block; margin-bottom: 8px;">
                     <span style="color: var(--glow); font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Domain Name</span>
                     <input type="text" name="domain" placeholder="example.com" 
@@ -265,6 +272,7 @@ ${getDashboardHead('Dashboard - Basement')}
                     Secure your domain with free HTTPS certificate from Let's Encrypt. Make sure your domain's DNS is pointing to your server IP before enabling SSL.
                 </p>
                 <form action="/enable-ssl" method="POST">
+                    <input type="hidden" name="_csrf" value="${csrfToken}">
                     <label style="display: block; margin-bottom: 8px;">
                         <span style="color: var(--glow); font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Domain to Secure</span>
                         <input type="text" name="domain" placeholder="example.com" 
@@ -454,7 +462,10 @@ ${getDashboardHead('Dashboard - Basement')}
 
         const res = await fetch('/submit-ticket', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'CSRF-Token': '${csrfToken}'
+          },
           body: JSON.stringify({ subject, description, priority })
         });
         const data = await res.json();
@@ -490,7 +501,10 @@ ${getDashboardHead('Dashboard - Basement')}
 
         const res = await fetch('/change-password', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'CSRF-Token': '${csrfToken}'
+          },
           body: JSON.stringify({ currentPassword, newPassword })
         });
         const data = await res.json();
@@ -510,6 +524,22 @@ ${getDashboardHead('Dashboard - Basement')}
           closeSubmitTicketModal();
         }
       });
+
+      // Password reveal/copy functionality
+      let revealedPassword = null;
+      function revealPassword(password) {
+        revealedPassword = password;
+        document.getElementById('password-display').textContent = password;
+        document.getElementById('password-display').style.filter = 'none';
+        document.getElementById('password-display').style.userSelect = 'text';
+        document.getElementById('reveal-btn').style.display = 'none';
+        document.getElementById('copy-password-btn').style.display = 'inline-block';
+      }
+      function copyPassword() {
+        if (revealedPassword) {
+          copyToClipboard(revealedPassword);
+        }
+      }
     </script>
     `);
   } catch (error) {

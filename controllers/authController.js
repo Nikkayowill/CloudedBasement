@@ -260,18 +260,26 @@ const handleLogin = async (req, res) => {
       return res.redirect('/login?error=Invalid email or password');
     }
 
-    // Set session (allow login even without email confirmation)
-    req.session.userId = user.id;
-    req.session.userEmail = user.email;
-    req.session.userRole = user.role;
-    req.session.emailConfirmed = user.email_confirmed; // Store confirmation status
+    // Regenerate session to prevent session fixation attacks
+    req.session.regenerate((err) => {
+      if (err) {
+        console.error('Session regeneration error:', err);
+        return res.redirect('/login?error=An error occurred. Please try again.');
+      }
 
-    // Redirect based on role
-    if (user.role === 'admin') {
-      res.redirect('/admin');
-    } else {
-      res.redirect('/dashboard');
-    }
+      // Set session (allow login even without email confirmation)
+      req.session.userId = user.id;
+      req.session.userEmail = user.email;
+      req.session.userRole = user.role;
+      req.session.emailConfirmed = user.email_confirmed; // Store confirmation status
+
+      // Redirect based on role
+      if (user.role === 'admin') {
+        return res.redirect('/admin');
+      } else {
+        return res.redirect('/dashboard');
+      }
+    });
   } catch (error) {
     console.error('Login error:', error);
     return res.redirect('/login?error=An error occurred. Please try again.');

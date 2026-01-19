@@ -2,6 +2,24 @@ const axios = require('axios');
 const { Client } = require('ssh2');
 const pool = require('../db');
 
+// Strict DNS-compliant domain validation
+function isValidDomain(domain) {
+  // DNS RFC compliance: max 253 chars, labels max 63 chars, valid chars only
+  if (!domain || domain.length > 253) return false;
+  
+  const domainRegex = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i;
+  if (!domainRegex.test(domain)) return false;
+  
+  // Check each label (part between dots)
+  const labels = domain.split('.');
+  for (const label of labels) {
+    if (label.length > 63 || label.length === 0) return false;
+    if (label.startsWith('-') || label.endsWith('-')) return false;
+  }
+  
+  return true;
+}
+
 // POST /server-action
 exports.serverAction = async (req, res) => {
   try {
@@ -257,10 +275,9 @@ exports.enableSSL = async (req, res) => {
     const domain = req.body.domain.toLowerCase().trim();
     const userId = req.session.userId;
 
-    // Validate domain
-    const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.[a-zA-Z]{2,}$/;
-    if (!domain || !domainRegex.test(domain)) {
-      return res.redirect('/dashboard?error=Invalid domain format');
+    // Validate domain with strict DNS compliance
+    if (!domain || !isValidDomain(domain)) {
+      return res.redirect('/dashboard?error=Invalid domain format. Use format: example.com');
     }
 
     // Get user's server
@@ -296,40 +313,75 @@ exports.enableSSL = async (req, res) => {
   }
 };
 
-// Background function to trigger SSL via SSH
+// Background function to trigger SSL via SSH2 library (secure, no command injection)
 async function triggerSSLCertificateForCustomer(serverId, domain, server) {
-  try {
-    const { exec } = require('child_process');
-    const util = require('util');
-    const execPromise = util.promisify(exec);
-
-    // Generate Certbot command - runs on the server
-    const certbotCmd = `certbot certonly --standalone -d ${domain} --email admin@${domain} --non-interactive --agree-tos`;
-
-    // SSH command to run on server
-    const sshCmd = `sshpass -p '${server.ssh_password}' ssh -o StrictHostKeyChecking=no ${server.ssh_username}@${server.ip_address} "${certbotCmd}"`;
-
-    console.log(`[SSL] Running Certbot on server ${serverId} for domain ${domain}...`);
+  return new Promise((resolve, reject) => {
+    const conn = new Client();
     
-    const { stdout, stderr } = await execPromise(sshCmd, { timeout: 60000 });
-
-    if (stdout.includes('Congratulations') || stderr.includes('Congratulations')) {
-      // Certificate generated successfully
-      await pool.query(
-        'UPDATE servers SET ssl_status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
-        ['active', serverId]
-      );
-      console.log(`[SSL] Certificate activated for ${domain} on server ${serverId}`);
-    } else {
-      throw new Error('Certbot command did not complete successfully');
-    }
-  } catch (error) {
+    conn.on('ready', () => {
+      console.log(`[SSL] SSH connected to server ${serverId}`);
+      
+      // Use SSH2 library's exec with properly escaped parameters
+      // Domain is already validated by isValidDomain() before reaching here
+      const certbotCmd = `certbot certonly --standalone -d "${domain}" --email "admin@${domain}" --non-interactive --agree-tos`;
+      
+      conn.exec(certbotCmd, { timeout: 60000 }, (err, stream) => {
+        if (err) {
+          conn.end();
+          return reject(err);
+        }
+        
+        let stdout = '';
+        let stderr = '';
+        
+        stream.on('close', async (code) => {
+          conn.end();
+          
+          try {
+            if (stdout.includes('Congratulations') || stderr.includes('Congratulations')) {
+              // Certificate generated successfully
+              await pool.query(
+                'UPDATE servers SET ssl_status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+                ['active', serverId]
+              );
+              console.log(`[SSL] Certificate activated for ${domain} on server ${serverId}`);
+              resolve();
+            } else {
+              throw new Error('Certbot command did not complete successfully');
+            }
+          } catch (dbError) {
+            reject(dbError);
+          }
+        });
+        
+        stream.on('data', (data) => {
+          stdout += data.toString();
+        });
+        
+        stream.stderr.on('data', (data) => {
+          stderr += data.toString();
+        });
+      });
+    });
+    
+    conn.on('error', (err) => {
+      console.error(`[SSL] SSH connection error for server ${serverId}:`, err.message);
+      reject(err);
+    });
+    
+    conn.connect({
+      host: server.ip_address,
+      port: 22,
+      username: server.ssh_username,
+      password: server.ssh_password
+    });
+  }).catch(async (error) => {
     console.error(`[SSL] Error generating certificate for server ${serverId}:`, error.message);
     await pool.query(
       'UPDATE servers SET ssl_status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
       ['failed', serverId]
     );
-  }
+  });
 }
 
 module.exports = {
