@@ -105,39 +105,32 @@ exports.createCheckoutSession = async (req, res) => {
 exports.paymentSuccess = async (req, res) => {
   try {
     const sessionId = req.query.session_id;
+    const plan = req.query.plan || 'founder';
     
-    // Check if user already has a server
-    const existingServer = await pool.query(
-      'SELECT * FROM servers WHERE user_id = $1',
-      [req.session.userId]
-    );
-
-    // If no server exists, create one (real provisioning)
-    if (existingServer.rows.length === 0) {
-      const plan = req.query.plan || 'basic';
-      
-      // Get the checkout session to retrieve the charge ID
-      let chargeId = null;
-      if (sessionId) {
-        try {
-          const session = await stripe.checkout.sessions.retrieve(sessionId, {
-            expand: ['payment_intent']
-          });
-          
-          // Get charge ID from payment intent
-          if (session.payment_intent && typeof session.payment_intent === 'object') {
-            const paymentIntent = session.payment_intent;
-            if (paymentIntent.charges && paymentIntent.charges.data.length > 0) {
-              chargeId = paymentIntent.charges.data[0].id;
-              console.log('Retrieved charge ID:', chargeId);
-            }
-          }
-        } catch (stripeError) {
-          console.error('Error retrieving session:', stripeError.message);
+    // Record payment immediately so onboarding wizard detects it
+    if (sessionId) {
+      try {
+        const session = await stripe.checkout.sessions.retrieve(sessionId, {
+          expand: ['payment_intent']
+        });
+        
+        // Check if payment already recorded
+        const existingPayment = await pool.query(
+          'SELECT * FROM payments WHERE stripe_payment_id = $1',
+          [session.payment_intent.id]
+        );
+        
+        // Record payment if not already in database
+        if (existingPayment.rows.length === 0) {
+          await pool.query(
+            'INSERT INTO payments (user_id, stripe_payment_id, amount, plan, status) VALUES ($1, $2, $3, $4, $5)',
+            [req.session.userId, session.payment_intent.id, session.amount_total / 100, plan, 'succeeded']
+          );
+          console.log('Payment recorded:', session.payment_intent.id);
         }
+      } catch (stripeError) {
+        console.error('Error recording payment:', stripeError.message);
       }
-      
-      await createRealServer(req.session.userId, plan, chargeId);
     }
 
   } catch (error) {
