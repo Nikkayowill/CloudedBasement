@@ -186,6 +186,7 @@ app.get('/dashboard', requireAuth, dashboardController.showDashboard);
 
 // Admin - dashboard
 app.get('/admin', requireAuth, requireAdmin, adminController.listUsers);
+app.post('/admin/delete-user/:id', requireAuth, requireAdmin, adminController.deleteUser);
 
 // Admin - domain management (API endpoints only - UI is in /admin/users)
 app.get('/admin/domains/list', requireAuth, requireAdmin, domainController.listDomains);

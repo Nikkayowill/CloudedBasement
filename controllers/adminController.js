@@ -109,6 +109,7 @@ ${getHTMLHead('Admin Dashboard')}
                 <th>Role</th>
                 <th>Confirmed</th>
                 <th>Created</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -118,6 +119,11 @@ ${getHTMLHead('Admin Dashboard')}
                   <td>${u.role}</td>
                   <td>${u.email_confirmed ? 'Yes' : 'No'}</td>
                   <td>${new Date(u.created_at).toLocaleDateString()}</td>
+                  <td>
+                    <form method="POST" action="/admin/delete-user/${u.id}" style="display: inline;" onsubmit="return confirm('Delete user ${u.email}? This will also delete all their servers, deployments, and payments.');">
+                      <button type="submit" style="background: #ff4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px;">Delete</button>
+                    </form>
+                  </td>
                 </tr>
               `).join('')}
             </tbody>
@@ -255,4 +261,19 @@ ${getHTMLHead('Admin Dashboard')}
   }
 };
 
-module.exports = { listUsers };
+// POST /admin/delete-user/:id - Delete a user account
+const deleteUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    
+    // Delete user (cascade will handle related records if foreign keys are set up)
+    await pool.query('DELETE FROM users WHERE id = $1', [userId]);
+    
+    res.redirect('/admin?success=User deleted successfully');
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.redirect('/admin?error=Failed to delete user');
+  }
+};
+
+module.exports = { listUsers, deleteUser };
