@@ -7,12 +7,19 @@ function toggleFaq(element) {
     // Close all other FAQs
     document.querySelectorAll('.faq-item').forEach(faq => {
         faq.classList.remove('active');
-        faq.querySelector('.faq-answer').style.maxHeight = null;
+        const faqAnswer = faq.querySelector('.faq-answer');
+        if (faqAnswer) {
+            faqAnswer.style.maxHeight = '0';
+        }
     });
     
     // Toggle current FAQ
     if (!isActive) {
         item.classList.add('active');
+        // Set maxHeight to scrollHeight to allow smooth transition
         answer.style.maxHeight = answer.scrollHeight + 'px';
+    } else {
+        // If clicking the same item, close it
+        answer.style.maxHeight = '0';
     }
 }
