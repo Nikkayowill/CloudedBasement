@@ -5,7 +5,7 @@ exports.showAbout = (req, res) => {
   res.send(`
 ${getHTMLHead('About - Basement')}
 </head>
-<body>
+<body class="bg-gray-900">
     <div class="matrix-bg"></div>
     
     ${getResponsiveNav(req)}
@@ -51,7 +51,7 @@ exports.showTerms = (req, res) => {
   res.send(`
 ${getHTMLHead('Terms of Service - Basement')}
 </head>
-<body>
+<body class="bg-gray-900">
     <div class="matrix-bg"></div>
     
     ${getResponsiveNav(req)}
@@ -72,7 +72,7 @@ exports.showPricing = (req, res) => {
   res.send(`
 ${getHTMLHead('Pricing - Basement')}
 </head>
-<body>
+<body class="bg-gray-900">
     <div class="matrix-bg"></div>
     
     ${getResponsiveNav(req)}
@@ -168,7 +168,7 @@ exports.showPrivacy = (req, res) => {
   res.send(`
 ${getHTMLHead('Privacy Policy - Basement')}
 </head>
-<body>
+<body class="bg-gray-900">
     <div class="matrix-bg"></div>
     
     ${getResponsiveNav(req)}
@@ -344,7 +344,7 @@ exports.showFaq = (req, res) => {
   res.send(`
 ${getHTMLHead('FAQ - Basement')}
 </head>
-<body>
+<body class="bg-gray-900">
     <div class="matrix-bg"></div>
     
     ${getResponsiveNav(req)}
@@ -541,7 +541,7 @@ exports.showDocs = (req, res) => {
   res.send(`
 ${getHTMLHead('Documentation - Basement')}
 </head>
-<body>
+<body class="bg-gray-900">
     <div class="matrix-bg"></div>
     
     ${getResponsiveNav(req)}
@@ -689,9 +689,7 @@ exports.showContact = (req, res) => {
   res.send(`
 ${getHTMLHead('Contact - Basement')}
 </head>
-<body>
-  <div class="matrix-bg"></div>
-  
+<body class="bg-gray-900">
   ${getResponsiveNav(req)}
   
   <div class="max-w-2xl mx-auto px-4 py-32">
