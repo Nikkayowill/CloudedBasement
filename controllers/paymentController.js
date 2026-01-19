@@ -15,7 +15,6 @@ exports.showCheckout = (req, res) => {
   
   res.send(`
 ${getHTMLHead('Checkout - Basement')}
-    <link rel="stylesheet" href="/css/global.css">
     <style>
         .checkout-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 120px 5vw 60px; }
         .checkout-card { background: var(--bg-card); border: 1px solid var(--border-glow); border-radius: 8px; 
