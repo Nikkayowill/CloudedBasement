@@ -570,6 +570,51 @@ const verifyEmailCode = async (req, res) => {
   }
 };
 
+// POST /resend-code - Resend verification code (returns JSON)
+const resendCode = async (req, res) => {
+  try {
+    const email = req.session.unverifiedEmail;
+
+    if (!email) {
+      return res.json({ success: false, error: 'No email in session' });
+    }
+
+    // Find user
+    const result = await pool.query('SELECT id, email, email_confirmed FROM users WHERE email = $1', [email]);
+    
+    if (result.rows.length === 0) {
+      return res.json({ success: false, error: 'User not found' });
+    }
+
+    const user = result.rows[0];
+
+    if (user.email_confirmed) {
+      return res.json({ success: false, error: 'Email already confirmed' });
+    }
+
+    // Generate new code
+    const { code, expiresAt } = createConfirmationCode();
+
+    // Update user with new code
+    await pool.query(
+      'UPDATE users SET email_token = $1, token_expires_at = $2 WHERE id = $3',
+      [code, expiresAt, user.id]
+    );
+
+    // Send confirmation email
+    const emailResult = await sendConfirmationEmail(email, code);
+
+    if (emailResult.success) {
+      return res.json({ success: true, message: 'Code sent! Check your inbox.' });
+    } else {
+      return res.json({ success: false, error: 'Failed to send email. Try again.' });
+    }
+  } catch (error) {
+    console.error('Resend code error:', error);
+    return res.json({ success: false, error: 'Something went wrong' });
+  }
+};
+
 module.exports = {
   showRegister,
   handleRegister,
@@ -578,5 +623,6 @@ module.exports = {
   confirmEmail,
   handleLogout,
   showVerifyEmail,
-  verifyEmailCode
+  verifyEmailCode,
+  resendCode
 };
