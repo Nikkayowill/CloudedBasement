@@ -216,5 +216,48 @@ async function syncDigitalOceanDroplets() {
 
 module.exports = {
   createRealServer,
-  syncDigitalOceanDroplets
+  syncDigitalOceanDroplets,
+  destroyDroplet: async (serverId) => {
+    try {
+      // Get server info
+      const serverResult = await pool.query('SELECT * FROM servers WHERE id = $1', [serverId]);
+      if (serverResult.rows.length === 0) {
+        throw new Error('Server not found');
+      }
+      
+      const server = serverResult.rows[0];
+      const ipAddress = server.ip_address;
+      
+      if (!ipAddress || ipAddress === 'pending' || ipAddress === 'N/A') {
+        // No droplet to destroy, just delete the record
+        await pool.query('DELETE FROM servers WHERE id = $1', [serverId]);
+        return { success: true, message: 'Server record deleted (no droplet found)' };
+      }
+      
+      // Find droplet by IP address
+      const response = await axios.get('https://api.digitalocean.com/v2/droplets', {
+        headers: { 'Authorization': `Bearer ${process.env.DIGITALOCEAN_TOKEN}` }
+      });
+      
+      const droplet = response.data.droplets.find(d => 
+        d.networks?.v4?.some(net => net.ip_address === ipAddress)
+      );
+      
+      if (droplet) {
+        // Destroy the droplet
+        await axios.delete(`https://api.digitalocean.com/v2/droplets/${droplet.id}`, {
+          headers: { 'Authorization': `Bearer ${process.env.DIGITALOCEAN_TOKEN}` }
+        });
+        console.log(`Destroyed droplet ${droplet.id} for server ${serverId}`);
+      }
+      
+      // Delete server record from database
+      await pool.query('DELETE FROM servers WHERE id = $1', [serverId]);
+      
+      return { success: true, message: 'Droplet destroyed and server record deleted' };
+    } catch (error) {
+      console.error('Destroy droplet error:', error.response?.data || error.message);
+      throw error;
+    }
+  }
 };
