@@ -128,6 +128,21 @@ exports.paymentSuccess = async (req, res) => {
           );
           console.log('Payment recorded:', session.payment_intent.id);
         }
+        
+        // Automatically create server if user doesn't have one
+        const serverCheck = await pool.query(
+          'SELECT * FROM servers WHERE user_id = $1',
+          [req.session.userId]
+        );
+        
+        if (serverCheck.rows.length === 0) {
+          console.log('Creating server automatically for user:', req.session.userId);
+          await createRealServer(req.session.userId, plan, session.payment_intent.id);
+          console.log('Server creation initiated');
+        } else {
+          console.log('User already has server, skipping creation');
+        }
+        
       } catch (stripeError) {
         console.error('Error recording payment:', stripeError.message);
       }
