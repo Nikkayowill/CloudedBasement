@@ -130,19 +130,8 @@ exports.paymentSuccess = async (req, res) => {
       console.log('Payment recorded:', session.payment_intent.id);
     }
     
-    // Automatically create server if user doesn't have one
-    const serverCheck = await pool.query(
-      'SELECT * FROM servers WHERE user_id = $1',
-      [req.session.userId]
-    );
-    
-    if (serverCheck.rows.length === 0) {
-      console.log('Creating server automatically for user:', req.session.userId);
-      await createRealServer(req.session.userId, plan, session.payment_intent.id);
-      console.log('Server creation initiated');
-    } else {
-      console.log('User already has server, skipping creation');
-    }
+    // Server creation now handled by webhook only to prevent race conditions
+    console.log('Payment recorded. Server provisioning will be handled by webhook.');
 
   } catch (error) {
     console.error('Payment processing error:', error);
@@ -315,6 +304,19 @@ exports.stripeWebhook = async (req, res) => {
           );
 
           console.log(`Payment recorded: User ${userId}, $${amount}, Plan: ${plan}`);
+          
+          // Create server if user doesn't have one (webhook is single source of truth)
+          const serverCheck = await pool.query(
+            'SELECT * FROM servers WHERE user_id = $1 AND status NOT IN (\'deleted\', \'failed\')',
+            [userId]
+          );
+          
+          if (serverCheck.rows.length === 0) {
+            console.log('Creating server for user from webhook:', userId);
+            await createRealServer(userId, plan, paymentIntent.id);
+          } else {
+            console.log('User already has active server, skipping creation');
+          }
         } catch (error) {
           console.error('Error processing payment_intent.succeeded:', error);
         }
