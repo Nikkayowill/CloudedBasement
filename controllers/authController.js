@@ -85,8 +85,9 @@ const handleRegister = async (req, res) => {
     const emailResult = await sendConfirmationEmail(email, code);
     
     if (emailResult.success) {
+      req.session.unverifiedEmail = email;
       req.session.flashMessage = `Confirmation code sent to ${email}. Check your inbox!`;
-      res.redirect(`/verify-code?email=${encodeURIComponent(email)}`);
+      res.redirect('/verify-email');
     } else {
       console.error('Failed to send confirmation email:', emailResult.error);
       res.status(500).send('Registration successful but email delivery failed. Please contact support.');
@@ -507,11 +508,74 @@ const handleVerifyCode = async (req, res) => {
   }
 };
 
+// GET /verify-email - Show code entry page
+const showVerifyEmail = (req, res) => {
+  res.sendFile(__dirname + '/../verify-email.html');
+};
+
+// POST /verify-email - Handle code verification
+const verifyEmailCode = async (req, res) => {
+  try {
+    const { code } = req.body;
+    const email = req.session.unverifiedEmail;
+
+    if (!code || !email) {
+      return res.redirect('/verify-email?error=Invalid request');
+    }
+
+    // Find user with this code
+    const userResult = await pool.query(
+      'SELECT id, email, email_confirmed, email_token, token_expires_at FROM users WHERE email = $1',
+      [email]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.redirect('/register?error=User not found');
+    }
+
+    const user = userResult.rows[0];
+
+    // Check if already confirmed
+    if (user.email_confirmed) {
+      req.session.userId = user.id;
+      return res.redirect('/dashboard');
+    }
+
+    // Verify code matches
+    if (user.email_token !== code) {
+      return res.redirect('/verify-email?error=Invalid code. Please try again.');
+    }
+
+    // Check if code is expired
+    if (!isCodeValid(user.token_expires_at)) {
+      return res.redirect('/verify-email?error=Code expired. Please request a new one.');
+    }
+
+    // Mark email as confirmed
+    await pool.query(
+      'UPDATE users SET email_confirmed = true, email_token = NULL, token_expires_at = NULL WHERE id = $1',
+      [user.id]
+    );
+
+    // Set session
+    req.session.userId = user.id;
+    delete req.session.unverifiedEmail;
+
+    // Redirect to dashboard
+    res.redirect('/dashboard?message=Email confirmed! Welcome to Basement.');
+  } catch (error) {
+    console.error('Email verification error:', error);
+    res.redirect('/verify-email?error=Verification failed. Please try again.');
+  }
+};
+
 module.exports = {
   showRegister,
   handleRegister,
   showLogin,
   handleLogin,
   confirmEmail,
-  handleLogout
+  handleLogout,
+  showVerifyEmail,
+  verifyEmailCode
 };
