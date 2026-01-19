@@ -1066,7 +1066,7 @@ ${getHTMLHead('Admin Dashboard')}
           alert('Error: User ID not found');
           return;
         }
-        const res = await fetch(`/admin/users/${currentUserId}`, {
+        const res = await fetch('/admin/users/' + currentUserId, {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' }
         });
