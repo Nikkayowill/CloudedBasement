@@ -9,12 +9,14 @@ const listUsers = async (req, res) => {
     const domainsResult = await pool.query('SELECT id, domain, ssl_enabled, ssl_expires_at, created_at FROM domains ORDER BY created_at DESC');
     const deploymentsResult = await pool.query('SELECT d.id, d.git_url, d.status, d.deployed_at, u.email as owner_email FROM deployments d LEFT JOIN users u ON d.user_id = u.id ORDER BY d.deployed_at DESC LIMIT 50');
     const paymentsResult = await pool.query('SELECT p.id, p.amount, p.plan, p.status, p.created_at, u.email as customer_email FROM payments p LEFT JOIN users u ON p.user_id = u.id ORDER BY p.created_at DESC LIMIT 50');
+    const pendingRequestsResult = await pool.query('SELECT t.id, t.message, t.status, t.created_at, u.email as customer_email FROM support_tickets t LEFT JOIN users u ON t.user_id = u.id WHERE t.subject = $1 AND t.status IN ($2, $3) ORDER BY t.created_at ASC', ['Server Setup Request', 'open', 'in_progress']);
     
     const users = usersResult.rows;
     const servers = serversResult.rows;
     const domains = domainsResult.rows;
     const deployments = deploymentsResult.rows;
     const payments = paymentsResult.rows;
+    const pendingRequests = pendingRequestsResult.rows;
 
     res.send(`
 ${getHTMLHead('Admin Dashboard')}
@@ -45,6 +47,49 @@ ${getHTMLHead('Admin Dashboard')}
       <div class="admin-header">
         <h1 class="admin-title">Admin Dashboard</h1>
       </div>
+
+      <!-- Pending Server Requests (Priority) -->
+      ${pendingRequests.length > 0 ? `
+      <div class="section">
+        <h2 class="section-title" style="color: #2DA7DF;">⚡ Pending Server Requests (${pendingRequests.length})</h2>
+        <div class="table-card" style="border-color: #2DA7DF; background: rgba(45, 167, 223, 0.05);">
+          <table>
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Details</th>
+                <th>Status</th>
+                <th>Requested</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${pendingRequests.map(r => {
+                const details = r.message.split('\n').reduce((acc, line) => {
+                  const [key, val] = line.split(': ');
+                  acc[key] = val;
+                  return acc;
+                }, {});
+                return `
+                <tr>
+                  <td><strong>${r.customer_email}</strong></td>
+                  <td>
+                    <div style="font-size: 12px; color: #a0a8b8;">
+                      <div>Region: <strong style="color: #2DA7DF;">${details.Region || 'N/A'}</strong></div>
+                      <div>Name: ${details['Server Name'] || 'Default'}</div>
+                      <div>Use: ${details['Use Case'] || 'Not specified'}</div>
+                    </div>
+                  </td>
+                  <td><span style="padding: 4px 12px; background: rgba(255, 165, 0, 0.2); color: #ffa500; border-radius: 12px; font-size: 11px; text-transform: uppercase;">${r.status}</span></td>
+                  <td>${new Date(r.created_at).toLocaleDateString()} ${new Date(r.created_at).toLocaleTimeString()}</td>
+                  <td><a href="https://cloud.digitalocean.com/droplets/new" target="_blank" style="color: #2DA7DF; text-decoration: underline; font-size: 12px;">Provision →</a></td>
+                </tr>
+              `}).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      ` : ''}
 
       <!-- Users Section -->
       <div class="section">

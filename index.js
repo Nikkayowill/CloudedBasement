@@ -26,6 +26,7 @@ const adminController = require('./controllers/adminController-clean');
 const domainController = require('./controllers/domainController');
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./middleware/logger');
+const { sendServerRequestEmail } = require('./services/email');
 
 const app = express();
 
@@ -247,6 +248,16 @@ app.post('/request-server', requireAuth, async (req, res) => {
       return res.redirect('/dashboard?error=server_exists');
     }
     
+    // Check for existing pending request
+    const existingTicket = await pool.query(
+      'SELECT * FROM support_tickets WHERE user_id = $1 AND subject = $2 AND status IN ($3, $4)',
+      [req.session.userId, 'Server Setup Request', 'open', 'in_progress']
+    );
+    
+    if (existingTicket.rows.length > 0) {
+      return res.redirect('/getting-started?error=request_already_pending');
+    }
+    
     // Store server request (you'll process this manually)
     await pool.query(
       `INSERT INTO support_tickets (user_id, subject, message, status) 
@@ -258,6 +269,15 @@ app.post('/request-server', requireAuth, async (req, res) => {
         'open'
       ]
     );
+    
+    // Get user email and send confirmation
+    const userResult = await pool.query('SELECT email FROM users WHERE id = $1', [req.session.userId]);
+    const userEmail = userResult.rows[0].email;
+    
+    // Send confirmation email (don't wait for it)
+    sendServerRequestEmail(userEmail, region, server_name || 'Default').catch(err => {
+      console.error('Failed to send server request email:', err);
+    });
     
     res.redirect('/getting-started?success=request_submitted');
   } catch (err) {
