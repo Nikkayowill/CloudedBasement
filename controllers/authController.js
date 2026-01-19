@@ -323,7 +323,6 @@ ${getHTMLHead('Invalid Token - Basement')}
     if (!isTokenValid(user.token_expires_at)) {
       return res.status(400).send(`
 ${getHTMLHead('Token Expired - Basement')}
-    <link rel="stylesheet" href="/css/auth.css">
 <body class="bg-gray-900">
     <div class="matrix-bg"></div>
     ${getResponsiveNav(req)}
@@ -423,7 +422,6 @@ const showVerifyCode = (req, res) => {
   const email = req.query.email || '';
   res.send(`
 ${getHTMLHead('Verify Code - Basement')}
-    <link rel="stylesheet" href="/css/auth.css">
 <body class="bg-gray-900">
     <div class="matrix-bg"></div>
     
