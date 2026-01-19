@@ -108,12 +108,19 @@
 <body>
     <div class="matrix-bg"></div>
     
-    <nav class="navbar">
+    <nav>
         <div class="nav-container">
-            <a href="/" class="logo">CLOUDED BASEMENT</a>
-            <div class="nav-links">
-                <a href="/login">Login</a>
-            </div>
+            <a href="/" class="logo">
+                <img src="/logo.svg" alt="Clouded Basement" style="height: 40px; width: auto; display: block;">
+            </a>
+            <button class="hamburger" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-links">
+                <li><a href="/login">Login</a></li>
+            </ul>
         </div>
     </nav>
 
@@ -145,36 +152,38 @@
                     Code expires in 15 minutes
                 </p>
                 <p style="color: #808080; font-size: 14px;">
-                    Didn't receive it? <a href="/resend-code" style="color: #88FE00; text-decoration: none;">Resend Code</a>
+                    Didn't receive it? <button id="resendBtn" style="background: none; border: none; color: #88FE00; text-decoration: underline; cursor: pointer; font-size: 14px; font-family: inherit;">Resend Code</button>
                 </p>
             </div>
         </div>
     </div>
 
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-section">
-                <h4>CLOUDED BASEMENT</h4>
-                <p>Powerful cloud servers, simplified.</p>
+    <footer style="background: #0a0a0a; padding: 60px 20px 20px; margin-top: 100px;">
+        <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px;">
+            <div>
+                <h4 style="color: #88FE00; font-size: 16px; margin-bottom: 12px;">Clouded Basement</h4>
+                <p style="color: #666; font-size: 12px; line-height: 1.6;">Powerful cloud servers, simplified.</p>
             </div>
-            <div class="footer-section">
-                <h4>Product</h4>
-                <a href="/pricing">Pricing</a>
-                <a href="/docs">Docs</a>
+            <div>
+                <h4 style="color: #88FE00; font-size: 14px; margin-bottom: 12px;">Quick Links</h4>
+                <ul style="list-style: none;">
+                    <li style="margin-bottom: 8px;"><a href="/about" style="color: #999; font-size: 12px; text-decoration: none;">About</a></li>
+                    <li style="margin-bottom: 8px;"><a href="/pricing" style="color: #999; font-size: 12px; text-decoration: none;">Pricing</a></li>
+                    <li style="margin-bottom: 8px;"><a href="/docs" style="color: #999; font-size: 12px; text-decoration: none;">Documentation</a></li>
+                    <li style="margin-bottom: 8px;"><a href="/contact" style="color: #999; font-size: 12px; text-decoration: none;">Contact</a></li>
+                    <li style="margin-bottom: 8px;"><a href="/faq" style="color: #999; font-size: 12px; text-decoration: none;">FAQ</a></li>
+                </ul>
             </div>
-            <div class="footer-section">
-                <h4>Company</h4>
-                <a href="/about">About</a>
-                <a href="/contact">Contact</a>
-            </div>
-            <div class="footer-section">
-                <h4>Legal</h4>
-                <a href="/terms">Terms</a>
-                <a href="/privacy">Privacy</a>
+            <div>
+                <h4 style="color: #88FE00; font-size: 14px; margin-bottom: 12px;">Legal</h4>
+                <ul style="list-style: none;">
+                    <li style="margin-bottom: 8px;"><a href="/terms" style="color: #999; font-size: 12px; text-decoration: none;">Terms of Service</a></li>
+                    <li style="margin-bottom: 8px;"><a href="/privacy" style="color: #999; font-size: 12px; text-decoration: none;">Privacy Policy</a></li>
+                </ul>
             </div>
         </div>
-        <div class="footer-bottom">
-            <p>&copy; 2026 Clouded Basement. All rights reserved.</p>
+        <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(136, 254, 0, 0.1);">
+            <p style="color: #666; font-size: 11px;">&copy; 2026 Clouded Basement. All rights reserved.</p>
         </div>
     </footer>
 
@@ -281,6 +290,44 @@
             statusMessage.className = 'status-message error';
             statusMessage.textContent = message;
         }
+
+        function showSuccess(message) {
+            statusMessage.className = 'status-message success';
+            statusMessage.textContent = message;
+        }
+
+        // Handle resend button
+        document.getElementById('resendBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('resendBtn');
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+
+            try {
+                const response = await fetch('/resend-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showSuccess(data.message);
+                    btn.textContent = 'Code Sent!';
+                    setTimeout(() => {
+                        btn.textContent = 'Resend Code';
+                        btn.disabled = false;
+                    }, 3000);
+                } else {
+                    showError(data.error);
+                    btn.textContent = 'Resend Code';
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                showError('Failed to resend code');
+                btn.textContent = 'Resend Code';
+                btn.disabled = false;
+            }
+        });
     </script>
 </body>
 </html>
