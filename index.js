@@ -256,7 +256,7 @@ app.post('/request-server', requireAuth, async (req, res) => {
     // Check for existing pending request
     const existingTicket = await pool.query(
       'SELECT * FROM support_tickets WHERE user_id = $1 AND subject = $2 AND status IN ($3, $4)',
-      [req.session.userId, 'Server Setup Request', 'open', 'in_progress']
+      [req.session.userId, 'Server Setup Request', 'open', 'in-progress']
     );
     
     if (existingTicket.rows.length > 0) {

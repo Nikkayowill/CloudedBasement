@@ -22,7 +22,7 @@ exports.showGettingStarted = async (req, res) => {
     // Check if user has pending server request
     const ticketCheck = await pool.query(
       'SELECT * FROM support_tickets WHERE user_id = $1 AND subject = $2 AND status IN ($3, $4) ORDER BY created_at DESC LIMIT 1',
-      [req.session.userId, 'Server Setup Request', 'open', 'in_progress']
+      [req.session.userId, 'Server Setup Request', 'open', 'in-progress']
     );
     
     const hasPendingRequest = ticketCheck.rows.length > 0;
