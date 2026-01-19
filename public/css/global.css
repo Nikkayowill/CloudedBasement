@@ -55,3 +55,12 @@
     from { opacity: 0; }
     to { opacity: 1; }
 }
+
+@keyframes pulse-glow {
+    0%, 100% { 
+        box-shadow: 0 0 60px rgba(45, 167, 223, 0.3); 
+    }
+    50% { 
+        box-shadow: 0 0 80px rgba(45, 167, 223, 0.5); 
+    }
+}
