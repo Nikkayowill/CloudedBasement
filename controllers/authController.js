@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt');
+const path = require('path');
 const pool = require('../db');
 const { validationResult } = require('express-validator');
 const { getHTMLHead, getFooter, getScripts, getResponsiveNav } = require('../helpers');
@@ -510,7 +511,7 @@ const handleVerifyCode = async (req, res) => {
 
 // GET /verify-email - Show code entry page
 const showVerifyEmail = (req, res) => {
-  res.sendFile(__dirname + '/../verify-email.html');
+  res.sendFile(path.join(__dirname, '..', 'verify-email.html'));
 };
 
 // POST /verify-email - Handle code verification
