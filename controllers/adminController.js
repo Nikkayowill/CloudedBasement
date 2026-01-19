@@ -144,6 +144,7 @@ ${getHTMLHead('Admin Dashboard')}
                 <th>Status</th>
                 <th>IP Address</th>
                 <th>Created</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -155,6 +156,11 @@ ${getHTMLHead('Admin Dashboard')}
                   <td>${s.status}</td>
                   <td>${s.ip_address || '-'}</td>
                   <td>${new Date(s.created_at).toLocaleDateString()}</td>
+                  <td>
+                    <form method="POST" action="/admin/delete-server/${s.id}" style="display: inline;" onsubmit="return confirm('Delete server #${s.id}? This will remove it from the database but NOT destroy the actual droplet.');">
+                      <button type="submit" style="background: #ff4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px;">Delete</button>
+                    </form>
+                  </td>
                 </tr>
               `).join('')}
             </tbody>
@@ -276,4 +282,19 @@ const deleteUser = async (req, res) => {
   }
 };
 
-module.exports = { listUsers, deleteUser };
+// POST /admin/delete-server/:id - Delete a server record
+const deleteServer = async (req, res) => {
+  try {
+    const serverId = req.params.id;
+    
+    // Delete server record from database (does not destroy actual droplet)
+    await pool.query('DELETE FROM servers WHERE id = $1', [serverId]);
+    
+    res.redirect('/admin?success=Server record deleted successfully');
+  } catch (error) {
+    console.error('Delete server error:', error);
+    res.redirect('/admin?error=Failed to delete server');
+  }
+};
+
+module.exports = { listUsers, deleteUser, deleteServer };
