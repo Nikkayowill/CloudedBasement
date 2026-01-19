@@ -3,16 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify Email - Basement</title>
+    <title>Verify Email - Clouded Basement</title>
     <link rel="stylesheet" href="/css/global.css">
     <link rel="stylesheet" href="/css/auth.css">
+    <link rel="stylesheet" href="/css/nav.css">
+    <style>
+        .code-inputs {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        
+        .code-input {
+            width: 50px;
+            height: 60px;
+            font-size: 28px;
+            text-align: center;
+            border: 2px solid #333;
+            background: #0a0a0a;
+            color: #fff;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+        
+        .code-input:focus {
+            outline: none;
+            border-color: #88FE00;
+            box-shadow: 0 0 0 3px rgba(136, 254, 0, 0.1);
+        }
+        
+        .code-input.filled {
+            border-color: #88FE00;
+            background: #0f1f0a;
+        }
+        
+        .code-input.error {
+            border-color: #ff4444;
+            animation: shake 0.5s;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        
+        .status-message {
+            text-align: center;
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .status-message.error {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid #ff4444;
+            color: #ff4444;
+            display: block;
+        }
+        
+        .status-message.success {
+            background: rgba(136, 254, 0, 0.1);
+            border: 1px solid #88FE00;
+            color: #88FE00;
+            display: block;
+        }
+        
+        .status-message.verifying {
+            background: rgba(136, 254, 0, 0.05);
+            border: 1px solid #88FE00;
+            color: #88FE00;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #88FE00;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .resend-section {
+            margin-top: 30px;
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #222;
+        }
+    </style>
 </head>
 <body>
     <div class="matrix-bg"></div>
     
     <nav class="navbar">
         <div class="nav-container">
-            <a href="/" class="logo">BASEMENT</a>
+            <a href="/" class="logo">CLOUDED BASEMENT</a>
             <div class="nav-links">
                 <a href="/login">Login</a>
             </div>
@@ -22,34 +120,33 @@
     <div class="auth-container">
         <div class="auth-card">
             <h1>Verify Your Email</h1>
-            <p style="color: #a0a0a0; margin-bottom: 30px;">
-                We sent a 6-digit code to your email. Enter it below to activate your account.
+            <p style="color: #a0a0a0; margin-bottom: 10px;">
+                We sent a 6-digit code to your email.<br>
+                Enter it below to activate your account.
             </p>
 
-            <form method="POST" action="/verify-email">
-                <div class="form-group">
-                    <label for="code">Confirmation Code</label>
-                    <input 
-                        type="text" 
-                        id="code" 
-                        name="code" 
-                        required 
-                        maxlength="6"
-                        pattern="[0-9]{6}"
-                        placeholder="000000"
-                        style="font-size: 24px; letter-spacing: 8px; text-align: center; font-family: monospace;"
-                        autocomplete="off"
-                    >
+            <form method="POST" action="/verify-email" id="verifyForm">
+                <input type="hidden" name="code" id="codeValue">
+                
+                <div class="code-inputs">
+                    <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" data-index="0" autocomplete="off">
+                    <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" data-index="1" autocomplete="off">
+                    <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" data-index="2" autocomplete="off">
+                    <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" data-index="3" autocomplete="off">
+                    <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" data-index="4" autocomplete="off">
+                    <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric" data-index="5" autocomplete="off">
                 </div>
 
-                <button type="submit" class="btn btn-primary">Verify Email</button>
+                <div id="statusMessage" class="status-message"></div>
             </form>
 
-            <div style="margin-top: 30px; text-align: center;">
-                <p style="color: #808080; font-size: 14px;">
-                    Code expires in 15 minutes. Didn't receive it?
+            <div class="resend-section">
+                <p style="color: #808080; font-size: 14px; margin-bottom: 10px;">
+                    Code expires in 15 minutes
                 </p>
-                <a href="/resend-code" style="color: #88FE00; text-decoration: none;">Resend Code</a>
+                <p style="color: #808080; font-size: 14px;">
+                    Didn't receive it? <a href="/resend-code" style="color: #88FE00; text-decoration: none;">Resend Code</a>
+                </p>
             </div>
         </div>
     </div>
@@ -57,45 +154,133 @@
     <footer class="footer">
         <div class="footer-container">
             <div class="footer-section">
-                <h4>BASEMENT</h4>
-                <p>Deploy & manage your servers.</p>
+                <h4>CLOUDED BASEMENT</h4>
+                <p>Powerful cloud servers, simplified.</p>
             </div>
             <div class="footer-section">
                 <h4>Product</h4>
                 <a href="/pricing">Pricing</a>
-                <a href="/about">About</a>
+                <a href="/docs">Docs</a>
             </div>
             <div class="footer-section">
-                <h4>Support</h4>
+                <h4>Company</h4>
+                <a href="/about">About</a>
                 <a href="/contact">Contact</a>
+            </div>
+            <div class="footer-section">
+                <h4>Legal</h4>
                 <a href="/terms">Terms</a>
+                <a href="/privacy">Privacy</a>
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2026 Basement. All rights reserved.</p>
+            <p>&copy; 2026 Clouded Basement. All rights reserved.</p>
         </div>
     </footer>
 
     <script>
-        // Auto-focus the code input
-        document.getElementById('code').focus();
+        const inputs = document.querySelectorAll('.code-input');
+        const form = document.getElementById('verifyForm');
+        const codeValue = document.getElementById('codeValue');
+        const statusMessage = document.getElementById('statusMessage');
 
-        // Auto-submit when 6 digits are entered
-        document.getElementById('code').addEventListener('input', function(e) {
-            if (e.target.value.length === 6) {
-                // Small delay so user can see the last digit
-                setTimeout(() => {
-                    e.target.form.submit();
-                }, 300);
-            }
+        // Check for error in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('error')) {
+            showError(urlParams.get('error'));
+            inputs.forEach(input => input.classList.add('error'));
+            setTimeout(() => {
+                inputs.forEach(input => input.classList.remove('error'));
+            }, 500);
+        }
+
+        // Focus first input
+        inputs[0].focus();
+
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                const value = e.target.value;
+                
+                // Only allow numbers
+                if (!/^[0-9]$/.test(value) && value !== '') {
+                    e.target.value = '';
+                    return;
+                }
+
+                // Add filled class
+                if (value) {
+                    input.classList.add('filled');
+                    input.classList.remove('error');
+                    
+                    // Move to next input
+                    if (index < inputs.length - 1) {
+                        inputs[index + 1].focus();
+                    } else {
+                        // All digits entered, submit
+                        submitCode();
+                    }
+                } else {
+                    input.classList.remove('filled');
+                }
+            });
+
+            input.addEventListener('keydown', (e) => {
+                // Handle backspace
+                if (e.key === 'Backspace' && !input.value && index > 0) {
+                    inputs[index - 1].focus();
+                    inputs[index - 1].value = '';
+                    inputs[index - 1].classList.remove('filled');
+                }
+
+                // Handle paste
+                if (e.key === 'v' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    navigator.clipboard.readText().then(text => {
+                        const digits = text.replace(/\D/g, '').slice(0, 6);
+                        digits.split('').forEach((digit, i) => {
+                            if (inputs[i]) {
+                                inputs[i].value = digit;
+                                inputs[i].classList.add('filled');
+                            }
+                        });
+                        if (digits.length === 6) {
+                            submitCode();
+                        }
+                    });
+                }
+            });
+
+            // Handle clicking on input
+            input.addEventListener('click', () => {
+                // Focus the first empty input
+                const firstEmpty = Array.from(inputs).find(inp => !inp.value);
+                if (firstEmpty) {
+                    firstEmpty.focus();
+                }
+            });
         });
 
-        // Only allow numbers
-        document.getElementById('code').addEventListener('keypress', function(e) {
-            if (!/[0-9]/.test(e.key)) {
-                e.preventDefault();
+        function submitCode() {
+            const code = Array.from(inputs).map(inp => inp.value).join('');
+            
+            if (code.length !== 6) {
+                showError('Please enter all 6 digits');
+                return;
             }
-        });
+
+            // Show verifying status
+            statusMessage.className = 'status-message verifying';
+            statusMessage.innerHTML = '<div class="spinner"></div> Verifying...';
+
+            // Set the hidden input value and submit
+            codeValue.value = code;
+            form.submit();
+        }
+
+        function showError(message) {
+            statusMessage.className = 'status-message error';
+            statusMessage.textContent = message;
+        }
     </script>
 </body>
 </html>
