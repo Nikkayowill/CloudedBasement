@@ -157,8 +157,11 @@ ${getHTMLHead('Admin Dashboard')}
                   <td>${s.ip_address || '-'}</td>
                   <td>${new Date(s.created_at).toLocaleDateString()}</td>
                   <td>
-                    <form method="POST" action="/admin/delete-server/${s.id}" style="display: inline;" onsubmit="return confirm('Delete server #${s.id}? This will remove it from the database but NOT destroy the actual droplet.');">
-                      <button type="submit" style="background: #ff4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px;">Delete</button>
+                    <form method="POST" action="/admin/destroy-droplet/${s.id}" style="display: inline; margin-right: 4px;" onsubmit="return confirm('DESTROY droplet for server #${s.id}? This will permanently delete the DigitalOcean droplet AND the database record. This cannot be undone!');">
+                      <button type="submit" style="background: #cc0000; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;">Destroy</button>
+                    </form>
+                    <form method="POST" action="/admin/delete-server/${s.id}" style="display: inline;" onsubmit="return confirm('Delete server record #${s.id}? This will remove it from the database but NOT destroy the actual droplet.');">
+                      <button type="submit" style="background: #ff4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px;">Delete DB</button>
                     </form>
                   </td>
                 </tr>
@@ -297,4 +300,19 @@ const deleteServer = async (req, res) => {
   }
 };
 
-module.exports = { listUsers, deleteUser, deleteServer };
+// POST /admin/destroy-droplet/:id - Destroy actual DigitalOcean droplet
+const destroyDroplet = async (req, res) => {
+  try {
+    const serverId = req.params.id;
+    const { destroyDroplet } = require('../services/digitalocean');
+    
+    await destroyDroplet(serverId);
+    
+    res.redirect('/admin?success=Droplet destroyed and server deleted successfully');
+  } catch (error) {
+    console.error('Destroy droplet error:', error);
+    res.redirect('/admin?error=Failed to destroy droplet: ' + error.message);
+  }
+};
+
+module.exports = { listUsers, deleteUser, deleteServer, destroyDroplet };
