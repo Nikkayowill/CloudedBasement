@@ -265,7 +265,7 @@ app.post('/request-server', requireAuth, async (req, res) => {
     
     // Store server request (you'll process this manually)
     await pool.query(
-      `INSERT INTO support_tickets (user_id, subject, message, status) 
+      `INSERT INTO support_tickets (user_id, subject, description, status) 
        VALUES ($1, $2, $3, $4)`,
       [
         req.session.userId,
