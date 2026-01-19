@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Email - Basement</title>
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body>
+    <div class="matrix-bg"></div>
+    
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo">BASEMENT</a>
+            <div class="nav-links">
+                <a href="/login">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="auth-container">
+        <div class="auth-card">
+            <h1>Verify Your Email</h1>
+            <p style="color: #a0a0a0; margin-bottom: 30px;">
+                We sent a 6-digit code to your email. Enter it below to activate your account.
+            </p>
+
+            <form method="POST" action="/verify-email">
+                <div class="form-group">
+                    <label for="code">Confirmation Code</label>
+                    <input 
+                        type="text" 
+                        id="code" 
+                        name="code" 
+                        required 
+                        maxlength="6"
+                        pattern="[0-9]{6}"
+                        placeholder="000000"
+                        style="font-size: 24px; letter-spacing: 8px; text-align: center; font-family: monospace;"
+                        autocomplete="off"
+                    >
+                </div>
+
+                <button type="submit" class="btn btn-primary">Verify Email</button>
+            </form>
+
+            <div style="margin-top: 30px; text-align: center;">
+                <p style="color: #808080; font-size: 14px;">
+                    Code expires in 15 minutes. Didn't receive it?
+                </p>
+                <a href="/resend-code" style="color: #88FE00; text-decoration: none;">Resend Code</a>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4>BASEMENT</h4>
+                <p>Deploy & manage your servers.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Product</h4>
+                <a href="/pricing">Pricing</a>
+                <a href="/about">About</a>
+            </div>
+            <div class="footer-section">
+                <h4>Support</h4>
+                <a href="/contact">Contact</a>
+                <a href="/terms">Terms</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Basement. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Auto-focus the code input
+        document.getElementById('code').focus();
+
+        // Auto-submit when 6 digits are entered
+        document.getElementById('code').addEventListener('input', function(e) {
+            if (e.target.value.length === 6) {
+                // Small delay so user can see the last digit
+                setTimeout(() => {
+                    e.target.form.submit();
+                }, 300);
+            }
+        });
+
+        // Only allow numbers
+        document.getElementById('code').addEventListener('keypress', function(e) {
+            if (!/[0-9]/.test(e.key)) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>

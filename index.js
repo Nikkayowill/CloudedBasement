@@ -158,6 +158,10 @@ app.post('/login',
 // Email confirmation route
 app.get('/confirm-email/:token', authController.confirmEmail);
 
+// Code verification routes
+app.get('/verify-email', authController.showVerifyEmail);
+app.post('/verify-email', authController.verifyEmailCode);
+
 // Resend confirmation route
 // app.get('/resend-confirmation', authController.resendConfirmation);
 
