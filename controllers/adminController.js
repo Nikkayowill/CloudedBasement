@@ -1079,7 +1079,6 @@ ${getHTMLHead('Admin Dashboard')}
         }
         closeModal('deleteUserModal');
       }
-      }
 
       // Domain Management
       function openAddDomainModal() {
