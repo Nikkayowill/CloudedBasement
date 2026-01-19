@@ -15,7 +15,7 @@ const bcrypt = require('bcrypt');
 const { getHTMLHead, getDashboardHead, getScripts, getFooter, getAuthLinks, getResponsiveNav } = require('./helpers');
 const { createRealServer: createRealServerService, syncDigitalOceanDroplets: syncDigitalOceanDropletsService } = require('./services/digitalocean');
 const { requireAuth, requireAdmin } = require('./middleware/auth');
-const { generalLimiter, contactLimiter, paymentLimiter } = require('./middleware/rateLimiter');
+const { generalLimiter, contactLimiter, paymentLimiter, emailVerifyLimiter } = require('./middleware/rateLimiter');
 const pagesController = require('./controllers/pagesController');
 const gettingStartedController = require('./controllers/gettingStartedController');
 const authController = require('./controllers/authController');
@@ -160,8 +160,8 @@ app.get('/confirm-email/:token', authController.confirmEmail);
 
 // Code verification routes
 app.get('/verify-email', authController.showVerifyEmail);
-app.post('/verify-email', authController.verifyEmailCode);
-app.post('/resend-code', authController.resendCode);
+app.post('/verify-email', emailVerifyLimiter, authController.verifyEmailCode);
+app.post('/resend-code', emailVerifyLimiter, authController.resendCode);
 
 // Logout route
 app.get('/logout', authController.handleLogout);

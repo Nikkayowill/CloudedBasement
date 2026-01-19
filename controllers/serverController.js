@@ -292,6 +292,16 @@ exports.enableSSL = async (req, res) => {
 
     const server = serverResult.rows[0];
 
+    // SECURITY: Verify domain belongs to this user
+    const domainCheck = await pool.query(
+      'SELECT id FROM domains WHERE domain = $1 AND user_id = $2',
+      [domain, userId]
+    );
+
+    if (domainCheck.rows.length === 0) {
+      return res.redirect('/dashboard?error=Domain not found or access denied');
+    }
+
     // Update server domain and set SSL status to pending
     await pool.query(
       'UPDATE servers SET domain = $1, ssl_status = $2 WHERE id = $3',
