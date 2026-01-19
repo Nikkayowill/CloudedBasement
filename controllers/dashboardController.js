@@ -59,6 +59,49 @@ ${getDashboardHead('Dashboard - Basement')}
     
     ${getResponsiveNav(req)}
     
+    ${!req.session.emailConfirmed ? `
+    <div style="background: rgba(255, 170, 0, 0.1); border: 2px solid #ffaa00; padding: 16px; margin: 20px auto; max-width: 1200px; border-radius: 8px; text-align: center;">
+        <p style="color: #ffaa00; font-size: 14px; margin-bottom: 8px;">⚠️ <strong>Email not confirmed</strong> - Please verify your email to make purchases.</p>
+        <button id="resendEmailBtn" style="background: #ffaa00; color: #000; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600;">
+            Resend Confirmation Code
+        </button>
+        <div id="resendStatus" style="margin-top: 8px; font-size: 13px;"></div>
+    </div>
+    <script>
+        document.getElementById('resendEmailBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('resendEmailBtn');
+            const status = document.getElementById('resendStatus');
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+            
+            try {
+                const response = await fetch('/resend-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    status.style.color = '#88FE00';
+                    status.textContent = '✓ ' + data.message;
+                    btn.textContent = 'Code Sent!';
+                    setTimeout(() => { btn.textContent = 'Resend Confirmation Code'; btn.disabled = false; }, 3000);
+                } else {
+                    status.style.color = '#ff4444';
+                    status.textContent = '✗ ' + data.error;
+                    btn.textContent = 'Resend Confirmation Code';
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                status.style.color = '#ff4444';
+                status.textContent = '✗ Failed to send';
+                btn.textContent = 'Resend Confirmation Code';
+                btn.disabled = false;
+            }
+        });
+    </script>
+    ` : ''}
+    
     <div class="content">
         <h1>Dashboard</h1>
         

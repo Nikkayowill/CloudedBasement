@@ -246,15 +246,11 @@ const handleLogin = async (req, res) => {
       return res.redirect('/login?error=Invalid email or password');
     }
 
-    // Check if email is confirmed
-    if (!user.email_confirmed) {
-      return res.redirect('/login?error=Please confirm your email before logging in.&email=' + encodeURIComponent(email));
-    }
-
-    // Set session
+    // Set session (allow login even without email confirmation)
     req.session.userId = user.id;
     req.session.userEmail = user.email;
     req.session.userRole = user.role;
+    req.session.emailConfirmed = user.email_confirmed; // Store confirmation status
 
     // Redirect based on role
     if (user.role === 'admin') {
@@ -573,7 +569,8 @@ const verifyEmailCode = async (req, res) => {
 // POST /resend-code - Resend verification code (returns JSON)
 const resendCode = async (req, res) => {
   try {
-    const email = req.session.unverifiedEmail;
+    // Get email from either unverified session or logged-in user
+    let email = req.session.unverifiedEmail || req.session.userEmail;
 
     if (!email) {
       return res.json({ success: false, error: 'No email in session' });
