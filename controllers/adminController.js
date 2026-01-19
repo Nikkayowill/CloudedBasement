@@ -229,6 +229,7 @@ ${getHTMLHead('Admin Dashboard')}
                       <td class="action-cell">
                         ${isSuperAdmin && user.role !== 'admin' ? `<button class="action-btn" onclick="openModal('promote', '${user.email}')">Promote</button>` : ''}
                         ${isSuperAdmin && user.role === 'admin' && user.email !== req.session.userEmail ? `<button class="action-btn danger" onclick="openModal('demote', '${user.email}')">Demote</button>` : ''}
+                        ${isSuperAdmin && user.email !== req.session.userEmail ? `<button class="action-btn danger" onclick="openModal('delete', '${user.email}', ${user.id})">Delete</button>` : ''}
                         ${!isSuperAdmin ? '<span style="color: #8892a0; font-size: 11px;">View only</span>' : ''}
                       </td>
                     </tr>
@@ -709,6 +710,21 @@ ${getHTMLHead('Admin Dashboard')}
       </div>
     </div>
 
+    <div id="deleteUserModal" class="modal">
+      <div class="modal-content">
+        <h3 class="modal-title" style="color: #ff6b6b;">Delete User?</h3>
+        <p class="modal-warning" style="color: #e0e6f0; line-height: 1.6;">
+          Are you sure you want to permanently delete <strong id="deleteUserEmail"></strong>?
+          <br><br>
+          <span style="color: #ff6b6b; font-size: 14px;">⚠️ This will also delete all associated servers, payments, and data. This action cannot be undone.</span>
+        </p>
+        <div class="modal-actions">
+          <button class="modal-btn" onclick="closeModal('deleteUserModal')">Cancel</button>
+          <button class="modal-btn confirm" style="background: #ff6b6b; color: #fff;" onclick="executeDeleteUser()">Delete User</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Domain Modals -->
     <div id="addDomainModal" class="modal">
       <div class="modal-content">
@@ -988,15 +1004,20 @@ ${getHTMLHead('Admin Dashboard')}
       }
 
       // User Management
-      function openModal(action, email) {
+      let currentUserId = null;
+      function openModal(action, email, userId) {
         currentUserAction = action;
         currentUserEmail = email;
+        currentUserId = userId || null;
         if (action === 'promote') {
           document.getElementById('promoteEmail').textContent = email;
           document.getElementById('promoteModal').classList.add('active');
         } else if (action === 'demote') {
           document.getElementById('demoteEmail').textContent = email;
           document.getElementById('demoteModal').classList.add('active');
+        } else if (action === 'delete') {
+          document.getElementById('deleteUserEmail').textContent = email;
+          document.getElementById('deleteUserModal').classList.add('active');
         }
       }
 
@@ -1004,6 +1025,7 @@ ${getHTMLHead('Admin Dashboard')}
         document.getElementById(modalId).classList.remove('active');
         currentUserAction = null;
         currentUserEmail = null;
+        currentUserId = null;
         currentDomainId = null;
       }
 
@@ -1037,6 +1059,25 @@ ${getHTMLHead('Admin Dashboard')}
           alert('Error: ' + data.error);
         }
         closeModal('demoteModal');
+      }
+
+      async function executeDeleteUser() {
+        if (!currentUserId) {
+          alert('Error: User ID not found');
+          return;
+        }
+        const res = await fetch(`/admin/users/${currentUserId}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert(data.message);
+          window.location.reload();
+        } else {
+          alert('Error: ' + data.error);
+        }
+        closeModal('deleteUserModal');
       }
 
       // Domain Management
@@ -1900,4 +1941,37 @@ const updateTicketStatus = async (req, res) => {
   }
 };
 
-module.exports = { listUsers, promoteUser, demoteUser, viewAuditLog, addServer, updateServer, deleteServer, assignDomain, executeServerAction, viewTicket, submitTicketReply, updateTicketStatus };
+// DELETE /admin/users/:id - Delete a user and all associated data
+const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const adminId = req.session.userId;
+    const adminEmail = req.session.userEmail;
+
+    // Prevent deleting yourself
+    if (parseInt(id) === adminId) {
+      return res.status(400).json({ success: false, error: 'Cannot delete your own account' });
+    }
+
+    // Get user details before deletion
+    const userResult = await pool.query('SELECT email, role FROM users WHERE id = $1', [id]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    const user = userResult.rows[0];
+
+    // Delete user and cascade (servers, payments, deployments, domains, support_tickets will cascade)
+    await pool.query('DELETE FROM users WHERE id = $1', [id]);
+
+    // Log admin action
+    await logAdminAction(adminId, adminEmail, 'user_delete', `User: ${user.email}`, null, `Role: ${user.role}`);
+
+    res.json({ success: true, message: `User ${user.email} and all associated data have been deleted` });
+  } catch (error) {
+    console.error('[ADMIN] Delete user error:', error);
+    res.status(500).json({ success: false, error: 'Failed to delete user' });
+  }
+};
+
+module.exports = { listUsers, promoteUser, demoteUser, deleteUser, viewAuditLog, addServer, updateServer, deleteServer, assignDomain, executeServerAction, viewTicket, submitTicketReply, updateTicketStatus };
