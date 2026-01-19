@@ -11,7 +11,7 @@ const showRegister = (req, res) => {
   res.send(`
 ${getHTMLHead('Register - Basement')}
 </head>
-<body>
+<body class="bg-gray-900">
     <div class="matrix-bg"></div>
     
     ${getResponsiveNav(req)}
@@ -166,7 +166,7 @@ ${getHTMLHead('Login - Basement')}
       }
     </style>
 </head>
-<body>
+<body class="bg-gray-900">
     <div class="matrix-bg"></div>
     
     ${flashMessage ? `
@@ -277,7 +277,7 @@ const confirmEmail = async (req, res) => {
       return res.status(400).send(`
 ${getHTMLHead('Invalid Token - Basement')}
 </head>
-<body>
+<body class="bg-gray-900">
     <div class="matrix-bg"></div>
     ${getResponsiveNav(req)}
     <div class="auth-container">
@@ -300,7 +300,7 @@ ${getHTMLHead('Invalid Token - Basement')}
       return res.status(400).send(`
 ${getHTMLHead('Token Expired - Basement')}
     <link rel="stylesheet" href="/css/auth.css">
-<body>
+<body class="bg-gray-900">
     <div class="matrix-bg"></div>
     ${getResponsiveNav(req)}
     <div class="auth-container">
@@ -321,7 +321,7 @@ ${getHTMLHead('Token Expired - Basement')}
       return res.status(400).send(`
 ${getHTMLHead('Already Confirmed - Basement')}
 </head>
-<body>
+<body class="bg-gray-900">
     <div class="matrix-bg"></div>
     ${getResponsiveNav(req)}
     <div class="auth-container">
@@ -346,7 +346,7 @@ ${getHTMLHead('Already Confirmed - Basement')}
     res.send(`
 ${getHTMLHead('Email Confirmed - Basement')}
 </head>
-<body>
+<body class="bg-gray-900">
     <div class="matrix-bg"></div>
     ${getResponsiveNav(req)}
     <div class="auth-container">
@@ -400,7 +400,7 @@ const showVerifyCode = (req, res) => {
   res.send(`
 ${getHTMLHead('Verify Code - Basement')}
     <link rel="stylesheet" href="/css/auth.css">
-<body>
+<body class="bg-gray-900">
     <div class="matrix-bg"></div>
     
     ${getResponsiveNav(req)}
