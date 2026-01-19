@@ -167,22 +167,22 @@ app.post('/resend-code', authController.resendCode);
 app.get('/logout', authController.handleLogout);
 
 // Server action route (restart/stop)
-app.post('/server-action', requireAuth, serverController.serverAction);
+app.post('/server-action', requireAuth, csrfProtection, serverController.serverAction);
 
 // Delete server route
-app.post('/delete-server', requireAuth, serverController.deleteServer);
+app.post('/delete-server', requireAuth, csrfProtection, serverController.deleteServer);
 
 // Deploy route
-app.post('/deploy', requireAuth, serverController.deploy);
+app.post('/deploy', requireAuth, csrfProtection, serverController.deploy);
 
 // Add domain route
-app.post('/add-domain', requireAuth, serverController.addDomain);
+app.post('/add-domain', requireAuth, csrfProtection, serverController.addDomain);
 
 // Enable SSL route
-app.post('/enable-ssl', requireAuth, serverController.enableSSL);
+app.post('/enable-ssl', requireAuth, csrfProtection, serverController.enableSSL);
 
 // Dashboard route
-app.get('/dashboard', requireAuth, dashboardController.showDashboard);
+app.get('/dashboard', requireAuth, csrfProtection, dashboardController.showDashboard);
 
 // Admin - dashboard
 app.get('/admin', requireAuth, requireAdmin, csrfProtection, adminController.listUsers);

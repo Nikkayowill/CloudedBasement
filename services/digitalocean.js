@@ -1,4 +1,5 @@
 const axios = require('axios');
+const crypto = require('crypto');
 const pool = require('../db');
 
 // Track active polling intervals to prevent memory leaks
@@ -13,7 +14,8 @@ async function createRealServer(userId, plan, stripeChargeId = null) {
   };
 
   const selectedSpec = specs[plan] || specs.basic;
-  const password = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8).toUpperCase() + '!@#';
+  // Generate cryptographically secure password (256 bits of entropy)
+  const password = crypto.randomBytes(16).toString('base64').replace(/[+/=]/g, '') + '!@#';
 
   // Setup script for automatic Nginx + Certbot installation
   const setupScript = `#!/bin/bash

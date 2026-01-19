@@ -1,8 +1,12 @@
 const crypto = require('crypto');
 
-// Generate a 6-digit confirmation code
+// Generate a 6-digit confirmation code (cryptographically secure)
 function generateConfirmationCode() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  // Generate random number between 100000-999999 using crypto
+  const randomBytes = crypto.randomBytes(4);
+  const randomNumber = randomBytes.readUInt32BE(0);
+  const code = 100000 + (randomNumber % 900000);
+  return code.toString();
 }
 
 // Get expiration time (15 minutes from now)
