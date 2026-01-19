@@ -227,19 +227,23 @@ exports.stripeWebhook = async (req, res) => {
 
   try {
     switch (event.type) {
-      case 'charge.refunded':
+      case 'charge.refunded': {
         const charge = event.data.object;
         console.log('Charge refunded:', charge.id);
 
+        // Use database transaction for atomicity
+        const client = await pool.connect();
         try {
+          await client.query('BEGIN');
+
           // Update payment status to refunded
-          await pool.query(
+          await client.query(
             'UPDATE payments SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE stripe_charge_id = $2',
             ['refunded', charge.id]
           );
 
           // Find server with this charge ID and mark as deleted
-          const serverResult = await pool.query(
+          const serverResult = await client.query(
             'SELECT * FROM servers WHERE stripe_charge_id = $1',
             [charge.id]
           );
@@ -248,21 +252,31 @@ exports.stripeWebhook = async (req, res) => {
             const server = serverResult.rows[0];
             console.log(`Refund processed for server ${server.id}, marking as deleted`);
             
-            await pool.query(
+            await client.query(
               'UPDATE servers SET status = $1 WHERE id = $2',
               ['deleted', server.id]
             );
           }
+
+          await client.query('COMMIT');
+          client.release();
         } catch (error) {
+          await client.query('ROLLBACK');
+          client.release();
           console.error('Error processing charge.refunded:', error);
         }
         break;
+      }
 
-      case 'payment_intent.succeeded':
+      case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object;
         console.log('PaymentIntent succeeded:', paymentIntent.id);
 
+        // Use database transaction for atomicity
+        const client = await pool.connect();
         try {
+          await client.query('BEGIN');
+
           // Extract customer email and plan from metadata
           const customerEmail = paymentIntent.billing_details?.email || paymentIntent.metadata?.email;
           const plan = paymentIntent.metadata?.plan || 'unknown';
@@ -270,11 +284,13 @@ exports.stripeWebhook = async (req, res) => {
 
           if (!customerEmail) {
             console.log('No customer email found in payment intent');
+            await client.query('ROLLBACK');
+            client.release();
             break;
           }
 
           // Find user by email
-          const userResult = await pool.query(
+          const userResult = await client.query(
             'SELECT id FROM users WHERE email = $1',
             [customerEmail]
           );
@@ -287,18 +303,20 @@ exports.stripeWebhook = async (req, res) => {
           const userId = userResult.rows[0].id;
 
           // Check if payment already recorded (avoid duplicates)
-          const existingPayment = await pool.query(
+          const existingPayment = await client.query(
             'SELECT id FROM payments WHERE stripe_payment_id = $1',
             [paymentIntent.id]
           );
 
           if (existingPayment.rows.length > 0) {
             console.log('Payment already recorded:', paymentIntent.id);
+            await client.query('COMMIT');
+            client.release();
             break;
           }
 
           // Record payment in database
-          await pool.query(
+          await client.query(
             'INSERT INTO payments (user_id, stripe_payment_id, amount, plan, status) VALUES ($1, $2, $3, $4, $5)',
             [userId, paymentIntent.id, amount, plan, 'succeeded']
           );
@@ -306,7 +324,7 @@ exports.stripeWebhook = async (req, res) => {
           console.log(`Payment recorded: User ${userId}, $${amount}, Plan: ${plan}`);
           
           // Create server if user doesn't have one (webhook is single source of truth)
-          const serverCheck = await pool.query(
+          const serverCheck = await client.query(
             'SELECT * FROM servers WHERE user_id = $1 AND status NOT IN (\'deleted\', \'failed\')',
             [userId]
           );
@@ -317,10 +335,16 @@ exports.stripeWebhook = async (req, res) => {
           } else {
             console.log('User already has active server, skipping creation');
           }
+
+          await client.query('COMMIT');
+          client.release();
         } catch (error) {
+          await client.query('ROLLBACK');
+          client.release();
           console.error('Error processing payment_intent.succeeded:', error);
         }
         break;
+      }
 
       default:
         console.log(`Unhandled event type: ${event.type}`);

@@ -375,13 +375,9 @@ const listDomains = async (req, res) => {
 // POST /admin/domains - Add new domain
 const addDomain = async (req, res) => {
   try {
-    const adminEmail = req.session.userEmail;
-    if (adminEmail !== 'nikkayowillpbiz@gmail.com') {
-      return res.status(403).json({ success: false, error: 'Unauthorized' });
-    }
-
     const { name, status, provider, renewal_date, notes } = req.body;
     const adminId = req.session.userId;
+    const adminEmail = req.session.userEmail;
 
     if (!name) {
       return res.status(400).json({ success: false, error: 'Domain name required' });
@@ -408,14 +404,10 @@ const addDomain = async (req, res) => {
 // PUT /admin/domains/:id - Update domain
 const updateDomain = async (req, res) => {
   try {
-    const adminEmail = req.session.userEmail;
-    if (adminEmail !== 'nikkayowillpbiz@gmail.com') {
-      return res.status(403).json({ success: false, error: 'Unauthorized' });
-    }
-
     const { id } = req.params;
     const { name, status, provider, renewal_date, notes } = req.body;
     const adminId = req.session.userId;
+    const adminEmail = req.session.userEmail;
 
     const oldResult = await pool.query('SELECT status, provider FROM domains WHERE id = $1', [id]);
     if (oldResult.rows.length === 0) {
@@ -441,13 +433,9 @@ const updateDomain = async (req, res) => {
 // DELETE /admin/domains/:id - Delete domain
 const deleteDomain = async (req, res) => {
   try {
-    const adminEmail = req.session.userEmail;
-    if (adminEmail !== 'nikkayowillpbiz@gmail.com') {
-      return res.status(403).json({ success: false, error: 'Unauthorized' });
-    }
-
     const { id } = req.params;
     const adminId = req.session.userId;
+    const adminEmail = req.session.userEmail;
 
     const result = await pool.query('SELECT name FROM domains WHERE id = $1', [id]);
     if (result.rows.length === 0) {
