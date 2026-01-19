@@ -38,7 +38,7 @@ ${getHTMLHead('Admin Dashboard')}
       tr:last-child td { border-bottom: none; }
     </style>
 </head>
-<body>
+<body class="bg-gray-900">
     <div class="matrix-bg"></div>
     ${getResponsiveNav(req)}
 

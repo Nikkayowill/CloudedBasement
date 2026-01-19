@@ -4,7 +4,8 @@ const navLinks = document.querySelector('.nav-links');
 const nav = document.querySelector('.main-nav');
 
 if (hamburger && navLinks) {
-    hamburger.addEventListener('click', () => {
+    hamburger.addEventListener('click', (e) => {
+        e.stopPropagation();
         hamburger.classList.toggle('active');
         navLinks.classList.toggle('active');
     });
@@ -19,7 +20,7 @@ if (hamburger && navLinks) {
 
     // Close menu when clicking outside
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('nav')) {
+        if (!e.target.closest('.main-nav')) {
             hamburger.classList.remove('active');
             navLinks.classList.remove('active');
         }
