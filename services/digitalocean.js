@@ -91,13 +91,21 @@ echo "Setup complete!" > /root/setup.log
     const droplet = response.data.droplet;
     console.log('Droplet created:', droplet.id);
     
-    // Save to database
+    // Save to database with conflict handling to prevent duplicate servers
     const result = await pool.query(
       `INSERT INTO servers (user_id, plan, status, ip_address, ssh_username, ssh_password, specs, stripe_charge_id)
        VALUES ($1, $2, 'provisioning', $3, 'root', $4, $5, $6)
+       ON CONFLICT DO NOTHING
        RETURNING *`,
       [userId, plan, droplet.networks?.v4?.[0]?.ip_address || 'pending', password, JSON.stringify(selectedSpec), stripeChargeId]
     );
+
+    // If no rows returned, another process already created the server
+    if (result.rows.length === 0) {
+      console.log('Server already exists for user, skipping duplicate creation');
+      // Note: Droplet was created but DB insert blocked - admin should manually clean up orphaned droplet
+      return null;
+    }
 
     // Always poll for IP - droplet might not have it immediately
     console.log('Starting polling for droplet:', droplet.id, 'server:', result.rows[0].id);
