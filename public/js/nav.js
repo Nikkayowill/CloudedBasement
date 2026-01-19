@@ -1,6 +1,7 @@
 // Navigation toggle for mobile
 const hamburger = document.querySelector('.hamburger');
 const navLinks = document.querySelector('.nav-links');
+const nav = document.querySelector('.main-nav');
 
 if (hamburger && navLinks) {
     hamburger.addEventListener('click', () => {
@@ -21,6 +22,17 @@ if (hamburger && navLinks) {
         if (!e.target.closest('nav')) {
             hamburger.classList.remove('active');
             navLinks.classList.remove('active');
+        }
+    });
+}
+
+// Transparent nav on scroll
+if (nav) {
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 50) {
+            nav.classList.add('scrolled');
+        } else {
+            nav.classList.remove('scrolled');
         }
     });
 }
