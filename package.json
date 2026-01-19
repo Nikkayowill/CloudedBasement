@@ -28,5 +28,8 @@
     "pg": "^8.17.1",
     "ssh2": "^1.17.0",
     "stripe": "^20.1.2"
+  },
+  "devDependencies": {
+    "tailwindcss": "^4.1.18"
   }
 }
