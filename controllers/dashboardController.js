@@ -174,35 +174,35 @@ const buildDashboardTemplate = (data) => {
 
   return `
 <!-- Main Content -->
-<div style="flex: 1; padding: 5rem 3rem 3rem 3rem;">
+<main class="flex-1 px-4 md:px-8 lg:px-12 pt-24 pb-12">
     <!-- Header -->
-    <header style="display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 3rem;">
+    <header class="flex flex-col gap-6 mb-12">
         <div>
-            <div style="display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: rgba(45, 167, 223, 0.7); margin-bottom: 8px;">
-                <span style="width: 6px; height: 6px; background: var(--glow); border-radius: 50%; animation: pulse 1.5s infinite;"></span>
+            <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand text-opacity-70 mb-2">
+                <span class="w-1.5 h-1.5 bg-brand rounded-full animate-pulse"></span>
                 Live Connection Established
             </div>
-            <h2 style="font-size: 1.75rem; font-weight: 700; color: white; letter-spacing: -0.5px; margin: 0; text-transform: uppercase;">
-                Control Panel <span style="color: var(--glow); font-weight: 400;">v2</span>
+            <h2 class="text-3xl font-bold text-white uppercase tracking-tight">
+                Control Panel <span class="text-brand font-normal">v2</span>
             </h2>
         </div>
-        <div style="display: flex; align-items: center; gap: 1rem;">
-            <div style="border-right: 1px solid rgba(255, 255, 255, 0.05); padding-right: 1rem; margin-right: 1rem;">
-                <p style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; margin: 0;">Local Time</p>
-                <p style="font-size: 14px; font-weight: 700; color: white; font-family: 'JetBrains Mono', monospace; margin: 0;" id="clock">00:00:00</p>
+        <div class="flex items-center gap-4">
+            <div class="border-r border-white border-opacity-5 pr-4 mr-4">
+                <p class="text-xs text-gray-500 uppercase">Local Time</p>
+                <p class="text-sm font-bold text-white font-mono" id="clock">00:00:00</p>
             </div>
         </div>
     </header>
 
     <!-- Alerts -->
-    ${data.flashSuccess ? `<div class="alert success">${data.flashSuccess}<span class="alert-close" onclick="this.parentElement.style.display='none'">&times;</span></div>` : ''}
-    ${data.flashError ? `<div class="alert error">${data.flashError}<span class="alert-close" onclick="this.parentElement.style.display='none'">&times;</span></div>` : ''}
+    ${data.flashSuccess ? `<div class="bg-green-900 border border-green-700 text-green-300 px-6 py-4 rounded-lg mb-6 flex items-center justify-between">${data.flashSuccess}<button onclick="this.parentElement.style.display='none'" class="ml-4 text-green-300 hover:text-green-100 font-bold text-xl">&times;</button></div>` : ''}
+    ${data.flashError ? `<div class="bg-red-900 border border-red-700 text-red-300 px-6 py-4 rounded-lg mb-6 flex items-center justify-between">${data.flashError}<button onclick="this.parentElement.style.display='none'" class="ml-4 text-red-300 hover:text-red-100 font-bold text-xl">&times;</button></div>` : ''}
 
     ${!data.emailConfirmed ? `
-    <div style="background: rgba(255, 170, 0, 0.1); border: 2px solid #ffaa00; padding: 16px; margin: 20px auto; max-width: 1200px; border-radius: 4px; text-align: center;">
-        <p style="color: #ffaa00; font-size: 14px; margin-bottom: 8px;">⚠️ <strong>Email not confirmed</strong> - Verify to unlock purchases.</p>
-        <button id="resendEmailBtn" class="dash-btn" style="background: #ffaa00; color: #000;">Resend Code</button>
-        <div id="resendStatus" style="margin-top: 8px; font-size: 13px;"></div>
+    <div class="bg-yellow-900 bg-opacity-10 border-2 border-yellow-600 px-6 py-4 rounded-lg text-center max-w-6xl mx-auto mb-6">
+        <p class="text-yellow-600 text-sm mb-3">⚠️ <strong>Email not confirmed</strong> - Verify to unlock purchases.</p>
+        <button id="resendEmailBtn" class="px-6 py-2 bg-yellow-600 text-black font-bold rounded-lg hover:bg-yellow-500 transition-colors">Resend Code</button>
+        <div id="resendStatus" class="mt-2 text-sm"></div>
     </div>
     <script>
         document.getElementById('resendEmailBtn').addEventListener('click', async () => {
@@ -214,17 +214,17 @@ const buildDashboardTemplate = (data) => {
                 const res = await fetch('/resend-code', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
                 const data = await res.json();
                 if (data.success) {
-                    status.style.color = '#88FE00';
+                    status.className = 'mt-2 text-sm text-green-400';
                     status.textContent = '✓ ' + data.message;
                     btn.textContent = 'Code Sent!';
                     setTimeout(() => { btn.textContent = 'Resend Code'; btn.disabled = false; }, 3000);
                 } else {
-                    status.style.color = '#ff4444';
+                    status.className = 'mt-2 text-sm text-red-400';
                     status.textContent = '✗ ' + data.error;
                     btn.disabled = false;
                 }
             } catch (err) {
-                status.style.color = '#ff4444';
+                status.className = 'mt-2 text-sm text-red-400';
                 status.textContent = '✗ Failed to send';
                 btn.disabled = false;
             }
@@ -233,153 +233,153 @@ const buildDashboardTemplate = (data) => {
     ` : ''}
 
     <!-- Stats Grid -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-        <div class="dash-card" style="background: linear-gradient(to bottom right, rgba(45, 167, 223, 0.05), transparent);">
-            <p class="stat-label">Global Traffic</p>
-            <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 1rem;">
-                <h3 style="font-size: 1.5rem; font-weight: 700; color: white; margin: 0;">${data.bandwidthUsed || '0'}/s</h3>
-                <div style="font-size: 10px; color: #22c55e; font-weight: 700;">+12%</div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="bg-gray-800 border border-gray-700 rounded-lg p-6 bg-gradient-to-br from-brand from-opacity-5 to-transparent">
+            <p class="text-xs text-gray-500 uppercase font-bold mb-3">Global Traffic</p>
+            <div class="flex items-end justify-between mb-4">
+                <h3 class="text-2xl font-bold text-white">${data.bandwidthUsed || '0'}/s</h3>
+                <div class="text-xs text-green-500 font-bold">+12%</div>
             </div>
-            <div style="width: 100%; height: 4px; background: rgba(255, 255, 255, 0.05); overflow: hidden; border-radius: 2px;">
-                <div style="height: 100%; background: var(--glow); width: 66%; box-shadow: 0 0 10px rgba(45, 167, 223, 0.5);"></div>
-            </div>
-        </div>
-        <div class="dash-card">
-            <p class="stat-label">Active Instances</p>
-            <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 1rem;">
-                <h3 style="font-size: 1.5rem; font-weight: 700; color: white; margin: 0;">${data.serverCount || 0}</h3>
-                <div style="font-size: 10px; color: var(--glow); font-weight: 700;">Stable</div>
-            </div>
-            <div style="width: 100%; height: 4px; background: rgba(255, 255, 255, 0.05); overflow: hidden; border-radius: 2px;">
-                <div style="height: 100%; background: #22c55e; width: 95%;"></div>
+            <div class="w-full h-1 bg-white bg-opacity-5 rounded-full overflow-hidden">
+                <div class="h-full bg-brand w-2/3 shadow-glow-brand"></div>
             </div>
         </div>
-        <div class="dash-card">
-            <p class="stat-label">Memory Pool</p>
-            <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 1rem;">
-                <h3 style="font-size: 1.5rem; font-weight: 700; color: white; margin: 0;">${data.totalRam || '0'}</h3>
-                <div style="font-size: 10px; color: var(--text-secondary); font-weight: 700;">${ramPercent}% Used</div>
+        <div class="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <p class="text-xs text-gray-500 uppercase font-bold mb-3">Active Instances</p>
+            <div class="flex items-end justify-between mb-4">
+                <h3 class="text-2xl font-bold text-white">${data.serverCount || 0}</h3>
+                <div class="text-xs text-brand font-bold">Stable</div>
             </div>
-            <div style="width: 100%; height: 4px; background: rgba(255, 255, 255, 0.05); overflow: hidden; border-radius: 2px;">
-                <div style="height: 100%; background: #facc15; width: ${ramPercent}%;"></div>
+            <div class="w-full h-1 bg-white bg-opacity-5 rounded-full overflow-hidden">
+                <div class="h-full bg-green-500 w-11/12"></div>
             </div>
         </div>
-        <div class="dash-card">
-            <p class="stat-label">System Load</p>
-            <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 1rem;">
-                <h3 style="font-size: 1.5rem; font-weight: 700; color: white; margin: 0;">1.04</h3>
-                <div style="font-size: 10px; color: var(--text-secondary); font-weight: 700;">Optimal</div>
+        <div class="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <p class="text-xs text-gray-500 uppercase font-bold mb-3">Memory Pool</p>
+            <div class="flex items-end justify-between mb-4">
+                <h3 class="text-2xl font-bold text-white">${data.totalRam || '0'}</h3>
+                <div class="text-xs text-gray-500 font-bold">${ramPercent}% Used</div>
             </div>
-            <div style="width: 100%; height: 4px; background: rgba(255, 255, 255, 0.05); overflow: hidden; border-radius: 2px;">
-                <div style="height: 100%; background: var(--glow); width: 33%;"></div>
+            <div class="w-full h-1 bg-white bg-opacity-5 rounded-full overflow-hidden">
+                <div class="h-full bg-yellow-500" style="width: ${ramPercent}%"></div>
+            </div>
+        </div>
+        <div class="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <p class="text-xs text-gray-500 uppercase font-bold mb-3">System Load</p>
+            <div class="flex items-end justify-between mb-4">
+                <h3 class="text-2xl font-bold text-white">1.04</h3>
+                <div class="text-xs text-gray-500 font-bold">Optimal</div>
+            </div>
+            <div class="w-full h-1 bg-white bg-opacity-5 rounded-full overflow-hidden">
+                <div class="h-full bg-brand w-1/3"></div>
             </div>
         </div>
     </div>
 
     <!-- Main Content Grid -->
-    <div style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 1.5rem;">
-        <!-- Primary Server Card (Full Width) -->
-        <div class="dash-card" style="grid-column: span 12; border-left: 4px solid var(--glow); position: relative; overflow: hidden;">
-            <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-cyan); background: rgba(255, 255, 255, 0.01);">
-                <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <div style="width: 8px; height: 8px; background: ${data.serverStatus === 'active' ? '#22c55e' : '#6b7280'}; border-radius: 50%; box-shadow: 0 0 8px currentColor;"></div>
-                        <h4 style="font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin: 0;">
-                            Instance Core: <span style="color: var(--glow);">${data.serverName}</span>
+    <div class="space-y-6">
+        <!-- Primary Server Card -->
+        <div class="bg-gray-800 border border-gray-700 border-l-4 border-l-brand rounded-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-700 bg-white bg-opacity-5">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-2 h-2 rounded-full ${data.serverStatus === 'active' ? 'bg-green-500' : 'bg-gray-500'} shadow-lg"></div>
+                        <h4 class="text-sm font-bold uppercase tracking-wide text-white">
+                            Instance Core: <span class="text-brand">${data.serverName}</span>
                         </h4>
                     </div>
-                    <div style="display: flex; gap: 8px;">
-                        <button style="padding: 8px; border: 1px solid rgba(255, 255, 255, 0.05); background: transparent; cursor: pointer; color: var(--glow);">⟳</button>
-                        <button style="padding: 8px; border: 1px solid rgba(255, 255, 255, 0.05); background: transparent; cursor: pointer; color: var(--text-secondary);">⚙</button>
+                    <div class="flex gap-2">
+                        <button class="p-2 border border-white border-opacity-5 bg-transparent hover:bg-white hover:bg-opacity-5 text-brand rounded">⟳</button>
+                        <button class="p-2 border border-white border-opacity-5 bg-transparent hover:bg-white hover:bg-opacity-5 text-gray-500 rounded">⚙</button>
                     </div>
                 </div>
             </div>
-            <div style="padding: 1.5rem 2rem;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+            <div class="p-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <div>
-                        <div style="space-y: 1.5rem;">
-                            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px; margin-bottom: 16px;">
-                                <span style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">IPv4 Interface</span>
-                                <span style="font-size: 14px; font-family: 'JetBrains Mono', monospace; color: var(--glow);">${data.ipAddress}</span>
+                        <div class="space-y-4 mb-6">
+                            <div class="flex justify-between items-center pb-2 border-b border-white border-opacity-5">
+                                <span class="text-xs text-gray-500 uppercase font-bold">IPv4 Interface</span>
+                                <span class="text-sm font-mono text-brand">${data.ipAddress}</span>
                             </div>
-                            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px; margin-bottom: 16px;">
-                                <span style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">Host Name</span>
-                                <span style="font-size: 14px; font-family: 'JetBrains Mono', monospace; color: white;">${data.serverName}</span>
+                            <div class="flex justify-between items-center pb-2 border-b border-white border-opacity-5">
+                                <span class="text-xs text-gray-500 uppercase font-bold">Host Name</span>
+                                <span class="text-sm font-mono text-white">${data.serverName}</span>
                             </div>
-                            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px; margin-bottom: 16px;">
-                                <span style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">Plan</span>
-                                <span style="font-size: 14px; font-family: 'JetBrains Mono', monospace; color: white;">${data.plan.toUpperCase()}</span>
+                            <div class="flex justify-between items-center pb-2 border-b border-white border-opacity-5">
+                                <span class="text-xs text-gray-500 uppercase font-bold">Plan</span>
+                                <span class="text-sm font-mono text-white">${data.plan.toUpperCase()}</span>
                             </div>
-                            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px;">
-                                <span style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">Status</span>
-                                <span style="font-size: 14px; font-family: 'JetBrains Mono', monospace; color: ${data.serverStatus === 'active' ? '#22c55e' : '#f87171'};">${data.serverStatus.toUpperCase()}</span>
+                            <div class="flex justify-between items-center pb-2 border-b border-white border-opacity-5">
+                                <span class="text-xs text-gray-500 uppercase font-bold">Status</span>
+                                <span class="text-sm font-mono ${data.serverStatus === 'active' ? 'text-green-500' : 'text-red-400'}">${data.serverStatus.toUpperCase()}</span>
                             </div>
                         </div>
-                        <div style="display: flex; gap: 12px; margin-top: 2rem;">
+                        <div class="flex gap-3">
                             ${data.serverStatus === 'stopped' ? `
-                                <form action="/server-action" method="POST" style="flex: 1;">
+                                <form action="/server-action" method="POST" class="flex-1">
                                     <input type="hidden" name="_csrf" value="${data.csrfToken}">
                                     <input type="hidden" name="action" value="start">
-                                    <button type="submit" class="dash-btn" style="width: 100%;">Start Core</button>
+                                    <button type="submit" class="w-full px-4 py-2 bg-brand text-gray-900 font-bold rounded-lg hover:bg-cyan-500 transition-colors">Start Core</button>
                                 </form>
                             ` : `
-                                <form action="/server-action" method="POST" style="flex: 1;">
+                                <form action="/server-action" method="POST" class="flex-1">
                                     <input type="hidden" name="_csrf" value="${data.csrfToken}">
                                     <input type="hidden" name="action" value="restart">
-                                    <button type="submit" class="dash-btn" style="width: 100%;">Restart</button>
+                                    <button type="submit" class="w-full px-4 py-2 bg-brand text-gray-900 font-bold rounded-lg hover:bg-cyan-500 transition-colors">Restart</button>
                                 </form>
-                                <form action="/server-action" method="POST" style="flex: 1;">
+                                <form action="/server-action" method="POST" class="flex-1">
                                     <input type="hidden" name="_csrf" value="${data.csrfToken}">
                                     <input type="hidden" name="action" value="stop">
-                                    <button type="submit" class="dash-btn dash-btn-secondary" style="width: 100%;">Stop</button>
+                                    <button type="submit" class="w-full px-4 py-2 bg-gray-700 text-white font-bold rounded-lg hover:bg-gray-600 transition-colors">Stop</button>
                                 </form>
                             `}
-                            <form action="/delete-server" method="POST" style="flex: 1;" onsubmit="return confirm('Permanently destroy this server?');">
+                            <form action="/delete-server" method="POST" class="flex-1" onsubmit="return confirm('Permanently destroy this server?');">
                                 <input type="hidden" name="_csrf" value="${data.csrfToken}">
-                                <button type="submit" class="dash-btn dash-btn-danger" style="width: 100%;">Terminate</button>
+                                <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition-colors">Terminate</button>
                             </form>
                         </div>
                     </div>
-                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; border: 1px solid rgba(255, 255, 255, 0.05); background: rgba(0, 0, 0, 0.2);">
-                            <div style="position: relative; width: 80px; height: 80px; margin-bottom: 8px;">
-                                <svg viewBox="0 0 100 100" style="width: 100%; height: 100%; transform: rotate(-90deg);">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="flex flex-col items-center justify-center p-4 border border-white border-opacity-5 bg-black bg-opacity-20 rounded">
+                            <div class="relative w-20 h-20 mb-2">
+                                <svg viewBox="0 0 100 100" class="w-full h-full -rotate-90">
                                     <circle cx="50" cy="50" r="35" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="4"></circle>
-                                    <circle cx="50" cy="50" r="35" fill="none" stroke="var(--glow)" stroke-width="4" stroke-linecap="round" style="stroke-dasharray: 220; stroke-dashoffset: ${cpuOffset}; filter: drop-shadow(0 0 5px var(--glow)); transition: stroke-dashoffset 1s ease-out;"></circle>
+                                    <circle cx="50" cy="50" r="35" fill="none" stroke="#2DA7DF" stroke-width="4" stroke-linecap="round" class="transition-all duration-1000" style="stroke-dasharray: 220; stroke-dashoffset: ${cpuOffset}; filter: drop-shadow(0 0 5px #2DA7DF);"></circle>
                                 </svg>
-                                <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: white;">${cpuPercent}%</div>
+                                <div class="absolute inset-0 flex items-center justify-center text-sm font-bold text-white">${cpuPercent}%</div>
                             </div>
-                            <span style="font-size: 9px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">CPU Load</span>
+                            <span class="text-xs text-gray-500 uppercase tracking-wider font-bold">CPU Load</span>
                         </div>
-                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; border: 1px solid rgba(255, 255, 255, 0.05); background: rgba(0, 0, 0, 0.2);">
-                            <div style="position: relative; width: 80px; height: 80px; margin-bottom: 8px;">
-                                <svg viewBox="0 0 100 100" style="width: 100%; height: 100%; transform: rotate(-90deg);">
+                        <div class="flex flex-col items-center justify-center p-4 border border-white border-opacity-5 bg-black bg-opacity-20 rounded">
+                            <div class="relative w-20 h-20 mb-2">
+                                <svg viewBox="0 0 100 100" class="w-full h-full -rotate-90">
                                     <circle cx="50" cy="50" r="35" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="4"></circle>
-                                    <circle cx="50" cy="50" r="35" fill="none" stroke="#a855f7" stroke-width="4" stroke-linecap="round" style="stroke-dasharray: 220; stroke-dashoffset: ${ramOffset}; filter: drop-shadow(0 0 5px #a855f7); transition: stroke-dashoffset 1s ease-out;"></circle>
+                                    <circle cx="50" cy="50" r="35" fill="none" stroke="#a855f7" stroke-width="4" stroke-linecap="round" class="transition-all duration-1000" style="stroke-dasharray: 220; stroke-dashoffset: ${ramOffset}; filter: drop-shadow(0 0 5px #a855f7);"></circle>
                                 </svg>
-                                <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: white;">${ramPercent}%</div>
+                                <div class="absolute inset-0 flex items-center justify-center text-sm font-bold text-white">${ramPercent}%</div>
                             </div>
-                            <span style="font-size: 9px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">RAM Usage</span>
+                            <span class="text-xs text-gray-500 uppercase tracking-wider font-bold">RAM Usage</span>
                         </div>
-                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; border: 1px solid rgba(255, 255, 255, 0.05); background: rgba(0, 0, 0, 0.2);">
-                            <div style="position: relative; width: 80px; height: 80px; margin-bottom: 8px;">
-                                <svg viewBox="0 0 100 100" style="width: 100%; height: 100%; transform: rotate(-90deg);">
+                        <div class="flex flex-col items-center justify-center p-4 border border-white border-opacity-5 bg-black bg-opacity-20 rounded">
+                            <div class="relative w-20 h-20 mb-2">
+                                <svg viewBox="0 0 100 100" class="w-full h-full -rotate-90">
                                     <circle cx="50" cy="50" r="35" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="4"></circle>
-                                    <circle cx="50" cy="50" r="35" fill="none" stroke="#f59e0b" stroke-width="4" stroke-linecap="round" style="stroke-dasharray: 220; stroke-dashoffset: ${diskOffset}; filter: drop-shadow(0 0 5px #f59e0b); transition: stroke-dashoffset 1s ease-out;"></circle>
+                                    <circle cx="50" cy="50" r="35" fill="none" stroke="#f59e0b" stroke-width="4" stroke-linecap="round" class="transition-all duration-1000" style="stroke-dasharray: 220; stroke-dashoffset: ${diskOffset}; filter: drop-shadow(0 0 5px #f59e0b);"></circle>
                                 </svg>
-                                <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: white;">${diskPercent}%</div>
+                                <div class="absolute inset-0 flex items-center justify-center text-sm font-bold text-white">${diskPercent}%</div>
                             </div>
-                            <span style="font-size: 9px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">Disk IO</span>
+                            <span class="text-xs text-gray-500 uppercase tracking-wider font-bold">Disk IO</span>
                         </div>
-                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; border: 1px solid rgba(255, 255, 255, 0.05); background: rgba(0, 0, 0, 0.2);">
-                            <div style="position: relative; width: 80px; height: 80px; margin-bottom: 8px;">
-                                <svg viewBox="0 0 100 100" style="width: 100%; height: 100%; transform: rotate(-90deg);">
+                        <div class="flex flex-col items-center justify-center p-4 border border-white border-opacity-5 bg-black bg-opacity-20 rounded">
+                            <div class="relative w-20 h-20 mb-2">
+                                <svg viewBox="0 0 100 100" class="w-full h-full -rotate-90">
                                     <circle cx="50" cy="50" r="35" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="4"></circle>
                                     <circle cx="50" cy="50" r="35" fill="none" stroke="#22c55e" stroke-width="4" stroke-linecap="round" style="stroke-dasharray: 220; stroke-dashoffset: calc(220 - 220 * 92 / 100); filter: drop-shadow(0 0 5px #22c55e);"></circle>
                                 </svg>
-                                <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: white;">92%</div>
+                                <div class="absolute inset-0 flex items-center justify-center text-sm font-bold text-white">92%</div>
                             </div>
-                            <span style="font-size: 9px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">Net Sync</span>
+                            <span class="text-xs text-gray-500 uppercase tracking-wider font-bold">Net Sync</span>
                         </div>
                     </div>
                 </div>
@@ -387,147 +387,147 @@ const buildDashboardTemplate = (data) => {
         </div>
 
         <!-- Deployments Card -->
-        <div class="dash-card" style="grid-column: span 12;">
-            <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-cyan); background: rgba(255, 255, 255, 0.01);">
-                <h4 style="font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: white; margin: 0;">📦 Deployment Pipeline</h4>
+        <div class="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-700 bg-white bg-opacity-5">
+                <h4 class="text-sm font-bold uppercase tracking-wide text-white">📦 Deployment Pipeline</h4>
             </div>
-            <div style="overflow-x: auto;">
-                <table style="width: 100%; text-align: left; border-collapse: collapse;">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
                     <thead>
-                        <tr style="background: rgba(255, 255, 255, 0.01); border-bottom: 1px solid var(--border-cyan);">
-                            <th style="padding: 1rem 1.5rem; font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--text-secondary);">Identifier</th>
-                            <th style="padding: 1rem 1.5rem; font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--text-secondary);">Repository</th>
-                            <th style="padding: 1rem 1.5rem; font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--text-secondary);">Timestamp</th>
-                            <th style="padding: 1rem 1.5rem; font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--text-secondary);">Status</th>
+                        <tr class="bg-white bg-opacity-5 border-b border-gray-700">
+                            <th class="px-6 py-4 text-xs uppercase font-bold text-gray-500">Identifier</th>
+                            <th class="px-6 py-4 text-xs uppercase font-bold text-gray-500">Repository</th>
+                            <th class="px-6 py-4 text-xs uppercase font-bold text-gray-500">Timestamp</th>
+                            <th class="px-6 py-4 text-xs uppercase font-bold text-gray-500">Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${data.deployments.slice(0, 5).map((dep, i) => `
-                        <tr style="border-bottom: 1px solid var(--border-cyan);">
-                            <td style="padding: 1rem 1.5rem; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: white;">#DEP-${1000 + i}</td>
-                            <td style="padding: 1rem 1.5rem; font-size: 12px; color: var(--text-secondary);">${dep.git_url.split('/').pop() || 'repo'}</td>
-                            <td style="padding: 1rem 1.5rem; font-size: 12px; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace;">${new Date(dep.deployed_at).toLocaleDateString()} ${new Date(dep.deployed_at).toLocaleTimeString()}</td>
-                            <td style="padding: 1rem 1.5rem;"><span class="status-badge ${dep.status === 'success' ? 'status-active' : 'status-failed'}">${dep.status.toUpperCase()}</span></td>
+                        <tr class="border-b border-gray-700">
+                            <td class="px-6 py-4 font-mono text-xs text-white">#DEP-${1000 + i}</td>
+                            <td class="px-6 py-4 text-xs text-gray-400">${dep.git_url.split('/').pop() || 'repo'}</td>
+                            <td class="px-6 py-4 text-xs text-gray-400 font-mono">${new Date(dep.deployed_at).toLocaleDateString()} ${new Date(dep.deployed_at).toLocaleTimeString()}</td>
+                            <td class="px-6 py-4"><span class="px-2 py-1 text-xs font-bold uppercase rounded ${dep.status === 'success' ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'}">${dep.status}</span></td>
                         </tr>
                         `).join('')}
                     </tbody>
                 </table>
             </div>
-            ${!data.deployments.length ? '<p style="padding: 1.5rem; color: #666; font-size: 12px; font-style: italic;">No deployments yet. Deploy your first app to see history here.</p>' : ''}
+            ${!data.deployments.length ? '<p class="px-6 py-6 text-gray-500 text-xs italic">No deployments yet. Deploy your first app to see history here.</p>' : ''}
         </div>
 
-        <!-- Right Column: Domains & Quick Actions -->
-        <div style="grid-column: span 12; background: var(--card-bg); backdrop-filter: blur(12px); border: 1px solid var(--border-cyan); border-radius: 4px; padding: 1.5rem;">
-            <h4 style="font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: white; margin: 0 0 1.5rem 0;">🌐 Custom Domains</h4>
-            <form action="/add-domain" method="POST" style="margin-bottom: 1.5rem;">
+        <!-- Custom Domains -->
+        <div class="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-6">🌐 Custom Domains</h4>
+            <form action="/add-domain" method="POST" class="mb-6">
                 <input type="hidden" name="_csrf" value="${data.csrfToken}">
-                <div style="display: grid; grid-template-columns: 1fr auto; gap: 12px;">
-                    <input type="text" name="domain" placeholder="example.com" class="dash-form-input" required>
-                    <button type="submit" class="dash-btn">Add Domain</button>
+                <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
+                    <input type="text" name="domain" placeholder="example.com" required class="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none">
+                    <button type="submit" class="px-6 py-3 bg-brand text-gray-900 font-bold rounded-lg hover:bg-cyan-500 transition-colors">Add Domain</button>
                 </div>
             </form>
             ${data.domains.length > 0 ? `
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px;">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     ${data.domains.map(dom => `
-                    <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-cyan); border-radius: 4px; padding: 12px;">
-                        <p style="font-size: 13px; color: white; font-weight: 500; margin: 0 0 6px 0;">${dom.domain}</p>
-                        <p style="font-size: 11px; color: #666; margin: 0 0 8px 0;">Added ${new Date(dom.created_at).toLocaleDateString()}</p>
-                        ${dom.ssl_enabled ? '<span class="status-badge status-active" style="font-size: 9px;">🔒 SSL</span>' : '<span class="status-badge" style="font-size: 9px; background: rgba(255, 184, 0, 0.2); color: #facc15;">⚠️ No SSL</span>'}
+                    <div class="bg-black bg-opacity-30 border border-gray-700 rounded-lg p-3">
+                        <p class="text-sm text-white font-medium mb-1.5">${dom.domain}</p>
+                        <p class="text-xs text-gray-500 mb-2">Added ${new Date(dom.created_at).toLocaleDateString()}</p>
+                        ${dom.ssl_enabled ? '<span class="px-2 py-1 text-xs font-bold uppercase rounded bg-green-900 text-green-300">🔒 SSL</span>' : '<span class="px-2 py-1 text-xs font-bold uppercase rounded bg-yellow-900 text-yellow-300">⚠️ No SSL</span>'}
                     </div>
                     `).join('')}
                 </div>
-            ` : '<p style="color: #666; font-size: 12px; font-style: italic;">No domains configured yet.</p>'}
+            ` : '<p class="text-gray-500 text-xs italic">No domains configured yet.</p>'}
         </div>
 
-        <!-- Tickets & Alerts -->
-        <div style="grid-column: span 12; background: var(--card-bg); backdrop-filter: blur(12px); border: 1px solid var(--border-cyan); border-radius: 4px; padding: 1.5rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <h4 style="font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: white; margin: 0;">🎫 Support Tickets</h4>
-                <button onclick="openSubmitTicketModal()" class="dash-btn" style="background: rgba(45, 167, 223, 0.9); color: #000; padding: 6px 12px; font-size: 11px;">+ New</button>
+        <!-- Support Tickets -->
+        <div class="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h4 class="text-sm font-bold uppercase tracking-wide text-white">🎫 Support Tickets</h4>
+                <button onclick="openSubmitTicketModal()" class="px-4 py-2 bg-brand bg-opacity-90 text-black font-bold text-xs rounded-lg hover:bg-brand transition-colors">+ New</button>
             </div>
             ${data.tickets.length > 0 ? `
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px;">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                     ${data.tickets.slice(0, 4).map(ticket => `
-                    <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border-cyan); border-radius: 4px; padding: 12px;">
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
-                            <p style="font-size: 11px; color: var(--text-secondary); margin: 0;">Ticket #${ticket.id}</p>
-                            <span class="status-badge ${ticket.status === 'resolved' ? 'status-active' : 'status-provisioning'}" style="font-size: 9px;">
-                                ${ticket.status.toUpperCase()}
+                    <div class="bg-black bg-opacity-30 border border-gray-700 rounded-lg p-3">
+                        <div class="flex justify-between items-start mb-2">
+                            <p class="text-xs text-gray-400">Ticket #${ticket.id}</p>
+                            <span class="px-2 py-1 text-xs font-bold uppercase rounded ${ticket.status === 'resolved' ? 'bg-green-900 text-green-300' : 'bg-blue-900 text-blue-300'}">
+                                ${ticket.status}
                             </span>
                         </div>
-                        <p style="font-size: 12px; color: white; margin: 0 0 8px 0; font-weight: 500;">${ticket.subject}</p>
-                        <span class="status-badge ${ticket.priority === 'urgent' ? 'status-failed' : ticket.priority === 'high' ? 'status-provisioning' : 'status-active'}" style="font-size: 9px;">
-                            ${ticket.priority.toUpperCase()}
+                        <p class="text-xs text-white font-medium mb-2">${ticket.subject}</p>
+                        <span class="px-2 py-1 text-xs font-bold uppercase rounded ${ticket.priority === 'urgent' ? 'bg-red-900 text-red-300' : ticket.priority === 'high' ? 'bg-yellow-900 text-yellow-300' : 'bg-gray-700 text-gray-300'}">
+                            ${ticket.priority}
                         </span>
                     </div>
                     `).join('')}
                 </div>
-            ` : '<p style="color: #666; font-size: 12px; font-style: italic;">No support tickets. Click "New" to create one.</p>'}
+            ` : '<p class="text-gray-500 text-xs italic">No support tickets. Click "New" to create one.</p>'}
         </div>
 
         <!-- Account Settings -->
-        <div style="grid-column: span 12; background: var(--card-bg); backdrop-filter: blur(12px); border: 1px solid var(--border-cyan); border-radius: 4px; padding: 1.5rem;">
-            <h4 style="font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: white; margin: 0 0 1.5rem 0;">⚙️ Account Settings</h4>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        <div class="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-6">⚙️ Account Settings</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                    <p class="stat-label">Email</p>
-                    <p style="padding: 8px; background: rgba(0, 0, 0, 0.3); border-radius: 3px; border: 1px solid var(--border-cyan); margin: 0; color: white; font-size: 12px;">${data.userEmail}</p>
+                    <p class="text-xs text-gray-500 uppercase font-bold mb-2">Email</p>
+                    <p class="px-3 py-2 bg-black bg-opacity-30 rounded border border-gray-700 text-white text-xs">${data.userEmail}</p>
                 </div>
                 <div>
-                    <p class="stat-label">Role</p>
-                    <p style="padding: 8px; background: rgba(0, 0, 0, 0.3); border-radius: 3px; border: 1px solid var(--border-cyan); margin: 0; color: white; font-size: 12px;">${data.userRole === 'admin' ? 'Administrator' : 'User'}</p>
+                    <p class="text-xs text-gray-500 uppercase font-bold mb-2">Role</p>
+                    <p class="px-3 py-2 bg-black bg-opacity-30 rounded border border-gray-700 text-white text-xs">${data.userRole === 'admin' ? 'Administrator' : 'User'}</p>
                 </div>
             </div>
             
-            <div style="padding-top: 1.5rem; border-top: 1px solid var(--border-cyan); margin-bottom: 1.5rem;">
-                <h5 style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--glow); margin: 0 0 1rem 0;">Change Password</h5>
-                <form onsubmit="changePassword(event)" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
-                    <input type="password" id="currentPassword" placeholder="Current" class="dash-form-input" required>
-                    <input type="password" id="newPassword" placeholder="New Password" class="dash-form-input" required>
-                    <input type="password" id="confirmPassword" placeholder="Confirm" class="dash-form-input" required>
-                    <button type="submit" class="dash-btn">Update</button>
+            <div class="pt-6 border-t border-gray-700 mb-6">
+                <h5 class="text-xs font-bold uppercase tracking-wide text-brand mb-4">Change Password</h5>
+                <form onsubmit="changePassword(event)" class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <input type="password" id="currentPassword" placeholder="Current" required class="px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none">
+                    <input type="password" id="newPassword" placeholder="New Password" required class="px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none">
+                    <input type="password" id="confirmPassword" placeholder="Confirm" required class="px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none">
+                    <button type="submit" class="px-6 py-3 bg-brand text-gray-900 font-bold rounded-lg hover:bg-cyan-500 transition-colors">Update</button>
                 </form>
             </div>
 
-            <div style="padding-top: 1.5rem; border-top: 1px solid var(--border-cyan);">
-                <a href="/logout" class="dash-btn dash-btn-danger" style="display: inline-block; text-decoration: none; padding: 8px 16px;">Logout</a>
+            <div class="pt-6 border-t border-gray-700">
+                <a href="/logout" class="inline-block px-6 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition-colors">Logout</a>
             </div>
         </div>
     </div>
-</div>
+</main>
 
 <!-- Submit Ticket Modal -->
-<div id="submitTicketModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); z-index: 1000; justify-content: center; align-items: center;">
-    <div style="background: #0f0f0f; border: 1px solid var(--border-cyan); border-radius: 4px; padding: 2rem; max-width: 450px; width: 90%; max-height: 80vh; overflow-y: auto;">
-        <h2 style="font-size: 18px; margin: 0 0 1.5rem 0; color: white;">Submit Support Ticket</h2>
-        <form onsubmit="submitTicket(event)">
-            <div class="dash-form-group">
-                <label class="dash-form-label">Subject</label>
-                <input type="text" id="ticketSubject" class="dash-form-input" placeholder="Brief description" required maxlength="100">
+<div id="submitTicketModal" class="hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center">
+    <div class="bg-gray-900 border border-gray-700 rounded-lg p-8 max-w-md w-11/12 max-h-[80vh] overflow-y-auto">
+        <h2 class="text-lg font-bold text-white mb-6">Submit Support Ticket</h2>
+        <form onsubmit="submitTicket(event)" class="space-y-4">
+            <div>
+                <label class="block text-xs text-gray-400 uppercase font-bold mb-2">Subject</label>
+                <input type="text" id="ticketSubject" placeholder="Brief description" required maxlength="100" class="w-full px-4 py-3 bg-black bg-opacity-50 border border-gray-700 rounded-lg text-white focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none">
             </div>
-            <div class="dash-form-group">
-                <label class="dash-form-label">Priority</label>
-                <select id="ticketPriority" class="dash-form-select">
+            <div>
+                <label class="block text-xs text-gray-400 uppercase font-bold mb-2">Priority</label>
+                <select id="ticketPriority" class="w-full px-4 py-3 bg-black bg-opacity-50 border border-gray-700 rounded-lg text-white focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none">
                     <option value="normal">Normal</option>
                     <option value="high">High</option>
                     <option value="urgent">Urgent</option>
                 </select>
             </div>
-            <div class="dash-form-group">
-                <label class="dash-form-label">Description</label>
-                <textarea id="ticketDescription" class="dash-form-textarea" placeholder="Details about your issue" required></textarea>
+            <div>
+                <label class="block text-xs text-gray-400 uppercase font-bold mb-2">Description</label>
+                <textarea id="ticketDescription" placeholder="Details about your issue" required class="w-full px-4 py-3 bg-black bg-opacity-50 border border-gray-700 rounded-lg text-white focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none h-32"></textarea>
             </div>
-            <div style="display: flex; gap: 12px;">
-                <button type="submit" class="dash-btn" style="flex: 1;">Submit</button>
-                <button type="button" class="dash-btn dash-btn-secondary" style="flex: 1;" onclick="closeSubmitTicketModal()">Cancel</button>
+            <div class="flex gap-3">
+                <button type="submit" class="flex-1 px-6 py-3 bg-brand text-gray-900 font-bold rounded-lg hover:bg-cyan-500 transition-colors">Submit</button>
+                <button type="button" class="flex-1 px-6 py-3 bg-gray-700 text-white font-bold rounded-lg hover:bg-gray-600 transition-colors" onclick="closeSubmitTicketModal()">Cancel</button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
-function openSubmitTicketModal() { document.getElementById('submitTicketModal').style.display = 'flex'; }
-function closeSubmitTicketModal() { document.getElementById('submitTicketModal').style.display = 'none'; }
+function openSubmitTicketModal() { document.getElementById('submitTicketModal').classList.remove('hidden'); document.getElementById('submitTicketModal').classList.add('flex'); }
+function closeSubmitTicketModal() { document.getElementById('submitTicketModal').classList.remove('flex'); document.getElementById('submitTicketModal').classList.add('hidden'); }
 document.getElementById('submitTicketModal')?.addEventListener('click', (e) => {
     if (e.target.id === 'submitTicketModal') closeSubmitTicketModal();
 });

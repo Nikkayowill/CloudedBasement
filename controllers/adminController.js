@@ -23,32 +23,31 @@ const listUsers = async (req, res) => {
 
     res.send(`
 ${getHTMLHead('Admin Dashboard')}
-</head>
-<body class="bg-gray-900">
-    <div class="matrix-bg"></div>
     ${getResponsiveNav(req)}
 
-    <main class="page-container" style="max-width: 1400px;">
-      <div>
-        <h1>Admin Dashboard</h1>
-      </div>
+    <main class="bg-gray-900 min-h-screen pt-24 pb-16 px-4 md:px-8">
+      <div class="max-w-7xl mx-auto">
+        <h1 class="text-3xl md:text-4xl font-bold text-brand text-center mb-12">Admin Dashboard</h1>
 
       <!-- Pending Server Requests (Priority) -->
       ${pendingRequests.length > 0 ? `
-      <div style="margin-bottom: 48px;">
-        <h2 style="color: #2DA7DF; margin-bottom: 16px;">⚡ Pending Server Requests (${pendingRequests.length})</h2>
-        <div class="table-card" style="border-color: #2DA7DF; background: rgba(45, 167, 223, 0.05);">
-          <table>
-            <thead>
+      <div class="mb-12">
+        <h2 class="text-2xl font-bold text-brand mb-4 flex items-center gap-2">
+          <span>⚡</span>
+          <span>Pending Server Requests (${pendingRequests.length})</span>
+        </h2>
+        <div class="bg-gray-800 border-2 border-brand rounded-lg overflow-hidden glow-brand">
+          <table class="w-full">
+            <thead class="bg-brand bg-opacity-10">
               <tr>
-                <th>Customer</th>
-                <th>Details</th>
-                <th>Status</th>
-                <th>Requested</th>
-                <th>Action</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Customer</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Details</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Requested</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Action</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody class="divide-y divide-gray-700">
               ${pendingRequests.map(r => {
                 const details = r.description.split('\n').reduce((acc, line) => {
                   const [key, val] = line.split(': ');
@@ -56,18 +55,31 @@ ${getHTMLHead('Admin Dashboard')}
                   return acc;
                 }, {});
                 return `
-                <tr>
-                  <td><strong>${r.customer_email}</strong></td>
-                  <td>
-                    <div style="font-size: 12px; color: #a0a8b8;">
-                      <div>Region: <strong style="color: #2DA7DF;">${details.Region || 'N/A'}</strong></div>
-                      <div>Name: ${details['Server Name'] || 'Default'}</div>
-                      <div>Use: ${details['Use Case'] || 'Not specified'}</div>
+                <tr class="hover:bg-gray-700 transition-colors">
+                  <td class="px-6 py-4 text-sm text-white font-bold">${r.customer_email}</td>
+                  <td class="px-6 py-4">
+                    <div class="text-xs text-gray-400 space-y-1">
+                      <div>Region: <span class="text-brand font-bold">${details.Region || 'N/A'}</span></div>
+                      <div>Name: <span class="text-gray-300">${details['Server Name'] || 'Default'}</span></div>
+                      <div>Use: <span class="text-gray-300">${details['Use Case'] || 'Not specified'}</span></div>
                     </div>
                   </td>
-                  <td><span style="padding: 4px 12px; background: rgba(255, 165, 0, 0.2); color: #ffa500; border-radius: 12px; font-size: 11px; text-transform: uppercase;">${r.status}</span></td>
-                  <td>${new Date(r.created_at).toLocaleDateString()} ${new Date(r.created_at).toLocaleTimeString()}</td>
-                  <td><a href="https://cloud.digitalocean.com/droplets/new" target="_blank" style="color: #2DA7DF; text-decoration: underline; font-size: 12px;">Provision →</a></td>
+                  <td class="px-6 py-4 text-sm">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase bg-orange-500 bg-opacity-20 text-orange-400">
+                      ${r.status}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 text-sm text-gray-400">
+                    ${new Date(r.created_at).toLocaleDateString()}<br/>
+                    <span class="text-xs">${new Date(r.created_at).toLocaleTimeString()}</span>
+                  </td>
+                  <td class="px-6 py-4 text-sm">
+                    <a href="https://cloud.digitalocean.com/droplets/new" 
+                       target="_blank" 
+                       class="text-brand hover:text-cyan-400 font-medium underline transition-colors">
+                      Provision →
+                    </a>
+                  </td>
                 </tr>
               `}).join('')}
             </tbody>
@@ -77,30 +89,32 @@ ${getHTMLHead('Admin Dashboard')}
       ` : ''}
 
       <!-- Users Section -->
-      <div class="section">
-        <h2>Users (${users.length})</h2>
-        <div class="table-card">
-          <table>
-            <thead>
+      <div class="mb-12">
+        <h2 class="text-2xl font-bold text-white mb-4">Users (${users.length})</h2>
+        <div class="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
+          <table class="w-full">
+            <thead class="bg-white bg-opacity-5">
               <tr>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Confirmed</th>
-                <th>Created</th>
-                <th>Action</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Email</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Role</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Confirmed</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Created</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Action</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody class="divide-y divide-gray-700">
               ${users.map(u => `
-                <tr>
-                  <td>${u.email}</td>
-                  <td>${u.role}</td>
-                  <td>${u.email_confirmed ? 'Yes' : 'No'}</td>
-                  <td>${new Date(u.created_at).toLocaleDateString()}</td>
-                  <td>
-                    <form method="POST" action="/admin/delete-user/${u.id}" style="display: inline;" onsubmit="return confirm('Delete user ${u.email}? This will also delete all their servers, deployments, and payments.');">
+                <tr class="hover:bg-gray-700 transition-colors">
+                  <td class="px-6 py-4 text-sm text-white">${u.email}</td>
+                  <td class="px-6 py-4 text-sm text-gray-300">${u.role}</td>
+                  <td class="px-6 py-4 text-sm text-gray-300">${u.email_confirmed ? 'Yes' : 'No'}</td>
+                  <td class="px-6 py-4 text-sm text-gray-400">${new Date(u.created_at).toLocaleDateString()}</td>
+                  <td class="px-6 py-4 text-sm">
+                    <form method="POST" action="/admin/delete-user/${u.id}" class="inline" onsubmit="return confirm('Delete user ${u.email}? This will also delete all their servers, deployments, and payments.');">
                       <input type="hidden" name="_csrf" value="${req.csrfToken()}">
-                      <button type="submit" style="background: #ff4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px;">Delete</button>
+                      <button type="submit" class="px-3 py-1.5 bg-red-600 text-white font-bold text-xs rounded hover:bg-red-700 transition-colors">
+                        Delete
+                      </button>
                     </form>
                   </td>
                 </tr>
@@ -111,39 +125,45 @@ ${getHTMLHead('Admin Dashboard')}
       </div>
 
       <!-- Servers Section -->
-      <div class="section">
-        <h2>Servers (${servers.length})</h2>
-        <div class="table-card">
-          <table>
-            <thead>
+      <div class="mb-12">
+        <h2 class="text-2xl font-bold text-white mb-4">Servers (${servers.length})</h2>
+        <div class="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
+          <table class="w-full">
+            <thead class="bg-white bg-opacity-5">
               <tr>
-                <th>ID</th>
-                <th>Owner</th>
-                <th>Plan</th>
-                <th>Status</th>
-                <th>IP Address</th>
-                <th>Created</th>
-                <th>Action</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">ID</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Owner</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Plan</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">IP Address</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Created</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Action</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody class="divide-y divide-gray-700">
               ${servers.map(s => `
-                <tr>
-                  <td>#${s.id}</td>
-                  <td>${s.owner_email || '-'}</td>
-                  <td>${s.plan}</td>
-                  <td>${s.status}</td>
-                  <td>${s.ip_address || '-'}</td>
-                  <td>${new Date(s.created_at).toLocaleDateString()}</td>
-                  <td>
-                    <form method="POST" action="/admin/destroy-droplet/${s.id}" style="display: inline; margin-right: 4px;" onsubmit="return confirm('DESTROY droplet for server #${s.id}? This will permanently delete the DigitalOcean droplet AND the database record. This cannot be undone!');">
-                      <input type="hidden" name="_csrf" value="${req.csrfToken()}">
-                      <button type="submit" style="background: #cc0000; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;">Destroy</button>
-                    </form>
-                    <form method="POST" action="/admin/delete-server/${s.id}" style="display: inline;" onsubmit="return confirm('Delete server record #${s.id}? This will remove it from the database but NOT destroy the actual droplet.');">
-                      <input type="hidden" name="_csrf" value="${req.csrfToken()}">
-                      <button type="submit" style="background: #ff4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px;">Delete DB</button>
-                    </form>
+                <tr class="hover:bg-gray-700 transition-colors">
+                  <td class="px-6 py-4 text-sm text-gray-400 font-mono">#${s.id}</td>
+                  <td class="px-6 py-4 text-sm text-white">${s.owner_email || '-'}</td>
+                  <td class="px-6 py-4 text-sm text-gray-300">${s.plan}</td>
+                  <td class="px-6 py-4 text-sm text-gray-300">${s.status}</td>
+                  <td class="px-6 py-4 text-sm text-gray-300 font-mono">${s.ip_address || '-'}</td>
+                  <td class="px-6 py-4 text-sm text-gray-400">${new Date(s.created_at).toLocaleDateString()}</td>
+                  <td class="px-6 py-4 text-sm">
+                    <div class="flex flex-col sm:flex-row gap-2">
+                      <form method="POST" action="/admin/destroy-droplet/${s.id}" class="inline" onsubmit="return confirm('DESTROY droplet for server #${s.id}? This will permanently delete the DigitalOcean droplet AND the database record. This cannot be undone!');">
+                        <input type="hidden" name="_csrf" value="${req.csrfToken()}">
+                        <button type="submit" class="px-3 py-1.5 bg-red-800 text-white font-bold text-xs rounded hover:bg-red-900 transition-colors whitespace-nowrap">
+                          Destroy
+                        </button>
+                      </form>
+                      <form method="POST" action="/admin/delete-server/${s.id}" class="inline" onsubmit="return confirm('Delete server record #${s.id}? This will remove it from the database but NOT destroy the actual droplet.');">
+                        <input type="hidden" name="_csrf" value="${req.csrfToken()}">
+                        <button type="submit" class="px-3 py-1.5 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition-colors whitespace-nowrap">
+                          Delete DB
+                        </button>
+                      </form>
+                    </div>
                   </td>
                 </tr>
               `).join('')}
@@ -153,25 +173,25 @@ ${getHTMLHead('Admin Dashboard')}
       </div>
 
       <!-- Domains Section -->
-      <div class="section">
-        <h2>Domains (${domains.length})</h2>
-        <div class="table-card">
-          <table>
-            <thead>
+      <div class="mb-12">
+        <h2 class="text-2xl font-bold text-white mb-4">Domains (${domains.length})</h2>
+        <div class="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
+          <table class="w-full">
+            <thead class="bg-white bg-opacity-5">
               <tr>
-                <th>Domain</th>
-                <th>SSL Enabled</th>
-                <th>SSL Expires</th>
-                <th>Created</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Domain</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">SSL Enabled</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">SSL Expires</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Created</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody class="divide-y divide-gray-700">
               ${domains.map(d => `
-                <tr>
-                  <td>${d.domain}</td>
-                  <td>${d.ssl_enabled ? 'Yes' : 'No'}</td>
-                  <td>${d.ssl_expires_at ? new Date(d.ssl_expires_at).toLocaleDateString() : '-'}</td>
-                  <td>${new Date(d.created_at).toLocaleDateString()}</td>
+                <tr class="hover:bg-gray-700 transition-colors">
+                  <td class="px-6 py-4 text-sm text-white font-mono">${d.domain}</td>
+                  <td class="px-6 py-4 text-sm text-gray-300">${d.ssl_enabled ? 'Yes' : 'No'}</td>
+                  <td class="px-6 py-4 text-sm text-gray-400">${d.ssl_expires_at ? new Date(d.ssl_expires_at).toLocaleDateString() : '-'}</td>
+                  <td class="px-6 py-4 text-sm text-gray-400">${new Date(d.created_at).toLocaleDateString()}</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -180,27 +200,27 @@ ${getHTMLHead('Admin Dashboard')}
       </div>
 
       <!-- Deployments Section -->
-      <div class="section">
-        <h2>Recent Deployments (${deployments.length})</h2>
-        <div class="table-card">
-          <table>
-            <thead>
+      <div class="mb-12">
+        <h2 class="text-2xl font-bold text-white mb-4">Recent Deployments (${deployments.length})</h2>
+        <div class="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
+          <table class="w-full">
+            <thead class="bg-white bg-opacity-5">
               <tr>
-                <th>ID</th>
-                <th>Owner</th>
-                <th>Git URL</th>
-                <th>Status</th>
-                <th>Deployed</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">ID</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Owner</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Git URL</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Deployed</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody class="divide-y divide-gray-700">
               ${deployments.map(d => `
-                <tr>
-                  <td>#${d.id}</td>
-                  <td>${d.owner_email || '-'}</td>
-                  <td>${d.git_url || '-'}</td>
-                  <td>${d.status}</td>
-                  <td>${d.deployed_at ? new Date(d.deployed_at).toLocaleDateString() : '-'}</td>
+                <tr class="hover:bg-gray-700 transition-colors">
+                  <td class="px-6 py-4 text-sm text-gray-400 font-mono">#${d.id}</td>
+                  <td class="px-6 py-4 text-sm text-white">${d.owner_email || '-'}</td>
+                  <td class="px-6 py-4 text-xs text-gray-300 font-mono">${d.git_url || '-'}</td>
+                  <td class="px-6 py-4 text-sm text-gray-300">${d.status}</td>
+                  <td class="px-6 py-4 text-sm text-gray-400">${d.deployed_at ? new Date(d.deployed_at).toLocaleDateString() : '-'}</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -209,41 +229,40 @@ ${getHTMLHead('Admin Dashboard')}
       </div>
 
       <!-- Payments Section -->
-      <div class="section">
-        <h2>Recent Payments (${payments.length})</h2>
-        <div class="table-card">
-          <table>
-            <thead>
+      <div class="mb-12">
+        <h2 class="text-2xl font-bold text-white mb-4">Recent Payments (${payments.length})</h2>
+        <div class="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
+          <table class="w-full">
+            <thead class="bg-white bg-opacity-5">
               <tr>
-                <th>ID</th>
-                <th>Customer</th>
-                <th>Plan</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Date</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">ID</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Customer</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Plan</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Amount</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Date</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody class="divide-y divide-gray-700">
               ${payments.map(p => `
-                <tr>
-                  <td>#${p.id}</td>
-                  <td>${p.customer_email || '-'}</td>
-                  <td>${p.plan}</td>
-                  <td>$${(p.amount / 100).toFixed(2)}</td>
-                  <td>${p.status}</td>
-                  <td>${new Date(p.created_at).toLocaleDateString()}</td>
+                <tr class="hover:bg-gray-700 transition-colors">
+                  <td class="px-6 py-4 text-sm text-gray-400 font-mono">#${p.id}</td>
+                  <td class="px-6 py-4 text-sm text-white">${p.customer_email || '-'}</td>
+                  <td class="px-6 py-4 text-sm text-gray-300">${p.plan}</td>
+                  <td class="px-6 py-4 text-sm text-brand font-bold">$${(p.amount / 100).toFixed(2)}</td>
+                  <td class="px-6 py-4 text-sm text-gray-300">${p.status}</td>
+                  <td class="px-6 py-4 text-sm text-gray-400">${new Date(p.created_at).toLocaleDateString()}</td>
                 </tr>
               `).join('')}
             </tbody>
           </table>
         </div>
       </div>
+      </div>
     </main>
 
     ${getFooter()}
     ${getScripts('nav.js')}
-</body>
-</html>
   `);
   } catch (error) {
     console.error('Admin error:', error);

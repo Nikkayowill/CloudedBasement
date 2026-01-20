@@ -10,46 +10,51 @@ const { sendConfirmationEmail } = require('../services/email');
 const showRegister = (req, res) => {
   res.send(`
 ${getHTMLHead('Register - Basement')}
-</head>
-<body class="bg-gray-900">
-    <div class="matrix-bg"></div>
-    
     ${getResponsiveNav(req)}
     
-    <div class="auth-container">
-        <div class="auth-card">
-            <h1>CREATE ACCOUNT</h1>
-            <form method="POST" action="/register">
-                <input type="hidden" name="_csrf" value="${req.csrfToken()}">
-                
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" name="email" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" name="password" minlength="8" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Confirm Password</label>
-                    <input type="password" name="confirmPassword" minlength="8" required>
-                </div>
-                
-                <div class="form-group" style="display: flex; align-items: flex-start; gap: 10px; margin-top: 20px;">
-                    <input type="checkbox" id="acceptTerms" name="acceptTerms" required style="margin-top: 4px; width: 18px; height: 18px; cursor: pointer; accent-color: #22d3ee;">
-                    <label for="acceptTerms" style="margin: 0; font-size: 0.9em; line-height: 1.5; cursor: pointer;">
-                        I have read and agree to the <a href="/terms" target="_blank" style="color: #22d3ee; text-decoration: underline;">Terms of Service</a>
-                    </label>
-                </div>
-                
-                <button type="submit" class="btn">Register</button>
-            </form>
-            
-            <p class="link">Already have an account? <a href="/login">Login</a></p>
-        </div>
-    </div>
+    <main class="bg-gray-900 min-h-screen flex items-center justify-center py-12 px-4">
+      <div class="max-w-md w-full bg-gray-800 border border-gray-700 rounded-lg p-8">
+        <h1 class="text-3xl font-bold text-white text-center mb-8">CREATE ACCOUNT</h1>
+        
+        <form method="POST" action="/register" class="space-y-6">
+          <input type="hidden" name="_csrf" value="${req.csrfToken()}">
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-2">Email</label>
+            <input type="email" name="email" required 
+              class="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-2">Password</label>
+            <input type="password" name="password" minlength="8" required 
+              class="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-2">Confirm Password</label>
+            <input type="password" name="confirmPassword" minlength="8" required 
+              class="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none">
+          </div>
+          
+          <div class="flex items-start gap-3">
+            <input type="checkbox" id="acceptTerms" name="acceptTerms" required 
+              class="mt-1 w-4 h-4 cursor-pointer accent-brand">
+            <label for="acceptTerms" class="text-sm text-gray-400 cursor-pointer">
+              I have read and agree to the <a href="/terms" target="_blank" class="text-brand hover:text-cyan-400 underline">Terms of Service</a>
+            </label>
+          </div>
+          
+          <button type="submit" class="w-full py-3 bg-brand text-gray-900 font-bold rounded-lg hover:bg-cyan-500 transition-colors">
+            Register
+          </button>
+        </form>
+        
+        <p class="text-center text-gray-400 mt-6">
+          Already have an account? <a href="/login" class="text-brand hover:text-cyan-400 font-medium">Login</a>
+        </p>
+      </div>
+    </main>
     
     ${getFooter()}
     ${getScripts('nav.js')}
@@ -125,21 +130,19 @@ const showLogin = (req, res) => {
   
   res.send(`
 ${getHTMLHead('Login - Basement')}
-    </style>
-</head>
-<body class="bg-gray-900">
-    <div class="matrix-bg"></div>
-    
     ${flashMessage ? `
-    <div class="flash-message" id="flashMessage">
-      ${flashMessage}
-      <button class="flash-close" onclick="dismissFlash()">&times;</button>
+    <div class="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md mx-auto px-4">
+      <div id="flashMessage" class="bg-brand text-gray-900 px-6 py-4 rounded-lg shadow-lg flex items-center justify-between">
+        <span>${flashMessage}</span>
+        <button onclick="dismissFlash()" class="ml-4 text-gray-900 hover:text-gray-700 font-bold text-xl">&times;</button>
+      </div>
     </div>
     <script>
       function dismissFlash() {
         const msg = document.getElementById('flashMessage');
-        msg.classList.add('fade-out');
-        setTimeout(() => msg.remove(), 500);
+        msg.style.opacity = '0';
+        msg.style.transform = 'translateY(-20px)';
+        setTimeout(() => msg.remove(), 300);
       }
       setTimeout(() => {
         const msg = document.getElementById('flashMessage');
@@ -150,31 +153,39 @@ ${getHTMLHead('Login - Basement')}
     
     ${getResponsiveNav(req)}
     
-    <div class="auth-container">
-        <div class="auth-card">
-            <h1>LOGIN</h1>
-            ${message ? `<div class="message">${message}</div>` : ''}
-            ${error ? `<div class="error">${error}</div>` : ''}
-            ${showResend ? `<div class="message"><a href="/resend-confirmation?email=${encodeURIComponent(userEmail)}" style="color: var(--glow); text-decoration: underline;">Resend confirmation email</a></div>` : ''}
-            <form method="POST" action="/login">
-                <input type="hidden" name="_csrf" value="${req.csrfToken()}">
-                
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" name="email" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" name="password" required>
-                </div>
-                
-                <button type="submit" class="btn">Login</button>
-            </form>
-            
-            <p class="link">Don't have an account? <a href="/register">Register</a></p>
-        </div>
-    </div>
+    <main class="bg-gray-900 min-h-screen flex items-center justify-center py-12 px-4">
+      <div class="max-w-md w-full bg-gray-800 border border-gray-700 rounded-lg p-8">
+        <h1 class="text-3xl font-bold text-white text-center mb-8">LOGIN</h1>
+        
+        ${message ? `<div class="bg-green-900 border border-green-700 text-green-300 px-4 py-3 rounded-lg mb-6">${message}</div>` : ''}
+        ${error ? `<div class="bg-red-900 border border-red-700 text-red-300 px-4 py-3 rounded-lg mb-6">${error}</div>` : ''}
+        ${showResend ? `<div class="bg-blue-900 border border-blue-700 text-blue-300 px-4 py-3 rounded-lg mb-6"><a href="/resend-confirmation?email=${encodeURIComponent(userEmail)}" class="text-brand hover:text-cyan-400 underline">Resend confirmation email</a></div>` : ''}
+        
+        <form method="POST" action="/login" class="space-y-6">
+          <input type="hidden" name="_csrf" value="${req.csrfToken()}">
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-2">Email</label>
+            <input type="email" name="email" required 
+              class="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-2">Password</label>
+            <input type="password" name="password" required 
+              class="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none">
+          </div>
+          
+          <button type="submit" class="w-full py-3 bg-brand text-gray-900 font-bold rounded-lg hover:bg-cyan-500 transition-colors">
+            Login
+          </button>
+        </form>
+        
+        <p class="text-center text-gray-400 mt-6">
+          Don't have an account? <a href="/register" class="text-brand hover:text-cyan-400 font-medium">Register</a>
+        </p>
+      </div>
+    </main>
     
     ${getFooter()}
     ${getScripts('nav.js')}
@@ -245,20 +256,16 @@ const confirmEmail = async (req, res) => {
     if (userResult.rows.length === 0) {
       return res.status(400).send(`
 ${getHTMLHead('Invalid Token - Basement')}
-</head>
-<body class="bg-gray-900">
-    <div class="matrix-bg"></div>
     ${getResponsiveNav(req)}
-    <div class="auth-container">
-        <div class="auth-card" style="text-align: center;">
-            <h1 style="color: #ff6b6b;">Invalid Token</h1>
-            <p>This confirmation link is invalid or has already been used.</p>
-            <a href="/register" class="btn" style="display: inline-block; margin-top: 20px;">Register Again</a>
-        </div>
-    </div>
+    <main class="bg-gray-900 min-h-screen flex items-center justify-center py-12 px-4">
+      <div class="max-w-md w-full bg-gray-800 border border-red-700 rounded-lg p-8 text-center">
+        <h1 class="text-3xl font-bold text-red-400 mb-4">Invalid Token</h1>
+        <p class="text-gray-400 mb-6">This confirmation link is invalid or has already been used.</p>
+        <a href="/register" class="inline-block px-8 py-3 bg-brand text-gray-900 font-bold rounded-lg hover:bg-cyan-500 transition-colors">Register Again</a>
+      </div>
+    </main>
     ${getFooter()}
-</body>
-</html>
+    ${getScripts('nav.js')}
       `);
     }
 
@@ -268,19 +275,17 @@ ${getHTMLHead('Invalid Token - Basement')}
     if (!isTokenValid(user.token_expires_at)) {
       return res.status(400).send(`
 ${getHTMLHead('Token Expired - Basement')}
-<body class="bg-gray-900">
-    <div class="matrix-bg"></div>
     ${getResponsiveNav(req)}
-    <div class="auth-container">
-        <div class="auth-card" style="text-align: center;">
-            <h1 style="color: #ff6b6b;">Link Expired</h1>
-            <p>This confirmation link has expired (valid for 24 hours).</p>
-            <a href="/register" class="btn" style="display: inline-block; margin-top: 20px;">Register Again</a>
-        </div>
-    </div>
+    <main class="bg-gray-900 min-h-screen flex items-center justify-center py-12 px-4">
+      <div class="max-w-md w-full bg-gray-800 border border-red-700 rounded-lg p-8 text-center">
+        <h1 class="text-3xl font-bold text-red-400 mb-4">Link Expired</h1>
+        <p class="text-gray-400 mb-6">This confirmation link has expired (valid for 24 hours).</p>
+        <a href="/register" class="inline-block px-8 py-3 bg-brand text-gray-900 font-bold rounded-lg hover:bg-cyan-500 transition-colors">Register Again</a>
+      </div>
+      </div>
+    </main>
     ${getFooter()}
-</body>
-</html>
+    ${getScripts('nav.js')}
       `);
     }
 
@@ -288,20 +293,16 @@ ${getHTMLHead('Token Expired - Basement')}
     if (user.email_confirmed) {
       return res.status(400).send(`
 ${getHTMLHead('Already Confirmed - Basement')}
-</head>
-<body class="bg-gray-900">
-    <div class="matrix-bg"></div>
     ${getResponsiveNav(req)}
-    <div class="auth-container">
-        <div class="auth-card" style="text-align: center;">
-            <h1 style="color: #88FE00;">Already Confirmed</h1>
-            <p>This email has already been confirmed.</p>
-            <a href="/login" class="btn" style="display: inline-block; margin-top: 20px;">Login</a>
-        </div>
-    </div>
+    <main class="bg-gray-900 min-h-screen flex items-center justify-center py-12 px-4">
+      <div class="max-w-md w-full bg-gray-800 border border-green-700 rounded-lg p-8 text-center">
+        <h1 class="text-3xl font-bold text-green-400 mb-4">Already Confirmed</h1>
+        <p class="text-gray-400 mb-6">This email has already been confirmed.</p>
+        <a href="/login" class="inline-block px-8 py-3 bg-brand text-gray-900 font-bold rounded-lg hover:bg-cyan-500 transition-colors">Login</a>
+      </div>
+    </main>
     ${getFooter()}
-</body>
-</html>
+    ${getScripts('nav.js')}
       `);
     }
 
@@ -313,21 +314,17 @@ ${getHTMLHead('Already Confirmed - Basement')}
 
     res.send(`
 ${getHTMLHead('Email Confirmed - Basement')}
-</head>
-<body class="bg-gray-900">
-    <div class="matrix-bg"></div>
     ${getResponsiveNav(req)}
-    <div class="auth-container">
-        <div class="auth-card" style="text-align: center;">
-            <h1 style="color: #88FE00;">✓ Email Confirmed!</h1>
-            <p>Your email has been successfully verified.</p>
-            <p style="color: #8892a0; margin-top: 20px;">You can now login with your account.</p>
-            <a href="/login" class="btn" style="display: inline-block; margin-top: 30px;">Go to Login</a>
-        </div>
-    </div>
+    <main class="bg-gray-900 min-h-screen flex items-center justify-center py-12 px-4">
+      <div class="max-w-md w-full bg-gray-800 border border-green-700 rounded-lg p-8 text-center">
+        <h1 class="text-3xl font-bold text-green-400 mb-4">✓ Email Confirmed!</h1>
+        <p class="text-gray-400 mb-4">Your email has been successfully verified.</p>
+        <p class="text-gray-500 mb-6">You can now login with your account.</p>
+        <a href="/login" class="inline-block px-8 py-3 bg-brand text-gray-900 font-bold rounded-lg hover:bg-cyan-500 transition-colors">Go to Login</a>
+      </div>
+    </main>
     ${getFooter()}
-</body>
-</html>
+    ${getScripts('nav.js')}
     `);
   } catch (error) {
     console.error('Email confirmation error:', error);
