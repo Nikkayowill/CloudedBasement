@@ -125,61 +125,6 @@ const showLogin = (req, res) => {
   
   res.send(`
 ${getHTMLHead('Login - Basement')}
-    <style>
-      .flash-message {
-        position: fixed;
-        top: 100px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(136, 254, 0, 0.15);
-        color: var(--glow);
-        padding: 12px 36px 12px 16px;
-        border-radius: 6px;
-        border: 1px solid rgba(136, 254, 0, 0.3);
-        box-shadow: 0 2px 10px rgba(136, 254, 0, 0.1);
-        font-weight: 400;
-        font-size: 14px;
-        z-index: 10000;
-        animation: slideDown 0.3s ease-out;
-        max-width: 400px;
-        text-align: center;
-      }
-      .flash-message.fade-out {
-        animation: fadeOut 0.5s ease-out forwards;
-      }
-      .flash-close {
-        position: absolute;
-        top: 6px;
-        right: 8px;
-        background: none;
-        border: none;
-        color: var(--glow);
-        font-size: 18px;
-        cursor: pointer;
-        padding: 2px 6px;
-        line-height: 1;
-        opacity: 0.5;
-        transition: opacity 0.2s;
-      }
-      .flash-close:hover {
-        opacity: 1;
-      }
-      @keyframes slideDown {
-        from {
-          transform: translate(-50%, -100px);
-          opacity: 0;
-        }
-        to {
-          transform: translateX(-50%);
-          opacity: 1;
-        }
-      }
-      @keyframes fadeOut {
-        to {
-          opacity: 0;
-          transform: translate(-50%, -50px);
-        }
-      }
     </style>
 </head>
 <body class="bg-gray-900">
