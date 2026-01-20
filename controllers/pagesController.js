@@ -50,75 +50,13 @@ ${getHTMLHead('About - Basement')}
 exports.showTerms = (req, res) => {
   res.send(`
 ${getHTMLHead('Terms of Service - Basement')}
-<style>
-  .terms-content {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 140px 48px 80px;
-    color: #e2e8f0;
-    line-height: 1.8;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .terms-content h1 {
-    color: #22d3ee;
-    font-size: 2.5em;
-    margin-bottom: 10px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .terms-content .last-updated {
-    color: #94a3b8;
-    font-size: 0.9em;
-    margin-bottom: 40px;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .terms-content h2 {
-    color: #22d3ee;
-    font-size: 1.5em;
-    margin-top: 40px;
-    margin-bottom: 15px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .terms-content h3 {
-    color: #67e8f9;
-    font-size: 1.2em;
-    margin-top: 25px;
-    margin-bottom: 10px;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .terms-content p {
-    margin-bottom: 15px;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .terms-content ul, .terms-content ol {
-    margin-left: 20px;
-    margin-bottom: 15px;
-  }
-  .terms-content li {
-    margin-bottom: 8px;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .terms-content strong {
-    color: #22d3ee;
-  }
-  .terms-content a {
-    color: #22d3ee;
-    text-decoration: underline;
-  }
-  .terms-content a:hover {
-    color: #67e8f9;
-  }
-</style>
 </head>
 <body>
     <div class="matrix-bg"></div>
     
     ${getResponsiveNav(req)}
     
-    <div class="terms-content">
+    <div class="content">
         <h1>Terms of Service</h1>
         <p class="last-updated">Last Updated: January 19, 2026</p>
 
@@ -621,16 +559,6 @@ ${getHTMLHead('Privacy Policy - Basement')}
 exports.showFaq = (req, res) => {
   res.send(`
 ${getHTMLHead('FAQ - Basement')}
-<style>
-  .page-container h1,
-  .page-container h2,
-  .page-container h3,
-  .page-container p,
-  .page-container li,
-  .page-container ul {
-    font-family: 'JetBrains Mono', monospace;
-  }
-</style>
 </head>
 <body>
     <div class="matrix-bg"></div>
@@ -975,18 +903,14 @@ ${getHTMLHead('Documentation - Basement')}
 
 exports.showContact = (req, res) => {
   res.send(`
-${getHTMLHead('Contact - Basement')}\n<style>
-  .page-container * {
-    font-family: 'JetBrains Mono', monospace;
-  }
-</style>
+${getHTMLHead('Contact - Basement')}
 </head>
 <body>
   ${getResponsiveNav(req)}
   
   <div class="page-container" style="max-width: 800px;">
-    <h1 class="text-4xl font-bold text-cyan-400 text-center mb-4">Contact Us</h1>
-    <p class="text-gray-400 text-center mb-12">Get in touch with our team</p>
+    <h1 class="text-center mb-4">Contact Us</h1>
+    <p class="text-center mb-12">Get in touch with our team</p>
     
     <form method="POST" action="/contact" class="bg-gray-800/30 border border-cyan-500/10 rounded-lg p-8">
       <input type="hidden" name="_csrf" value="${req.csrfToken()}">
@@ -1043,51 +967,6 @@ exports.showHome = async (req, res) => {
   
   res.send(`
 ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
-    <style>
-      /* Flash Message */
-      .flash-message {
-        position: fixed;
-        top: 100px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(136, 254, 0, 0.15);
-        color: var(--glow);
-        padding: 12px 36px 12px 16px;
-        border-radius: 6px;
-        border: 1px solid rgba(136, 254, 0, 0.3);
-        box-shadow: 0 2px 10px rgba(136, 254, 0, 0.1);
-        font-weight: 400;
-        font-size: 14px;
-        z-index: 10000;
-        animation: slideDown 0.3s ease-out;
-        max-width: 400px;
-        text-align: center;
-      }
-      .flash-message.fade-out { animation: fadeOut 0.5s ease-out forwards; }
-      .flash-close {
-        position: absolute; top: 6px; right: 8px; background: none; border: none;
-        color: var(--glow); font-size: 18px; cursor: pointer; padding: 2px 6px;
-        line-height: 1; opacity: 0.5; transition: opacity 0.2s;
-      }
-      .flash-close:hover { opacity: 1; }
-      @keyframes slideDown {
-        from { transform: translate(-50%, -100px); opacity: 0; }
-        to { transform: translateX(-50%); opacity: 1; }
-      }
-      @keyframes fadeOut { to { opacity: 0; transform: translate(-50%, -50px); } }
-      
-      /* Founder Card Animation */
-      @keyframes pulse-glow {
-        0%, 100% {
-          box-shadow: 0 0 60px rgba(45, 167, 223, 0.3);
-          border-color: rgba(45, 167, 223, 0.4);
-        }
-        50% {
-          box-shadow: 0 0 80px rgba(45, 167, 223, 0.5);
-          border-color: rgba(45, 167, 223, 0.6);
-        }
-      }
-    </style>
 </head>
 <body>
     <div class="matrix-bg"></div>

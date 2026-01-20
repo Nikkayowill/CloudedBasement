@@ -23,45 +23,20 @@ const listUsers = async (req, res) => {
 
     res.send(`
 ${getHTMLHead('Admin Dashboard')}
-    <style>
-      .admin-wrapper { min-height: 100vh; display: flex; flex-direction: column; }
-      main.dashboard { flex: 1; padding: 120px 24px 60px 24px; max-width: 1400px; margin: 0 auto; width: 100%; }
-      
-      .admin-header { margin-bottom: 32px; }
-      .admin-title { font-size: 36px; color: var(--glow); margin: 0 0 12px 0; font-weight: 700; }
-      
-      .section { margin-bottom: 48px; }
-      .section-title { font-size: 24px; color: var(--glow); margin: 0 0 16px 0; font-weight: 600; }
-      
-      .table-card { background: rgba(2, 8, 20, 0.8); border: 1px solid rgba(136, 254, 0, 0.15); border-radius: 8px; padding: 24px; overflow-x: auto; }
-      
-      table { width: 100%; border-collapse: collapse; min-width: 600px; }
-      th { text-align: left; padding: 12px; color: #8892a0; font-size: 12px; text-transform: uppercase; border-bottom: 1px solid rgba(136, 254, 0, 0.15); }
-      td { padding: 12px; color: #e0e6f0; border-bottom: 1px solid rgba(136, 254, 0, 0.05); }
-      tr:last-child td { border-bottom: none; }
-      
-      @media (max-width: 768px) {
-        main.dashboard { padding: 80px 16px 40px 16px; }
-        .admin-title { font-size: 28px; }
-        .section-title { font-size: 20px; }
-        .table-card { padding: 16px; }
-        th, td { padding: 8px; font-size: 12px; }
-      }
-    </style>
 </head>
 <body class="bg-gray-900">
     <div class="matrix-bg"></div>
     ${getResponsiveNav(req)}
 
-    <main class="dashboard">
-      <div class="admin-header">
-        <h1 class="admin-title">Admin Dashboard</h1>
+    <main class="page-container" style="max-width: 1400px;">
+      <div>
+        <h1>Admin Dashboard</h1>
       </div>
 
       <!-- Pending Server Requests (Priority) -->
       ${pendingRequests.length > 0 ? `
-      <div class="section">
-        <h2 class="section-title" style="color: #2DA7DF;">⚡ Pending Server Requests (${pendingRequests.length})</h2>
+      <div style="margin-bottom: 48px;">
+        <h2 style="color: #2DA7DF; margin-bottom: 16px;">⚡ Pending Server Requests (${pendingRequests.length})</h2>
         <div class="table-card" style="border-color: #2DA7DF; background: rgba(45, 167, 223, 0.05);">
           <table>
             <thead>
@@ -103,7 +78,7 @@ ${getHTMLHead('Admin Dashboard')}
 
       <!-- Users Section -->
       <div class="section">
-        <h2 class="section-title">Users (${users.length})</h2>
+        <h2>Users (${users.length})</h2>
         <div class="table-card">
           <table>
             <thead>
@@ -137,7 +112,7 @@ ${getHTMLHead('Admin Dashboard')}
 
       <!-- Servers Section -->
       <div class="section">
-        <h2 class="section-title">Servers (${servers.length})</h2>
+        <h2>Servers (${servers.length})</h2>
         <div class="table-card">
           <table>
             <thead>
@@ -179,7 +154,7 @@ ${getHTMLHead('Admin Dashboard')}
 
       <!-- Domains Section -->
       <div class="section">
-        <h2 class="section-title">Domains (${domains.length})</h2>
+        <h2>Domains (${domains.length})</h2>
         <div class="table-card">
           <table>
             <thead>
@@ -206,7 +181,7 @@ ${getHTMLHead('Admin Dashboard')}
 
       <!-- Deployments Section -->
       <div class="section">
-        <h2 class="section-title">Recent Deployments (${deployments.length})</h2>
+        <h2>Recent Deployments (${deployments.length})</h2>
         <div class="table-card">
           <table>
             <thead>
@@ -235,7 +210,7 @@ ${getHTMLHead('Admin Dashboard')}
 
       <!-- Payments Section -->
       <div class="section">
-        <h2 class="section-title">Recent Payments (${payments.length})</h2>
+        <h2>Recent Payments (${payments.length})</h2>
         <div class="table-card">
           <table>
             <thead>
