@@ -69,7 +69,7 @@ app.use(session({
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days (reduced from 30)
     httpOnly: true, // Prevents XSS access to session cookie
     secure: process.env.NODE_ENV === 'production', // HTTPS only in production
-    sameSite: 'strict', // CSRF protection - blocks cross-site requests
+    sameSite: 'lax', // CSRF protection - allows Stripe redirects
     path: '/', // Cookie available across entire site
     domain: process.env.NODE_ENV === 'production' ? 'cloudedbasement.ca' : undefined
   },
