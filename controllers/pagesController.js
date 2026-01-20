@@ -4,43 +4,41 @@ const pool = require('../db');
 exports.showAbout = (req, res) => {
   res.send(`
 ${getHTMLHead('About - Basement')}
-</head>
-<body>
-    <div class="matrix-bg"></div>
-    
     ${getResponsiveNav(req)}
     
-    <div class="content">
-        <h1>ABOUT BASEMENT</h1>
+    <main class="bg-gray-900 min-h-screen pt-24 pb-16">
+      <div class="max-w-4xl mx-auto px-4">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-8">ABOUT BASEMENT</h1>
         
-        <p>I'm Kayo, an IT Web Programming student at NSCC in Halifax, graduating May 2026. Before switching to tech, I worked as a tradesman—different tools, same problem-solving mindset.</p>
+        <p class="text-gray-400 text-lg mb-8">I'm Kayo, an IT Web Programming student at NSCC in Halifax, graduating May 2026. Before switching to tech, I worked as a tradesman—different tools, same problem-solving mindset.</p>
         
-        <h2 style="color: var(--glow); font-size: 24px; margin: 32px 0 16px;">WHY I BUILT THIS</h2>
+        <h2 class="text-2xl font-bold text-brand mt-12 mb-4">WHY I BUILT THIS</h2>
         
-        <p>I wanted to prove I could build and deploy a real production application from the ground up. Not just for a grade, but something that actually handles payments, provisions servers, and solves a real problem.</p>
+        <p class="text-gray-400 mb-4">I wanted to prove I could build and deploy a real production application from the ground up. Not just for a grade, but something that actually handles payments, provisions servers, and solves a real problem.</p>
         
-        <p>Cloud hosting doesn't need to be complicated. You shouldn't need a PhD to deploy a Node app or a static site. Basement gives you a real server you can SSH into, plus a dashboard for the routine stuff. Simple.</p>
+        <p class="text-gray-400 mb-8">Cloud hosting doesn't need to be complicated. You shouldn't need a PhD to deploy a Node app or a static site. Basement gives you a real server you can SSH into, plus a dashboard for the routine stuff. Simple.</p>
         
-        <h2 style="color: var(--glow); font-size: 24px; margin: 32px 0 16px;">HOW IT WORKS</h2>
+        <h2 class="text-2xl font-bold text-brand mt-12 mb-4">HOW IT WORKS</h2>
         
-        <p>I'm running this as a small operation. The infrastructure is enterprise-grade (DigitalOcean droplets), but I'm building features incrementally based on what users actually need. Current setup handles individual developers and small teams deploying web apps, APIs, and services.</p>
+        <p class="text-gray-400 mb-4">I'm running this as a small operation. The infrastructure is enterprise-grade (DigitalOcean droplets), but I'm building features incrementally based on what users actually need. Current setup handles individual developers and small teams deploying web apps, APIs, and services.</p>
         
-        <p>As more people use it, I expand capabilities. I prioritize stability over speed—every feature gets tested properly before it ships.</p>
+        <p class="text-gray-400 mb-8">As more people use it, I expand capabilities. I prioritize stability over speed—every feature gets tested properly before it ships.</p>
         
-        <h2 style="color: var(--glow); font-size: 24px; margin: 32px 0 16px;">THE TECH</h2>
+        <h2 class="text-2xl font-bold text-brand mt-12 mb-4">THE TECH</h2>
         
-        <p>Built with <strong style="color: #e0e6f0;">Node.js</strong>, <strong style="color: #e0e6f0;">Express</strong>, <strong style="color: #e0e6f0;">PostgreSQL</strong>, and <strong style="color: #e0e6f0;">Stripe</strong>. Servers run <strong style="color: #e0e6f0;">Ubuntu LTS</strong> on <strong style="color: #e0e6f0;">DigitalOcean</strong>. Security includes automated OS updates, daily backups, and DDoS protection.</p>
+        <p class="text-gray-400 mb-8">Built with <strong class="text-white">Node.js</strong>, <strong class="text-white">Express</strong>, <strong class="text-white">PostgreSQL</strong>, and <strong class="text-white">Stripe</strong>. Servers run <strong class="text-white">Ubuntu LTS</strong> on <strong class="text-white">DigitalOcean</strong>. Security includes automated OS updates, daily backups, and DDoS protection.</p>
         
-        <h2 style="color: var(--glow); font-size: 24px; margin: 32px 0 16px;">OPEN SOURCE</h2>
+        <h2 class="text-2xl font-bold text-brand mt-12 mb-4">OPEN SOURCE</h2>
         
-        <p>The entire dashboard and deployment tooling is open source. You can see how everything works, contribute improvements, or fork it for your own projects. Transparency matters.</p>
+        <p class="text-gray-400 mb-4">The entire dashboard and deployment tooling is open source. You can see how everything works, contribute improvements, or fork it for your own projects. Transparency matters.</p>
         
-        <p><a href="#" style="color: var(--glow); text-decoration: underline;" target="_blank" rel="noopener noreferrer">View on GitHub →</a></p>
+        <p class="mb-8"><a href="#" class="text-brand underline hover:text-cyan-400 transition-colors" target="_blank" rel="noopener noreferrer">View on GitHub →</a></p>
         
-        <p style="margin-top: 40px; padding-top: 32px; border-top: 1px solid rgba(136, 254, 0, 0.1);">This is my capstone project and portfolio piece. If you're evaluating my work or have questions about the technical implementation, <a href="/contact" style="color: var(--glow); text-decoration: underline;">reach out</a>.</p>
+        <p class="mt-12 pt-8 border-t border-gray-700 text-gray-400">This is my capstone project and portfolio piece. If you're evaluating my work or have questions about the technical implementation, <a href="/contact" class="text-brand underline hover:text-cyan-400 transition-colors">reach out</a>.</p>
         
-        <a href="/" class="inline-block mt-8 px-6 py-3 text-cyan-400 border border-cyan-400/30 rounded hover:border-cyan-400 hover:bg-cyan-400/10 transition-all duration-300 uppercase tracking-wider text-sm">Back to home</a>
-    </div>
+        <a href="/" class="inline-block mt-8 px-6 py-3 text-brand border border-brand rounded-lg hover:bg-brand hover:text-gray-900 transition-all font-medium uppercase tracking-wider text-sm">Back to home</a>
+      </div>
+    </main>
     
     ${getFooter()}
     ${getScripts('nav.js')}
@@ -50,37 +48,34 @@ ${getHTMLHead('About - Basement')}
 exports.showTerms = (req, res) => {
   res.send(`
 ${getHTMLHead('Terms of Service - Basement')}
-</head>
-<body>
-    <div class="matrix-bg"></div>
-    
     ${getResponsiveNav(req)}
     
-    <div class="content">
-        <h1>Terms of Service</h1>
-        <p class="last-updated">Last Updated: January 19, 2026</p>
+    <main class="bg-gray-900 min-h-screen pt-24 pb-16">
+      <div class="max-w-4xl mx-auto px-4">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-2">Terms of Service</h1>
+        <p class="text-gray-500 text-sm mb-8">Last Updated: January 19, 2026</p>
 
-        <p>Welcome to <strong>Clouded Basement Hosting</strong> ("we," "us," "our," or "the Company"). These Terms of Service ("Terms") govern your access to and use of our cloud hosting services, including virtual private servers (VPS), domain management, and related services (collectively, the "Services"). By creating an account or using our Services, you agree to be bound by these Terms.</p>
+        <p class="text-gray-400 mb-8">Welcome to <strong class="text-white">Clouded Basement Hosting</strong> ("we," "us," "our," or "the Company"). These Terms of Service ("Terms") govern your access to and use of our cloud hosting services, including virtual private servers (VPS), domain management, and related services (collectively, the "Services"). By creating an account or using our Services, you agree to be bound by these Terms.</p>
 
-        <h2>1. Acceptance of Terms</h2>
-        <p>By accessing or using our Services, you represent that you:</p>
-        <ul>
+        <h2 class="text-2xl font-bold text-white mt-12 mb-4">1. Acceptance of Terms</h2>
+        <p class="text-gray-400 mb-4">By accessing or using our Services, you represent that you:</p>
+        <ul class="list-disc list-inside text-gray-400 mb-6 space-y-2">
           <li>Are at least 18 years of age or the age of majority in your jurisdiction</li>
           <li>Have the legal capacity to enter into a binding contract</li>
           <li>Agree to comply with all applicable laws and regulations</li>
           <li>Have read, understood, and accepted these Terms in their entirety</li>
         </ul>
-        <p>If you do not agree to these Terms, you must not use our Services.</p>
+        <p class="text-gray-400 mb-6">If you do not agree to these Terms, you must not use our Services.</p>
 
-        <h2>2. Service Description</h2>
-        <p>Clouded Basement Hosting provides cloud infrastructure services including:</p>
-        <ul>
-          <li><strong>Virtual Private Servers (VPS):</strong> Linux-based server instances with root access</li>
-          <li><strong>Domain Management:</strong> Custom domain mapping and DNS configuration</li>
-          <li><strong>Deployment Tools:</strong> Automated provisioning and management interfaces</li>
-          <li><strong>Support Services:</strong> Technical assistance via ticketing system</li>
+        <h2 class="text-2xl font-bold text-white mt-12 mb-4">2. Service Description</h2>
+        <p class="text-gray-400 mb-4">Clouded Basement Hosting provides cloud infrastructure services including:</p>
+        <ul class="list-disc list-inside text-gray-400 mb-6 space-y-2">
+          <li><strong class="text-white">Virtual Private Servers (VPS):</strong> Linux-based server instances with root access</li>
+          <li><strong class="text-white">Domain Management:</strong> Custom domain mapping and DNS configuration</li>
+          <li><strong class="text-white">Deployment Tools:</strong> Automated provisioning and management interfaces</li>
+          <li><strong class="text-white">Support Services:</strong> Technical assistance via ticketing system</li>
         </ul>
-        <p>Services are provided on a subscription basis with monthly billing cycles. We reserve the right to modify, suspend, or discontinue any aspect of the Services at any time with or without notice.</p>
+        <p class="text-gray-400 mb-6">Services are provided on a subscription basis with monthly billing cycles. We reserve the right to modify, suspend, or discontinue any aspect of the Services at any time with or without notice.</p>
 
         <h2>3. Account Registration and Security</h2>
         <h3>3.1 Account Creation</h3>
@@ -262,21 +257,22 @@ ${getHTMLHead('Terms of Service - Basement')}
         <h2>17. Entire Agreement</h2>
         <p>These Terms, together with our Privacy Policy and any supplemental terms for specific Services, constitute the entire agreement between you and Clouded Basement Hosting regarding your use of the Services.</p>
 
-        <h2>18. Contact Information</h2>
-        <p>If you have questions about these Terms or need to contact us regarding your account, please reach out:</p>
-        <ul>
-          <li><strong>Email:</strong> <a href="mailto:support@cloudedbasement.com">support@cloudedbasement.com</a></li>
-          <li><strong>Support Tickets:</strong> Available through your account dashboard</li>
-          <li><strong>Company Name:</strong> Clouded Basement Hosting</li>
-          <li><strong>Location:</strong> Halifax, Nova Scotia, Canada</li>
+        <h2 class="text-2xl font-bold text-white mt-12 mb-4">18. Contact Information</h2>
+        <p class="text-gray-400 mb-4">If you have questions about these Terms or need to contact us regarding your account, please reach out:</p>
+        <ul class="list-disc list-inside text-gray-400 mb-6 space-y-2">
+          <li><strong class="text-white">Email:</strong> <a href="mailto:support@cloudedbasement.com" class="text-brand hover:text-cyan-400">support@cloudedbasement.com</a></li>
+          <li><strong class="text-white">Support Tickets:</strong> Available through your account dashboard</li>
+          <li><strong class="text-white">Company Name:</strong> Clouded Basement Hosting</li>
+          <li><strong class="text-white">Location:</strong> Halifax, Nova Scotia, Canada</li>
         </ul>
 
-        <p style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #334155; color: #94a3b8; font-size: 0.9em;">
+        <p class="mt-12 pt-8 border-t border-gray-700 text-gray-500 text-sm">
           By creating an account or using our Services, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.
         </p>
 
-        <a href="/" class="inline-block mt-8 px-6 py-3 text-cyan-400 border border-cyan-400/30 rounded hover:border-cyan-400 hover:bg-cyan-400/10 transition-all duration-300 uppercase tracking-wider text-sm">Back to home</a>
-    </div>
+        <a href="/" class="inline-block mt-8 px-6 py-3 text-brand border border-brand rounded-lg hover:bg-brand hover:text-gray-900 transition-all font-medium uppercase tracking-wider text-sm">Back to home</a>
+      </div>
+    </main>
     
     ${getFooter()}
 </body>
@@ -287,93 +283,91 @@ ${getHTMLHead('Terms of Service - Basement')}
 exports.showPricing = (req, res) => {
   res.send(`
 ${getHTMLHead('Pricing - Basement')}
-</head>
-<body>
-    <div class="matrix-bg"></div>
-    
     ${getResponsiveNav(req)}
     
-    <section class="pt-32 pb-16 px-4 text-center">
-        <h1 class="text-5xl font-bold text-white mb-4">Simple Pricing</h1>
+    <main class="bg-gray-900 min-h-screen pt-24 pb-16">
+      <section class="py-12 px-4 text-center">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4">Simple Pricing</h1>
         <p class="text-gray-400 text-lg">Real servers. Real specs. No surprises. Your bill will never exceed your plan.</p>
-    </section>
-    
-    <section class="max-w-7xl mx-auto px-4 pb-20 grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div class="bg-gray-800/30 border border-cyan-500/10 rounded-lg p-8 hover:border-cyan-500/30 transition-all">
-            <div class="border-b border-gray-700 pb-6 mb-6">
-                <div class="text-xl font-bold text-white mb-2">Basic</div>
-                <div class="text-4xl font-extrabold text-cyan-400 mb-1">$25<span class="text-base font-normal text-gray-400">/mo</span></div>
-                <div class="text-sm text-gray-400">Perfect for side projects</div>
-            </div>
-            <ul class="space-y-3 mb-8 text-sm">
-                <li class="text-gray-300"><strong class="text-white">1 GB RAM</strong></li>
-                <li class="text-gray-300"><strong class="text-white">1 CPU core</strong></li>
-                <li class="text-gray-300"><strong class="text-white">25 GB SSD storage</strong></li>
-                <li class="text-gray-300"><strong class="text-white">1 TB bandwidth</strong></li>
-                <li class="text-gray-400">Full SSH/root access</li>
-                <li class="text-gray-400">Daily automated backups</li>
-                <li class="text-gray-400">Security updates included</li>
-                <li class="text-gray-400">Web dashboard</li>
-                <li class="text-gray-400">Email support (48hr response)</li>
-                <li class="text-gray-400">Open source tools</li>
-            </ul>
-            <a href="/pay?plan=basic" class="block w-full px-6 py-3 bg-transparent border border-cyan-400/30 text-cyan-400 text-center font-medium rounded hover:border-cyan-400 hover:bg-cyan-400/10 transition-all duration-300 uppercase tracking-wider text-sm">Select Basic</a>
+      </section>
+      
+      <section class="max-w-7xl mx-auto px-4 pb-20 grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="bg-gray-800 border border-gray-700 rounded-lg p-8 hover:border-brand transition-all">
+          <div class="border-b border-gray-700 pb-6 mb-6">
+            <div class="text-xl font-bold text-white mb-2">Basic</div>
+            <div class="text-4xl font-extrabold text-brand mb-1">$25<span class="text-base font-normal text-gray-400">/mo</span></div>
+            <div class="text-sm text-gray-400">Perfect for side projects</div>
+          </div>
+          <ul class="space-y-3 mb-8 text-sm">
+            <li class="text-gray-300"><strong class="text-white">1 GB RAM</strong></li>
+            <li class="text-gray-300"><strong class="text-white">1 CPU core</strong></li>
+            <li class="text-gray-300"><strong class="text-white">25 GB SSD storage</strong></li>
+            <li class="text-gray-300"><strong class="text-white">1 TB bandwidth</strong></li>
+            <li class="text-gray-400">Full SSH/root access</li>
+            <li class="text-gray-400">Daily automated backups</li>
+            <li class="text-gray-400">Security updates included</li>
+            <li class="text-gray-400">Web dashboard</li>
+            <li class="text-gray-400">Email support (48hr response)</li>
+            <li class="text-gray-400">Open source tools</li>
+          </ul>
+          <a href="/pay?plan=basic" class="block w-full px-6 py-3 bg-transparent border border-brand text-brand text-center font-medium rounded-lg hover:bg-brand hover:text-gray-900 transition-all uppercase tracking-wider text-sm">Select Basic</a>
         </div>
         
-        <div class="bg-gray-800/50 border-2 border-cyan-400/40 rounded-lg p-8 relative transform scale-105">
-            <div class="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-cyan-400 text-gray-900 text-xs font-bold rounded-full uppercase">Most Popular</div>
-            <div class="border-b border-cyan-400/20 pb-6 mb-6">
-                <div class="text-xl font-bold text-cyan-400 mb-2">Priority</div>
-                <div class="text-4xl font-extrabold text-cyan-400 mb-1">$60<span class="text-base font-normal text-gray-400">/mo</span></div>
-                <div class="text-sm text-gray-400">Most popular • For production apps</div>
-            </div>
-            <ul class="space-y-3 mb-8 text-sm">
-                <li class="text-gray-300"><strong class="text-white">2 GB RAM</strong></li>
-                <li class="text-gray-300"><strong class="text-white">2 CPU cores</strong></li>
-                <li class="text-gray-300"><strong class="text-white">50 GB SSD storage</strong></li>
-                <li class="text-gray-300"><strong class="text-white">2 TB bandwidth</strong></li>
-                <li class="text-gray-400">Full SSH/root access</li>
-                <li class="text-gray-400">Daily automated backups</li>
-                <li class="text-gray-400">Security updates included</li>
-                <li class="text-gray-400">Web dashboard</li>
-                <li class="text-cyan-300 pt-3 border-t border-gray-700">Plus everything in Basic:</li>
-                <li class="text-cyan-300">Priority support (12hr response)</li>
-                <li class="text-cyan-300">SSL automation</li>
-                <li class="text-cyan-300">One-click staging environments</li>
-                <li class="text-cyan-300">Advanced monitoring</li>
-                <li class="text-cyan-300">Deploy logs & history</li>
-            </ul>
-            <a href="/pay?plan=priority" class="block w-full px-6 py-3 bg-cyan-400 text-gray-900 text-center font-bold rounded hover:bg-cyan-500 transition-all duration-300 uppercase tracking-wider text-sm">Select Priority</a>
+        <div class="bg-gray-800 border-2 border-brand rounded-lg p-8 relative transform md:scale-105">
+          <div class="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-brand text-gray-900 text-xs font-bold rounded-full uppercase">Most Popular</div>
+          <div class="border-b border-brand pb-6 mb-6">
+            <div class="text-xl font-bold text-brand mb-2">Priority</div>
+            <div class="text-4xl font-extrabold text-brand mb-1">$60<span class="text-base font-normal text-gray-400">/mo</span></div>
+            <div class="text-sm text-gray-400">Most popular • For production apps</div>
+          </div>
+          <ul class="space-y-3 mb-8 text-sm">
+            <li class="text-gray-300"><strong class="text-white">2 GB RAM</strong></li>
+            <li class="text-gray-300"><strong class="text-white">2 CPU cores</strong></li>
+            <li class="text-gray-300"><strong class="text-white">50 GB SSD storage</strong></li>
+            <li class="text-gray-300"><strong class="text-white">2 TB bandwidth</strong></li>
+            <li class="text-gray-400">Full SSH/root access</li>
+            <li class="text-gray-400">Daily automated backups</li>
+            <li class="text-gray-400">Security updates included</li>
+            <li class="text-gray-400">Web dashboard</li>
+            <li class="text-brand pt-3 border-t border-gray-700">Plus everything in Basic:</li>
+            <li class="text-brand">Priority support (12hr response)</li>
+            <li class="text-brand">SSL automation</li>
+            <li class="text-brand">One-click staging environments</li>
+            <li class="text-brand">Advanced monitoring</li>
+            <li class="text-brand">Deploy logs & history</li>
+          </ul>
+          <a href="/pay?plan=priority" class="block w-full px-6 py-3 bg-brand text-gray-900 text-center font-bold rounded-lg hover:bg-cyan-500 transition-all uppercase tracking-wider text-sm">Select Priority</a>
         </div>
         
-        <div class="bg-gray-800/30 border border-cyan-500/10 rounded-lg p-8 hover:border-cyan-500/30 transition-all">
-            <div class="border-b border-gray-700 pb-6 mb-6">
-                <div class="text-xl font-bold text-white mb-2">Premium</div>
-                <div class="text-4xl font-extrabold text-cyan-400 mb-1">$120<span class="text-base font-normal text-gray-400">/mo</span></div>
-                <div class="text-sm text-gray-400">For serious projects</div>
-            </div>
-            <ul class="space-y-3 mb-8 text-sm">
-                <li class="text-gray-300"><strong class="text-white">4 GB RAM</strong></li>
-                <li class="text-gray-300"><strong class="text-white">2 CPU cores</strong></li>
-                <li class="text-gray-300"><strong class="text-white">80 GB SSD storage</strong></li>
-                <li class="text-gray-300"><strong class="text-white">4 TB bandwidth</strong></li>
-                <li class="text-gray-400">Full SSH/root access</li>
-                <li class="text-gray-400">Daily automated backups</li>
-                <li class="text-gray-400">Security updates included</li>
-                <li class="text-gray-400">Web dashboard</li>
-                <li class="text-gray-400">Priority support (12hr response)</li>
-                <li class="text-gray-400">SSL automation</li>
-                <li class="text-gray-400">Staging environments</li>
-                <li class="text-cyan-300 pt-3 border-t border-gray-700">Plus everything in Priority:</li>
-                <li class="text-cyan-300">Direct chat support</li>
-                <li class="text-cyan-300">Custom deployment assistance</li>
-                <li class="text-cyan-300">Database optimization help</li>
-                <li class="text-cyan-300">Performance tuning</li>
-                <li class="text-cyan-300">Priority feature requests</li>
-            </ul>
-            <a href="/pay?plan=premium" class="block w-full px-6 py-3 bg-transparent border border-cyan-400/30 text-cyan-400 text-center font-medium rounded hover:border-cyan-400 hover:bg-cyan-400/10 transition-all duration-300 uppercase tracking-wider text-sm">Select Premium</a>
+        <div class="bg-gray-800 border border-gray-700 rounded-lg p-8 hover:border-brand transition-all">
+          <div class="border-b border-gray-700 pb-6 mb-6">
+            <div class="text-xl font-bold text-white mb-2">Premium</div>
+            <div class="text-4xl font-extrabold text-brand mb-1">$120<span class="text-base font-normal text-gray-400">/mo</span></div>
+            <div class="text-sm text-gray-400">For serious projects</div>
+          </div>
+          <ul class="space-y-3 mb-8 text-sm">
+            <li class="text-gray-300"><strong class="text-white">4 GB RAM</strong></li>
+            <li class="text-gray-300"><strong class="text-white">2 CPU cores</strong></li>
+            <li class="text-gray-300"><strong class="text-white">80 GB SSD storage</strong></li>
+            <li class="text-gray-300"><strong class="text-white">4 TB bandwidth</strong></li>
+            <li class="text-gray-400">Full SSH/root access</li>
+            <li class="text-gray-400">Daily automated backups</li>
+            <li class="text-gray-400">Security updates included</li>
+            <li class="text-gray-400">Web dashboard</li>
+            <li class="text-gray-400">Priority support (12hr response)</li>
+            <li class="text-gray-400">SSL automation</li>
+            <li class="text-gray-400">Staging environments</li>
+            <li class="text-brand pt-3 border-t border-gray-700">Plus everything in Priority:</li>
+            <li class="text-brand">Direct chat support</li>
+            <li class="text-brand">Custom deployment assistance</li>
+            <li class="text-brand">Database optimization help</li>
+            <li class="text-brand">Performance tuning</li>
+            <li class="text-brand">Priority feature requests</li>
+          </ul>
+          <a href="/pay?plan=premium" class="block w-full px-6 py-3 bg-transparent border border-brand text-brand text-center font-medium rounded-lg hover:bg-brand hover:text-gray-900 transition-all uppercase tracking-wider text-sm">Select Premium</a>
         </div>
-    </section>
+      </section>
+    </main>
     
     ${getFooter()}
     ${getScripts('nav.js')}
@@ -383,65 +377,62 @@ ${getHTMLHead('Pricing - Basement')}
 exports.showPrivacy = (req, res) => {
   res.send(`
 ${getHTMLHead('Privacy Policy - Basement')}
-</head>
-<body>
-    <div class="matrix-bg"></div>
-    
     ${getResponsiveNav(req)}
     
-    <div class="content">
-        <h1>Privacy Policy</h1>
-        <p><strong>Last Updated:</strong> January 19, 2026</p>
+    <main class="bg-gray-900 min-h-screen pt-24 pb-16">
+      <div class="max-w-4xl mx-auto px-4">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-2">Privacy Policy</h1>
+        <p class="text-gray-500 text-sm mb-8"><strong>Last Updated:</strong> January 19, 2026</p>
         
-        <p>Clouded Basement Hosting ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our services. Please read this policy carefully. If you do not agree with the terms of this privacy policy, please do not access the site.</p>
+        <p class="text-gray-400 mb-8">Clouded Basement Hosting ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our services. Please read this policy carefully. If you do not agree with the terms of this privacy policy, please do not access the site.</p>
         
-        <h2>1. Information We Collect</h2>
+        <h2 class="text-2xl font-bold text-white mt-12 mb-4">1. Information We Collect</h2>
         
-        <p><strong>1.1 Personal Information You Provide</strong></p>
-        <p>We collect information that you voluntarily provide to us when you:</p>
-        <ul>
-            <li><strong>Register for an account:</strong> Email address and encrypted password</li>
-            <li><strong>Submit inquiries:</strong> Name, email address, phone number (if provided), and message content through our contact form</li>
-            <li><strong>Make purchases:</strong> Billing information including name, address, and payment card details (processed securely by our payment processor, Stripe)</li>
+        <p class="text-gray-400 mb-4"><strong class="text-white">1.1 Personal Information You Provide</strong></p>
+        <p class="text-gray-400 mb-4">We collect information that you voluntarily provide to us when you:</p>
+        <ul class="list-disc list-inside text-gray-400 mb-6 space-y-2">
+            <li><strong class="text-white">Register for an account:</strong> Email address and encrypted password</li>
+            <li><strong class="text-white">Submit inquiries:</strong> Name, email address, phone number (if provided), and message content through our contact form</li>
+            <li><strong class="text-white">Make purchases:</strong> Billing information including name, address, and payment card details (processed securely by our payment processor, Stripe)</li>
         </ul>
         
-        <p><strong>1.2 Automatically Collected Information</strong></p>
-        <p>When you access our website, we may automatically collect certain information, including:</p>
-        <ul>
-            <li><strong>Log data:</strong> IP address, browser type, operating system, referring URLs, pages viewed, and timestamps</li>
-            <li><strong>Session data:</strong> Authentication tokens stored in cookies to maintain your logged-in state</li>
-            <li><strong>Device information:</strong> Screen resolution, device type, and browser capabilities</li>
+        <p class="text-gray-400 mb-4"><strong class="text-white">1.2 Automatically Collected Information</strong></p>
+        <p class="text-gray-400 mb-4">When you access our website, we may automatically collect certain information, including:</p>
+        <ul class="list-disc list-inside text-gray-400 mb-6 space-y-2">
+            <li><strong class="text-white">Log data:</strong> IP address, browser type, operating system, referring URLs, pages viewed, and timestamps</li>
+            <li><strong class="text-white">Session data:</strong> Authentication tokens stored in cookies to maintain your logged-in state</li>
+            <li><strong class="text-white">Device information:</strong> Screen resolution, device type, and browser capabilities</li>
         </ul>
         
-        <h2>2. How We Use Your Information</h2>
+        <h2 class="text-2xl font-bold text-white mt-12 mb-4">2. How We Use Your Information</h2>
         
-        <p>We use the information we collect for legitimate business purposes, including:</p>
-        <ul>
-            <li><strong>Service Delivery:</strong> To create and manage your account, process transactions, and deliver the services you request</li>
-            <li><strong>Communication:</strong> To respond to your inquiries, provide customer support, and send transactional emails regarding your account or purchases</li>
-            <li><strong>Security:</strong> To monitor and prevent fraudulent activity, unauthorized access, and other illegal activities</li>
-            <li><strong>Improvement:</strong> To analyze usage patterns, diagnose technical problems, and improve our website functionality and user experience</li>
-            <li><strong>Legal Compliance:</strong> To comply with applicable laws, regulations, legal processes, or enforceable governmental requests</li>
-            <li><strong>Business Operations:</strong> To maintain records for accounting, auditing, and business continuity purposes</li>
+        <p class="text-gray-400 mb-4">We use the information we collect for legitimate business purposes, including:</p>
+        <ul class="list-disc list-inside text-gray-400 mb-6 space-y-2">
+            <li><strong class="text-white">Service Delivery:</strong> To create and manage your account, process transactions, and deliver the services you request</li>
+            <li><strong class="text-white">Communication:</strong> To respond to your inquiries, provide customer support, and send transactional emails regarding your account or purchases</li>
+            <li><strong class="text-white">Security:</strong> To monitor and prevent fraudulent activity, unauthorized access, and other illegal activities</li>
+            <li><strong class="text-white">Improvement:</strong> To analyze usage patterns, diagnose technical problems, and improve our website functionality and user experience</li>
+            <li><strong class="text-white">Legal Compliance:</strong> To comply with applicable laws, regulations, legal processes, or enforceable governmental requests</li>
+            <li><strong class="text-white">Business Operations:</strong> To maintain records for accounting, auditing, and business continuity purposes</li>
         </ul>
         
-        <h2>3. Information Sharing and Disclosure</h2>
+        <h2 class="text-2xl font-bold text-white mt-12 mb-4">3. Information Sharing and Disclosure</h2>
         
-        <p>We do not sell, rent, or trade your personal information to third parties. We may share your information only in the following circumstances:</p>
+        <p class="text-gray-400 mb-4">We do not sell, rent, or trade your personal information to third parties. We may share your information only in the following circumstances:</p>
         
-        <p><strong>3.1 Service Providers</strong></p>
-        <ul>
-            <li><strong>Stripe, Inc.:</strong> We use Stripe to process payments. Your payment information is transmitted directly to Stripe and is subject to <a href="https://stripe.com/privacy" target="_blank" style="color: var(--glow);">Stripe's Privacy Policy</a>. We never store complete payment card information on our servers.</li>
+        <p class="text-gray-400 mb-4"><strong class="text-white">3.1 Service Providers</strong></p>
+        <ul class="list-disc list-inside text-gray-400 mb-6 space-y-2">
+            <li><strong class="text-white">Stripe, Inc.:</strong> We use Stripe to process payments. Your payment information is transmitted directly to Stripe and is subject to <a href="https://stripe.com/privacy" target="_blank" class="text-brand hover:text-cyan-400 underline">Stripe's Privacy Policy</a>. We never store complete payment card information on our servers.</li>
         </ul>
         
-        <p><strong>3.2 Legal Requirements</strong></p>
-        <p>We may disclose your information if required to do so by law or in response to valid requests by public authorities (e.g., a court order, subpoena, or government investigation).</p>
+        <p class="text-gray-400 mb-4"><strong class="text-white">3.2 Legal Requirements</strong></p>
+        <p class="text-gray-400 mb-6">We may disclose your information if required to do so by law or in response to valid requests by public authorities (e.g., a court order, subpoena, or government investigation).</p>
         
-        <p><strong>3.3 Business Transfers</strong></p>
-        <p>In the event of a merger, acquisition, reorganization, bankruptcy, or sale of assets, your information may be transferred as part of that transaction. You will be notified via email and/or prominent notice on our website of any such change in ownership or control.</p>
+        <p class="text-gray-400 mb-4"><strong class="text-white">3.3 Business Transfers</strong></p>
+        <p class="text-gray-400 mb-6">In the event of a merger, acquisition, reorganization, bankruptcy, or sale of assets, your information may be transferred as part of that transaction. You will be notified via email and/or prominent notice on our website of any such change in ownership or control.</p>
         
-        <p><strong>3.4 Protection of Rights</strong></p>
-        <p>We may disclose information when we believe in good faith that disclosure is necessary to protect our rights, protect your safety or the safety of others, investigate fraud, or respond to a legal request.</p>
+        <p class="text-gray-400 mb-4"><strong class="text-white">3.4 Protection of Rights</strong></p>
+        <p class="text-gray-400 mb-6">We may disclose information when we believe in good faith that disclosure is necessary to protect our rights, protect your safety or the safety of others, investigate fraud, or respond to a legal request.</p>
         
         <h2>4. Data Security</h2>
         
@@ -541,15 +532,16 @@ ${getHTMLHead('Privacy Policy - Basement')}
         <h2>14. Contact Information</h2>
         
         <p>If you have questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact us:</p>
-        <ul>
-            <li><strong>Email:</strong> Via our <a href="/contact" style="color: var(--glow);">contact form</a></li>
-            <li><strong>Response Time:</strong> We aim to respond to all inquiries within 48 hours</li>
+        <ul class="list-disc list-inside text-gray-400 mb-6 space-y-2">
+            <li><strong class="text-white">Email:</strong> Via our <a href="/contact" class="text-brand hover:text-cyan-400 underline">contact form</a></li>
+            <li><strong class="text-white">Response Time:</strong> We aim to respond to all inquiries within 48 hours</li>
         </ul>
         
-        <p style="margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(136, 254, 0, 0.1); font-size: 13px;">By using Clouded Basement Hosting services, you acknowledge that you have read and understood this Privacy Policy and agree to its terms.</p>
+        <p class="mt-12 pt-8 border-t border-gray-700 text-gray-500 text-sm">By using Clouded Basement Hosting services, you acknowledge that you have read and understood this Privacy Policy and agree to its terms.</p>
         
-        <a href="/" class="inline-block mt-8 px-6 py-3 text-cyan-400 border border-cyan-400/30 rounded hover:border-cyan-400 hover:bg-cyan-400/10 transition-all duration-300 uppercase tracking-wider text-sm">Back to home</a>
-    </div>
+        <a href="/" class="inline-block mt-8 px-6 py-3 text-brand border border-brand rounded-lg hover:bg-brand hover:text-gray-900 transition-all font-medium uppercase tracking-wider text-sm">Back to home</a>
+      </div>
+    </main>
     
     ${getFooter()}
     ${getScripts('nav.js')}
@@ -559,23 +551,20 @@ ${getHTMLHead('Privacy Policy - Basement')}
 exports.showFaq = (req, res) => {
   res.send(`
 ${getHTMLHead('FAQ - Basement')}
-</head>
-<body>
-    <div class="matrix-bg"></div>
-    
     ${getResponsiveNav(req)}
     
-    <div class="page-container">
-        <h1 class="text-5xl font-bold text-white text-center mb-4">Frequently Asked Questions</h1>
+    <main class="bg-gray-900 min-h-screen pt-24 pb-16">
+      <div class="max-w-4xl mx-auto px-4">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-white text-center mb-4">Frequently Asked Questions</h1>
         <p class="text-gray-400 text-center mb-16">Find answers to common questions about our services</p>
         
         <div class="mb-16">
-            <h2 class="text-2xl font-bold text-cyan-400 mb-6">General</h2>
-            
-            <div class="mb-4 bg-gray-800/30 border border-cyan-500/10 rounded-lg overflow-hidden">
-                <div class="p-6 cursor-pointer hover:bg-gray-800/50 transition-all flex justify-between items-center" onclick="toggleFaq(this)">
-                    <h3 class="text-lg font-medium text-white">What services does Clouded Basement Hosting provide?</h3>
-                    <span class="text-2xl text-cyan-400 transform transition-transform duration-300">+</span>
+          <h2 class="text-2xl font-bold text-brand mb-6">General</h2>
+          
+          <div class="mb-4 bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
+            <div class="p-6 cursor-pointer hover:bg-gray-700 transition-all flex justify-between items-center" onclick="toggleFaq(this)">
+              <h3 class="text-lg font-medium text-white">What services does Clouded Basement Hosting provide?</h3>
+              <span class="text-2xl text-brand transform transition-transform duration-300">+</span>
                 </div>
                 <div class="hidden px-6 pb-6">
                     <p class="text-gray-400">Clouded Basement Hosting offers cloud infrastructure services including virtual private servers (VPS), domain management, automated deployment tools, and technical support. Our platform is designed to make hosting accessible for developers and businesses of all sizes.</p>
@@ -746,7 +735,8 @@ ${getHTMLHead('FAQ - Basement')}
             <p class="text-gray-400 mb-8">Can't find the answer you're looking for? Our support team is here to help.</p>
             <a href="/contact" class="inline-block px-8 py-4 bg-cyan-400 text-gray-900 font-bold rounded hover:bg-cyan-500 transition-all duration-300 uppercase tracking-wider text-sm">Contact Support</a>
         </div>
-    </div>
+      </div>
+    </main>
     
     ${getFooter()}
     ${getScripts('nav.js', 'faq.js')}
@@ -756,59 +746,56 @@ ${getHTMLHead('FAQ - Basement')}
 exports.showDocs = (req, res) => {
   res.send(`
 ${getHTMLHead('Documentation - Basement')}
-</head>
-<body>
-    <div class="matrix-bg"></div>
-    
     ${getResponsiveNav(req)}
     
-    <div class="content">
-        <h1>Documentation</h1>
-        <p class="subtitle">Complete guide to Basement hosting—what you get, how to use it, and technical details.</p>
+    <main class="bg-gray-900 min-h-screen pt-24 pb-16">
+      <div class="max-w-4xl mx-auto px-4">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4">Documentation</h1>
+        <p class="text-xl text-gray-400 mb-12">Complete guide to Basement hosting—what you get, how to use it, and technical details.</p>
         
-        <h2>What You Get</h2>
-        <p>When you sign up, you get a dedicated cloud server (VPS - Virtual Private Server). This is a complete Linux machine that you control.</p>
+        <h2 class="text-2xl font-bold text-brand mt-12 mb-4">What You Get</h2>
+        <p class="text-gray-400 mb-4">When you sign up, you get a dedicated cloud server (VPS - Virtual Private Server). This is a complete Linux machine that you control.</p>
         
-        <p><strong>It's like renting a computer that runs 24/7 in a data center.</strong></p>
+        <p class="text-gray-400 mb-6"><strong class="text-white">It's like renting a computer that runs 24/7 in a data center.</strong></p>
         
-        <ul>
-            <li><strong>Full root/SSH access</strong> - Complete control over your server</li>
-            <li><strong>Dedicated IP address</strong> - Point your domain wherever you want</li>
-            <li><strong>Install anything</strong> - Node, Python, Docker, databases, whatever you need</li>
-            <li><strong>Deploy your way</strong> - Git, FTP, rsync, manual uploads - your choice</li>
+        <ul class="list-disc list-inside space-y-2 text-gray-400 mb-8">
+            <li><strong class="text-white">Full root/SSH access</strong> - Complete control over your server</li>
+            <li><strong class="text-white">Dedicated IP address</strong> - Point your domain wherever you want</li>
+            <li><strong class="text-white">Install anything</strong> - Node, Python, Docker, databases, whatever you need</li>
+            <li><strong class="text-white">Deploy your way</strong> - Git, FTP, rsync, manual uploads - your choice</li>
         </ul>
         
-        <h2>Two Ways to Manage Your Server</h2>
-        <p>You decide how much control you want at any given time.</p>
+        <h2 class="text-2xl font-bold text-brand mt-12 mb-4">Two Ways to Manage Your Server</h2>
+        <p class="text-gray-400 mb-8">You decide how much control you want at any given time.</p>
         
-        <h3>Dashboard</h3>
-        <p>A web interface for common tasks:</p>
-        <ul>
+        <h3 class="text-xl font-bold text-white mt-8 mb-3">Dashboard</h3>
+        <p class="text-gray-400 mb-3">A web interface for common tasks:</p>
+        <ul class="list-disc list-inside space-y-2 text-gray-400 mb-4">
             <li>Deploy your code with a few clicks</li>
             <li>Restart your server</li>
             <li>View logs and monitor resources</li>
             <li>Set up SSL certificates automatically</li>
             <li>Manage backups</li>
         </ul>
-        <p>Good for routine operations and quick deployments.</p>
+        <p class="text-gray-400 mb-8">Good for routine operations and quick deployments.</p>
         
-        <h3>Direct SSH Access</h3>
-        <p>Full terminal access to your server:</p>
-        <ul>
+        <h3 class="text-xl font-bold text-white mt-8 mb-3">Direct SSH Access</h3>
+        <p class="text-gray-400 mb-3">Full terminal access to your server:</p>
+        <ul class="list-disc list-inside space-y-2 text-gray-400 mb-4">
             <li>Configure web servers (Nginx, Apache)</li>
             <li>Set up custom services</li>
             <li>Install any dependencies</li>
             <li>Run background processes</li>
             <li>Debug directly in production</li>
         </ul>
-        <p>Good when you need precise control or custom configurations.</p>
+        <p class="text-gray-400 mb-8">Good when you need precise control or custom configurations.</p>
         
-        <h3>Use Both</h3>
-        <p>Most people use the dashboard for everyday tasks and SSH when they need it. You're not locked into one approach.</p>
+        <h3 class="text-xl font-bold text-white mt-8 mb-3">Use Both</h3>
+        <p class="text-gray-400 mb-8">Most people use the dashboard for everyday tasks and SSH when they need it. You're not locked into one approach.</p>
         
-        <div class="bg-cyan-900/10 border border-cyan-500/20 rounded-lg p-6 my-6">
-            <h3 class="text-cyan-400 text-xl font-bold mb-3">Managed Infrastructure</h3>
-            <p class="mb-3">While you have full control, we handle the foundational maintenance:</p>
+        <div class="bg-gray-800 border border-gray-700 rounded-lg p-6 my-8">
+            <h3 class="text-brand text-xl font-bold mb-3">Managed Infrastructure</h3>
+            <p class="text-gray-400 mb-3">While you have full control, we handle the foundational maintenance:</p>
             <ul class="list-disc list-inside space-y-2 text-gray-400">
                 <li><strong class="text-white">Security updates:</strong> Operating system patches applied automatically</li>
                 <li><strong class="text-white">Daily backups:</strong> Server snapshots every 24 hours</li>
@@ -817,33 +804,33 @@ ${getHTMLHead('Documentation - Basement')}
             </ul>
         </div>
         
-        <h2>Getting Started</h2>
-        <p>Here's the process from signup to deployment:</p>
+        <h2 class="text-2xl font-bold text-brand mt-12 mb-4">Getting Started</h2>
+        <p class="text-gray-400 mb-4">Here's the process from signup to deployment:</p>
         
-        <ol>
-            <li><strong>Choose a plan</strong> - Basic ($25), Priority ($60), or Premium ($120)</li>
-            <li><strong>Complete payment</strong> - Secure checkout via Stripe</li>
-            <li><strong>Server provisioning</strong> - Takes about 60 seconds</li>
-            <li><strong>Receive credentials</strong> - Dashboard access and SSH details via email</li>
-            <li><strong>Deploy</strong> - Use the dashboard or SSH directly</li>
+        <ol class="list-decimal list-inside space-y-2 text-gray-400 mb-6">
+            <li><strong class="text-white">Choose a plan</strong> - Basic ($25), Priority ($60), or Premium ($120)</li>
+            <li><strong class="text-white">Complete payment</strong> - Secure checkout via Stripe</li>
+            <li><strong class="text-white">Server provisioning</strong> - Takes about 60 seconds</li>
+            <li><strong class="text-white">Receive credentials</strong> - Dashboard access and SSH details via email</li>
+            <li><strong class="text-white">Deploy</strong> - Use the dashboard or SSH directly</li>
         </ol>
         
-        <p>Your server is live immediately. No approval process, no configuration maze.</p>
+        <p class="text-gray-400 mb-8">Your server is live immediately. No approval process, no configuration maze.</p>
         
-        <h2>Technical Stack</h2>
-        <p>Full transparency on our infrastructure:</p>
+        <h2 class="text-2xl font-bold text-brand mt-12 mb-4">Technical Stack</h2>
+        <p class="text-gray-400 mb-4">Full transparency on our infrastructure:</p>
         
-        <ul>
-            <li><strong>Cloud Provider:</strong> DigitalOcean data centers</li>
-            <li><strong>Operating System:</strong> Ubuntu LTS (long-term support)</li>
-            <li><strong>Dashboard:</strong> Custom Node.js application</li>
-            <li><strong>Payment Processing:</strong> Stripe</li>
-            <li><strong>Monitoring:</strong> Open-source tooling</li>
+        <ul class="list-disc list-inside space-y-2 text-gray-400 mb-8">
+            <li><strong class="text-white">Cloud Provider:</strong> DigitalOcean data centers</li>
+            <li><strong class="text-white">Operating System:</strong> Ubuntu LTS (long-term support)</li>
+            <li><strong class="text-white">Dashboard:</strong> Custom Node.js application</li>
+            <li><strong class="text-white">Payment Processing:</strong> Stripe</li>
+            <li><strong class="text-white">Monitoring:</strong> Open-source tooling</li>
         </ul>
         
-        <div class="bg-cyan-900/10 border border-cyan-500/20 rounded-lg p-6 my-6">
-            <h3 class="text-cyan-400 text-xl font-bold mb-3">Open Source</h3>
-            <p class="mb-3">The dashboard and deployment tools are open source:</p>
+        <div class="bg-gray-800 border border-gray-700 rounded-lg p-6 my-8">
+            <h3 class="text-brand text-xl font-bold mb-3">Open Source</h3>
+            <p class="text-gray-400 mb-3">The dashboard and deployment tools are open source:</p>
             <ul class="list-disc list-inside space-y-2 text-gray-400">
                 <li>Review the code and understand how everything works</li>
                 <li>Contribute improvements or report issues</li>
@@ -852,9 +839,9 @@ ${getHTMLHead('Documentation - Basement')}
             </ul>
         </div>
         
-        <h2>Who This Works For</h2>
-        <p>Basement is designed for:</p>
-        <ul>
+        <h2 class="text-2xl font-bold text-brand mt-12 mb-4">Who This Works For</h2>
+        <p class="text-gray-400 mb-4">Basement is designed for:</p>
+        <ul class="list-disc list-inside space-y-2 text-gray-400 mb-6">
             <li>Solo developers deploying projects</li>
             <li>Students learning production deployment</li>
             <li>Indie founders running applications</li>
@@ -862,39 +849,40 @@ ${getHTMLHead('Documentation - Basement')}
             <li>Anyone comfortable with basic Linux commands</li>
         </ul>
         
-        <p><strong>Note:</strong> We're a small team building and expanding features over time. The infrastructure can support enterprise workloads, but our feature set and support capacity are currently focused on smaller deployments as we grow.</p>
+        <p class="text-gray-400 mb-8"><strong class="text-white">Note:</strong> We're a small team building and expanding features over time. The infrastructure can support enterprise workloads, but our feature set and support capacity are currently focused on smaller deployments as we grow.</p>
         
-        <h2>Pricing Structure</h2>
-        <p>Three tiers based on server resources and support level:</p>
+        <h2 class="text-2xl font-bold text-brand mt-12 mb-4">Pricing Structure</h2>
+        <p class="text-gray-400 mb-4">Three tiers based on server resources and support level:</p>
         
-        <p><strong>Basic ($25/mo):</strong> 1 GB RAM, 1 CPU, 25 GB storage. Email support with 48-hour response. Suitable for static sites, small APIs, personal projects.</p>
+        <p class="text-gray-400 mb-4"><strong class="text-white">Basic ($25/mo):</strong> 1 GB RAM, 1 CPU, 25 GB storage. Email support with 48-hour response. Suitable for static sites, small APIs, personal projects.</p>
         
-        <p><strong>Priority ($60/mo):</strong> 2 GB RAM, 2 CPUs, 50 GB storage. Priority support with 12-hour response, SSL automation, staging environments. Suitable for production applications.</p>
+        <p class="text-gray-400 mb-4"><strong class="text-white">Priority ($60/mo):</strong> 2 GB RAM, 2 CPUs, 50 GB storage. Priority support with 12-hour response, SSL automation, staging environments. Suitable for production applications.</p>
         
-        <p><strong>Premium ($120/mo):</strong> 4 GB RAM, 2 CPUs, 80 GB storage. Direct chat support, deployment assistance, performance optimization. Suitable for revenue-generating applications.</p>
+        <p class="text-gray-400 mb-4"><strong class="text-white">Premium ($120/mo):</strong> 4 GB RAM, 2 CPUs, 80 GB storage. Direct chat support, deployment assistance, performance optimization. Suitable for revenue-generating applications.</p>
         
-        <p><strong>No usage charges.</strong> Your monthly bill is capped at your plan price. No surprise bandwidth or storage overages.</p>
+        <p class="text-gray-400 mb-8"><strong class="text-white">No usage charges.</strong> Your monthly bill is capped at your plan price. No surprise bandwidth or storage overages.</p>
         
-        <h2>Support Approach</h2>
-        <p>Documentation-first support model:</p>
-        <ul>
+        <h2 class="text-2xl font-bold text-brand mt-12 mb-4">Support Approach</h2>
+        <p class="text-gray-400 mb-4">Documentation-first support model:</p>
+        <ul class="list-disc list-inside space-y-2 text-gray-400 mb-4">
             <li>Comprehensive guides (including this page)</li>
             <li>FAQ covering common questions</li>
             <li>GitHub discussions for community help</li>
             <li>Open issues for bug reports</li>
         </ul>
         
-        <p>Email support included with all plans. Higher tiers provide faster response times and direct chat access for urgent issues.</p>
+        <p class="text-gray-400 mb-12">Email support included with all plans. Higher tiers provide faster response times and direct chat access for urgent issues.</p>
         
-        <div class="bg-linear-to-br from-cyan-900/40 to-cyan-950/20 border-2 border-cyan-400/30 rounded-xl p-8 text-center my-12">
+        <div class="bg-gray-800 border-2 border-brand rounded-xl p-8 text-center my-12">
             <h2 class="text-3xl font-bold text-white mb-4">Ready to Get Started?</h2>
             <p class="text-gray-300 mb-6">All plans include a 14-day money-back guarantee.</p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="/pricing" class="inline-block px-8 py-3 bg-cyan-400 text-gray-900 font-bold rounded hover:bg-cyan-500 transition-all duration-300 uppercase tracking-wider text-sm">View Pricing</a>
-                <a href="/contact" class="inline-block px-8 py-3 border-2 border-cyan-400/40 text-cyan-400 font-bold rounded hover:border-cyan-400 hover:bg-cyan-400/10 transition-all duration-300 uppercase tracking-wider text-sm">Contact Us</a>
+                <a href="/pricing" class="inline-block px-8 py-3 bg-brand text-gray-900 font-bold rounded hover:bg-cyan-500 transition-all duration-300 uppercase tracking-wider text-sm">View Pricing</a>
+                <a href="/contact" class="inline-block px-8 py-3 border-2 border-brand text-brand font-bold rounded hover:bg-brand hover:bg-opacity-10 transition-all duration-300 uppercase tracking-wider text-sm">Contact Us</a>
             </div>
         </div>
-    </div>
+      </div>
+    </main>
     
     ${getFooter()}
     ${getScripts('nav.js')}
@@ -904,35 +892,35 @@ ${getHTMLHead('Documentation - Basement')}
 exports.showContact = (req, res) => {
   res.send(`
 ${getHTMLHead('Contact - Basement')}
-</head>
-<body>
   ${getResponsiveNav(req)}
   
-  <div class="page-container" style="max-width: 800px;">
-    <h1 class="text-center mb-4">Contact Us</h1>
-    <p class="text-center mb-12">Get in touch with our team</p>
-    
-    <form method="POST" action="/contact" class="bg-gray-800/30 border border-cyan-500/10 rounded-lg p-8">
-      <input type="hidden" name="_csrf" value="${req.csrfToken()}">
+  <main class="bg-gray-900 min-h-screen pt-24 pb-16">
+    <div class="max-w-2xl mx-auto px-4">
+      <h1 class="text-4xl md:text-5xl font-extrabold text-white text-center mb-4">Contact Us</h1>
+      <p class="text-gray-400 text-center mb-12">Get in touch with our team</p>
       
-      <label class="block mb-6">
-        <span class="block text-sm font-medium text-gray-300 mb-2">Name</span>
-        <input type="text" name="name" required class="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded text-white focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/20">
-      </label>
-      
-      <label class="block mb-6">
-        <span class="block text-sm font-medium text-gray-300 mb-2">Email</span>
-        <input type="email" name="email" required class="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded text-white focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/20">
-      </label>
-      
-      <label class="block mb-6">
-        <span class="block text-sm font-medium text-gray-300 mb-2">Message</span>
-        <textarea name="message" required rows="6" class="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded text-white focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/20 resize-vertical"></textarea>
-      </label>
-      
-      <button type="submit" class="w-full px-6 py-3 bg-cyan-400 text-gray-900 font-medium rounded hover:bg-cyan-500 transition-all duration-300 uppercase tracking-wider text-sm">Send Message</button>
-    </form>
-  </div>
+      <form method="POST" action="/contact" class="bg-gray-800 border border-gray-700 rounded-lg p-8">
+        <input type="hidden" name="_csrf" value="${req.csrfToken()}">
+        
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-300 mb-2">Name</label>
+          <input type="text" name="name" required class="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand">
+        </div>
+        
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-300 mb-2">Email</label>
+          <input type="email" name="email" required class="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand">
+        </div>
+        
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-300 mb-2">Message</label>
+          <textarea name="message" required rows="6" class="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand resize-y"></textarea>
+        </div>
+        
+        <button type="submit" class="w-full px-6 py-3 bg-brand text-gray-900 font-bold rounded-lg hover:bg-cyan-500 transition-all uppercase tracking-wider text-sm">Send Message</button>
+      </form>
+    </div>
+  </main>
   
   ${getFooter()}
   ${getScripts('nav.js')}
@@ -967,105 +955,88 @@ exports.showHome = async (req, res) => {
   
   res.send(`
 ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
-</head>
-<body>
-    <div class="matrix-bg"></div>
-    
-    ${flashMessage ? `
-    <div class="flash-message" id="flashMessage">
-      ${flashMessage}
-      <button class="flash-close" onclick="dismissFlash()">&times;</button>
-    </div>
-    <script>
-      function dismissFlash() {
-        const msg = document.getElementById('flashMessage');
-        msg.classList.add('fade-out');
-        setTimeout(() => msg.remove(), 500);
-      }
-      setTimeout(() => {
-        const msg = document.getElementById('flashMessage');
-        if (msg) dismissFlash();
-      }, 7000);
-    </script>
-    ` : ''}
-    
     ${getResponsiveNav(req)}
     
-    <!-- Hero Section with Flowbite -->
-    <section class="bg-gray-900 pt-24 md:pt-32 lg:pt-36">
-      <div class="py-8 px-4 mx-auto max-w-7xl text-center lg:py-16 lg:px-12">
-        <a href="/pricing" class="inline-flex justify-between items-center py-1 px-1 pr-4 mb-7 text-sm text-gray-900 bg-cyan-400 rounded-full hover:bg-cyan-500 transition-all">
-          <span class="text-xs bg-gray-900 rounded-full text-cyan-400 px-4 py-1.5 mr-3">⚡ Founding Offer</span>
-          <span class="text-sm font-medium text-gray-900">$10/month for life — Only ${foundersRemaining} spots left</span>
-          <svg class="ml-2 w-5 h-5 text-gray-900" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+    ${flashMessage ? `
+    <div class="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 p-4 mb-4 text-sm text-cyan-400 bg-gray-800 border border-cyan-500/30 rounded-lg shadow-lg" role="alert">
+      ${flashMessage}
+    </div>
+    ` : ''}
+    
+    <!-- Hero Section -->
+    <section class="bg-gray-900 pt-32 pb-16">
+      <div class="max-w-screen-xl px-4 mx-auto text-center lg:px-12">
+        <a href="/pricing" class="inline-flex justify-between items-center py-1 px-1 pr-4 mb-7 text-sm text-gray-900 bg-brand rounded-full hover:bg-cyan-500 transition-all">
+          <span class="text-xs bg-gray-900 rounded-full text-brand px-4 py-1.5 mr-3">⚡ Founding Offer</span>
+          <span class="text-sm font-medium">$10/month for life — Only ${foundersRemaining} spots left</span>
+          <svg class="ml-2 w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
           </svg>
         </a>
-        <h1 class="mb-4 text-4xl font-extrabold tracking-tight leading-none text-white md:text-5xl lg:text-6xl">Clouded Basement</h1>
+        <h1 class="mb-4 text-4xl font-extrabold tracking-tight text-white md:text-5xl lg:text-6xl">Clouded Basement</h1>
         <p class="mb-8 text-lg font-normal text-gray-400 lg:text-xl sm:px-16 xl:px-48">Fast, simple cloud hosting without the corporate noise. Spin up real servers, deploy your apps, stay in control.</p>
-        <div class="flex flex-col mb-8 lg:mb-16 space-y-4 sm:flex-row sm:justify-center sm:space-y-0 sm:space-x-4">
-          <a href="/pricing" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-gray-900 rounded-lg bg-cyan-400 hover:bg-cyan-500 focus:ring-4 focus:ring-cyan-300 transition-all">
+        <div class="flex flex-col mb-8 space-y-4 sm:flex-row sm:justify-center sm:space-y-0 sm:space-x-4">
+          <a href="/pricing" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-gray-900 bg-brand rounded-lg hover:bg-cyan-500 transition-all">
             View Pricing
-            <svg class="ml-2 -mr-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <svg class="ml-2 w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
             </svg>
           </a>
-          <a href="/docs" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-gray-300 border border-gray-700 rounded-lg hover:bg-gray-800 hover:border-gray-600 focus:ring-4 focus:ring-gray-800 transition-all">
+          <a href="/docs" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-gray-300 border border-gray-700 rounded-lg hover:bg-gray-800 transition-all">
             Documentation
           </a>
         </div>
       </div>
     </section>
 
-    <!-- Founder Plan Card (Flowbite Card with custom animation) -->
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 mb-20">
-      <div class="relative overflow-hidden p-8 md:p-12 bg-linear-to-br from-cyan-900/40 to-cyan-950/20 border-2 border-cyan-500/40 rounded-xl text-center" style="box-shadow: 0 0 60px rgba(45, 167, 223, 0.3); animation: pulse-glow 3s ease-in-out infinite;">
-        <span class="inline-flex items-center justify-center px-3 py-1 mb-4 text-xs font-bold text-gray-900 bg-linear-to-r from-cyan-400 to-cyan-500 rounded-full">⚡ LIMITED TIME OFFER ⚡</span>
-        <h2 class="mb-2 text-3xl md:text-4xl font-extrabold text-white">Founding Customer Plan</h2>
+    <!-- Founder Plan Card -->
+    <section class="py-12 px-4 bg-gray-900">
+      <div class="max-w-3xl mx-auto p-8 md:p-12 bg-gradient-to-br from-cyan-900/40 to-gray-900 border-2 border-brand rounded-xl text-center glow-brand">
+        <span class="inline-block px-3 py-1 mb-4 text-xs font-bold text-gray-900 bg-brand rounded-full">⚡ LIMITED TIME OFFER ⚡</span>
+        <h2 class="mb-4 text-3xl md:text-4xl font-extrabold text-white">Founding Customer Plan</h2>
         <div class="my-6">
-          <span class="text-5xl md:text-6xl font-bold text-cyan-400">$10</span>
+          <span class="text-5xl md:text-6xl font-bold text-brand">$10</span>
           <span class="text-xl text-gray-400">/month</span>
         </div>
         <p class="mb-6 text-base md:text-lg text-gray-300">Lock in this price for life. Full access to every feature, forever.</p>
-        <div class="inline-flex items-center gap-3 px-6 py-4 mb-6 bg-gray-900/50 border border-cyan-500/30 rounded-lg">
-          <span class="text-4xl md:text-5xl font-bold text-cyan-400">${foundersRemaining}</span>
+        <div class="inline-flex items-center gap-3 px-6 py-4 mb-6 bg-gray-900/50 border border-brand rounded-lg">
+          <span class="text-4xl md:text-5xl font-bold text-brand">${foundersRemaining}</span>
           <span class="text-sm md:text-base text-gray-300">spots remaining out of 10</span>
         </div>
-        <div class="mt-8">
-          <a href="/pricing" class="w-full sm:w-auto inline-flex justify-center items-center py-3 px-8 text-base font-medium text-gray-900 bg-linear-to-r from-cyan-400 to-cyan-500 rounded-lg hover:from-cyan-500 hover:to-cyan-600 focus:ring-4 focus:ring-cyan-300 transition-all">
-            Claim Your Spot
-            <svg class="ml-2 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-              <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-            </svg>
-          </a>
-        </div>
+        <a href="/pricing" class="inline-flex justify-center items-center py-3 px-8 text-base font-medium text-gray-900 bg-brand rounded-lg hover:bg-cyan-500 transition-all">
+          Claim Your Spot
+          <svg class="ml-2 w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+          </svg>
+        </a>
       </div>
-    </div>
+    </section>
 
-    <!-- Why Choose Section with Flowbite Cards -->
-    <section class="bg-gray-900 py-12 md:py-20">
-      <div class="max-w-7xl px-4 mx-auto sm:px-6 lg:px-8">
+    <!-- Why Choose Section -->
+    <section class="py-12 md:py-20 bg-gray-900">
+      <div class="max-w-7xl px-4 mx-auto">
         <h2 class="mb-12 text-3xl md:text-4xl font-extrabold text-center text-white">Why Choose Clouded Basement</h2>
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          <!-- Card 1 -->
-          <div class="p-6 bg-gray-800/50 border border-cyan-500/10 rounded-lg hover:border-cyan-500/30 hover:-translate-y-1 transition-all">
-            <h3 class="mb-2 text-xl font-bold text-cyan-400">Personal Support</h3>
+          <div class="p-6 bg-gray-800 border border-gray-700 rounded-lg hover:border-brand hover:-translate-y-1 transition-all">
+            <h3 class="mb-2 text-xl font-bold text-brand">Personal Support</h3>
             <p class="text-gray-400">You talk to the person who built the platform.</p>
           </div>
-          <!-- Card 2 -->
-          <div class="p-6 bg-gray-800/50 border border-cyan-500/10 rounded-lg hover:border-cyan-500/30 hover:-translate-y-1 transition-all">
-            <h3 class="mb-2 text-xl font-bold text-cyan-400">Fast, Clean Infrastructure</h3>
+          <div class="p-6 bg-gray-800 border border-gray-700 rounded-lg hover:border-brand hover:-translate-y-1 transition-all">
+            <h3 class="mb-2 text-xl font-bold text-brand">Fast, Clean Infrastructure</h3>
             <p class="text-gray-400">No noisy neighbors. No overselling.</p>
           </div>
-          <!-- Card 3 -->
-          <div class="p-6 bg-gray-800/50 border border-cyan-500/10 rounded-lg hover:border-cyan-500/30 hover:-translate-y-1 transition-all">
-            <h3 class="mb-2 text-xl font-bold text-cyan-400">Transparent Pricing</h3>
+          <div class="p-6 bg-gray-800 border border-gray-700 rounded-lg hover:border-brand hover:-translate-y-1 transition-all">
+            <h3 class="mb-2 text-xl font-bold text-brand">Transparent Pricing</h3>
             <p class="text-gray-400">No hidden fees. No surprise renewals.</p>
           </div>
-          <!-- Card 4 -->
-          <div class="p-6 bg-gray-800/50 border border-cyan-500/10 rounded-lg hover:border-cyan-500/30 hover:-translate-y-1 transition-all">
-            <h3 class="mb-2 text-xl font-bold text-cyan-400">Indie-Built, Indie-Powered</h3>
+          <div class="p-6 bg-gray-800 border border-gray-700 rounded-lg hover:border-brand hover:-translate-y-1 transition-all">
+            <h3 class="mb-2 text-xl font-bold text-brand">Indie-Built, Indie-Powered</h3>
             <p class="text-gray-400">Hosting with personality, not corporate scripts.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+      </section>
           </div>
         </div>
       </div>
