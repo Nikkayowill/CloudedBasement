@@ -307,8 +307,11 @@ const buildDashboardTemplate = (data) => {
             
             <a href="/pricing" class="px-8 py-3 bg-brand text-gray-900 font-bold rounded-lg hover:bg-cyan-500 transition-colors inline-block">View All Plans</a>
         </div>
-        ` : `
-        <!-- Primary Server Card -->
+    ` : ''}
+
+    <!-- Main Content Grid -->
+    <div class="space-y-6">
+        ${data.hasServer ? `
         <div class="bg-gray-800 border border-gray-700 border-l-4 border-l-brand rounded-lg overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-700 bg-white bg-opacity-5">
                 <div class="flex items-center justify-between">
@@ -381,7 +384,6 @@ const buildDashboardTemplate = (data) => {
             <p class="text-sm text-gray-500">${data.hasPaid ? 'Your server is being provisioned...' : 'Purchase a plan to see your server details here'}</p>
         </div>
         `}
-        `}
 
         ${data.hasServer ? `
         <!-- Deployments Card -->
@@ -415,7 +417,7 @@ const buildDashboardTemplate = (data) => {
                                 }">${dep.status}</span>
                                 ${dep.status === 'success' && data.serverIp ? `
                                 <div class="mt-2">
-        </a>
+                                    <a href="http://${data.serverIp}" target="_blank" class="text-brand hover:text-cyan-400 text-xs">View Live Site →</a>
                                 </div>
                                 ` : ''}
                             </td>
@@ -474,7 +476,7 @@ const buildDashboardTemplate = (data) => {
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                     ${data.tickets.slice(0, 4).map(ticket => `
                     <div class="bg-black bg-opacity-30 border border-gray-700 rounded-lg p-3">
-                        <div class="flex `<p class="px-6 py-6 text-gray-500 text-xs italic">${data.hasServer ? 'No deployments yet. Deploy your first app to see history here.' : 'Waiting for server to be provisioned...'}</p>`
+                        <div class="flex justify-between items-center mb-2">
                             <p class="text-xs text-gray-400">Ticket #${ticket.id}</p>
                             <span class="px-2 py-1 text-xs font-bold uppercase rounded ${ticket.status === 'resolved' ? 'bg-green-900 text-green-300' : 'bg-blue-900 text-blue-300'}">
                                 ${ticket.status}
@@ -497,7 +499,7 @@ const buildDashboardTemplate = (data) => {
                 <div>
                     <p class="text-xs text-gray-500 uppercase font-bold mb-2">Email</p>
                     <p class="px-3 py-2 bg-black bg-opacity-30 rounded border border-gray-700 text-white text-xs">${data.userEmail}</p>
-                `<p class="text-gray-500 text-xs italic">${data.hasServer ? 'No domains configured yet.' : 'Waiting for server to be provisioned...'}</p>`
+                </div>
                 <div>
                     <p class="text-xs text-gray-500 uppercase font-bold mb-2">Role</p>
                     <p class="px-3 py-2 bg-black bg-opacity-30 rounded border border-gray-700 text-white text-xs">${data.userRole === 'admin' ? 'Administrator' : 'User'}</p>
@@ -554,7 +556,8 @@ const buildDashboardTemplate = (data) => {
 <script>
 function openSubmitTicketModal() { document.getElementById('submitTicketModal').classList.remove('hidden'); document.getElementById('submitTicketModal').classList.add('flex'); }
 function closeSubmitTicketModal() { document.getElementById('submitTicketModal').classList.remove('flex'); document.getElementById('submitTicketModal').classList.add('hidden'); }
-docuif (e.target.id === 'submitTicketModal') closeSubmitTicketModal();
+document.addEventListener('click', (e) => {
+    if (e.target.id === 'submitTicketModal') closeSubmitTicketModal();
 });
 
 async function submitTicket(e) {
