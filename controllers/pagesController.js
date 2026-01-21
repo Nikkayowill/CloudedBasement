@@ -286,16 +286,24 @@ ${getHTMLHead('Pricing - Basement')}
     
     <main class="bg-gray-900 min-h-screen pt-24 pb-16">
       <section class="py-12 px-4 text-center">
-        <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4">Simple Pricing</h1>
-        <p class="text-gray-400 text-lg">Real servers. Real specs. No surprises. Your bill will never exceed your plan.</p>
+        <div class="inline-block px-6 py-2 bg-brand bg-opacity-20 border border-brand rounded-full text-brand font-bold text-sm mb-6 uppercase tracking-wider">
+          🔥 Founder Pricing - Limited Spots
+        </div>
+        <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4">Lock In Lifetime Pricing</h1>
+        <p class="text-gray-400 text-lg mb-2">Real servers. Real specs. No surprises. Your bill will never exceed your plan.</p>
+        <p class="text-gray-500 text-sm italic">*Add-ons not included. Base plan pricing locked for life.</p>
       </section>
       
       <section class="max-w-6xl mx-auto px-8 md:px-12 lg:px-16 pb-20 grid grid-cols-1 md:grid-cols-3 gap-8">
         <div class="bg-gray-800 border border-gray-700 rounded-lg p-8 hover:border-brand transition-all">
           <div class="border-b border-gray-700 pb-6 mb-6">
             <div class="text-xl font-bold text-white mb-2">Basic</div>
-            <div class="text-4xl font-extrabold text-brand mb-1">$25<span class="text-base font-normal text-gray-400">/mo</span></div>
+            <div class="flex items-baseline gap-2 mb-2">
+              <div class="text-4xl font-extrabold text-brand">$10<span class="text-base font-normal text-gray-400">/mo</span></div>
+              <div class="text-xl text-gray-500 line-through">$25</div>
+            </div>
             <div class="text-sm text-gray-400">Perfect for side projects</div>
+            <div class="mt-2 px-3 py-1 bg-brand bg-opacity-20 border border-brand rounded text-brand text-xs font-bold inline-block">60% OFF - LIFETIME</div>
           </div>
           <ul class="space-y-3 mb-8 text-sm">
             <li class="text-gray-300"><strong class="text-white">1 GB RAM</strong></li>
@@ -316,8 +324,12 @@ ${getHTMLHead('Pricing - Basement')}
           <div class="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-brand text-gray-900 text-xs font-bold rounded-full uppercase">Most Popular</div>
           <div class="border-b border-brand pb-6 mb-6">
             <div class="text-xl font-bold text-brand mb-2">Priority</div>
-            <div class="text-4xl font-extrabold text-brand mb-1">$60<span class="text-base font-normal text-gray-400">/mo</span></div>
+            <div class="flex items-baseline gap-2 mb-2">
+              <div class="text-4xl font-extrabold text-brand">$30<span class="text-base font-normal text-gray-400">/mo</span></div>
+              <div class="text-xl text-gray-500 line-through">$60</div>
+            </div>
             <div class="text-sm text-gray-400">Most popular • For production apps</div>
+            <div class="mt-2 px-3 py-1 bg-brand text-gray-900 rounded text-xs font-bold inline-block">50% OFF - LIFETIME</div>
           </div>
           <ul class="space-y-3 mb-8 text-sm">
             <li class="text-gray-300"><strong class="text-white">2 GB RAM</strong></li>
@@ -341,8 +353,12 @@ ${getHTMLHead('Pricing - Basement')}
         <div class="bg-gray-800 border border-gray-700 rounded-lg p-8 hover:border-brand transition-all">
           <div class="border-b border-gray-700 pb-6 mb-6">
             <div class="text-xl font-bold text-white mb-2">Premium</div>
-            <div class="text-4xl font-extrabold text-brand mb-1">$120<span class="text-base font-normal text-gray-400">/mo</span></div>
+            <div class="flex items-baseline gap-2 mb-2">
+              <div class="text-4xl font-extrabold text-brand">$60<span class="text-base font-normal text-gray-400">/mo</span></div>
+              <div class="text-xl text-gray-500 line-through">$120</div>
+            </div>
             <div class="text-sm text-gray-400">For serious projects</div>
+            <div class="mt-2 px-3 py-1 bg-brand bg-opacity-20 border border-brand rounded text-brand text-xs font-bold inline-block">50% OFF - LIFETIME</div>
           </div>
           <ul class="space-y-3 mb-8 text-sm">
             <li class="text-gray-300"><strong class="text-white">4 GB RAM</strong></li>
