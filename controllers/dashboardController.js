@@ -5,7 +5,12 @@ const { getDashboardHead, getFooter, getScripts, getResponsiveNav } = require('.
 exports.showDashboard = async (req, res) => {
     try {
         const userId = req.session.userId;
-        const flashSuccess = req.query.success || '';
+        
+        // Get flash messages from session or query params
+        const sessionFlash = req.session.flashMessage || '';
+        delete req.session.flashMessage; // Clear after reading
+        
+        const flashSuccess = req.query.success || sessionFlash || '';
         const flashError = req.query.error || '';
         const emailConfirmed = !!req.session.emailConfirmed;
 
