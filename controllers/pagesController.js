@@ -287,7 +287,7 @@ ${getHTMLHead('Pricing - Basement')}
     <main class="bg-gray-900 min-h-screen pt-24 pb-16">
       <section class="py-12 px-4 text-center">
         <div class="inline-block px-6 py-2 bg-brand bg-opacity-20 border border-brand rounded-full text-white font-bold text-sm mb-6 uppercase tracking-wider">
-            Founder Pricing - Limited Spots
+            🚀 Early Adopter Pricing - Only 15 Spots
         </div>
         <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4">Lock In Lifetime Pricing</h1>
         <p class="text-gray-400 text-lg mb-2">Real servers. Real specs. No surprises. Your bill will never exceed your plan.</p>
@@ -341,7 +341,7 @@ ${getHTMLHead('Pricing - Basement')}
             <li class="text-gray-400">Security updates included</li>
             <li class="text-gray-400">Web dashboard</li>
             <li class="text-brand pt-3 border-t border-gray-700">Plus everything in Basic:</li>
-            <li class="text-brand">Priority support (12hr response)</li>
+            <li class="text-brand">Priority support (1-2hr response)</li>
             <li class="text-brand">SSL automation</li>
             <li class="text-brand">One-click staging environments</li>
             <li class="text-brand">Advanced monitoring</li>
@@ -867,12 +867,12 @@ exports.showHome = async (req, res) => {
   const flashMessage = req.session.flashMessage;
   delete req.session.flashMessage;
   
-  // Count founder plan customers (plan = 'founder' and status = 'succeeded')
-  const founderCountResult = await pool.query(
-    "SELECT COUNT(DISTINCT user_id) as count FROM payments WHERE plan = 'founder' AND status = 'succeeded'"
+  // Count early adopter customers across all plans
+  const adopterCountResult = await pool.query(
+    "SELECT COUNT(DISTINCT user_id) as count FROM payments WHERE status = 'succeeded'"
   );
-  const foundersTaken = parseInt(founderCountResult.rows[0].count) || 0;
-  const foundersRemaining = Math.max(0, 10 - foundersTaken);
+  const adoptersTaken = parseInt(adopterCountResult.rows[0].count) || 0;
+  const adoptersRemaining = Math.max(0, 15 - adoptersTaken);
   
   res.send(`
 ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
@@ -888,8 +888,8 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
     <section class="bg-gray-900 pt-32 pb-16">
       <div class="max-w-screen-xl px-8 md:px-12 lg:px-16 mx-auto text-center lg:px-12">
         <a href="/pricing" class="inline-flex justify-between items-center py-1 px-1 pr-4 mb-7 text-sm text-gray-900 bg-brand rounded-full hover:bg-cyan-500 transition-all">
-          <span class="text-xs bg-gray-900 rounded-full text-brand px-4 py-1.5 mr-3">⚡ Founding Offer</span>
-          <span class="text-sm font-medium">$10/month for life — Only ${foundersRemaining} spots left</span>
+          <span class="text-xs bg-gray-900 rounded-full text-brand px-4 py-1.5 mr-3">🚀 Early Adopter</span>
+          <span class="text-sm font-medium">Up to 60% off lifetime — Only ${adoptersRemaining} spots left</span>
           <svg class="ml-2 w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
           </svg>
@@ -913,16 +913,16 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
     <!-- Founder Plan Card -->
     <section class="py-12 px-8 md:px-12 lg:px-16 bg-gray-900">
       <div class="max-w-3xl mx-auto p-8 md:p-12 bg-gradient-to-br from-cyan-900/40 to-gray-900 border-2 border-brand rounded-xl text-center glow-brand">
-        <span class="inline-block px-3 py-1 mb-4 text-xs font-bold text-gray-900 bg-brand rounded-full">⚡ LIMITED TIME OFFER ⚡</span>
-        <h2 class="mb-4 text-3xl md:text-4xl font-extrabold text-white">Founding Customer Plan</h2>
+        <span class="inline-block px-3 py-1 mb-4 text-xs font-bold text-gray-900 bg-brand rounded-full">🚀 EARLY ADOPTER PRICING 🚀</span>
+        <h2 class="mb-4 text-3xl md:text-4xl font-extrabold text-white">Lock In Lifetime Pricing</h2>
         <div class="my-6">
-          <span class="text-5xl md:text-6xl font-bold text-brand">$10</span>
+          <span class="text-5xl md:text-6xl font-bold text-brand">$10-$60</span>
           <span class="text-xl text-gray-400">/month</span>
         </div>
-        <p class="mb-6 text-base md:text-lg text-gray-300">Lock in this price for life. Full access to every feature, forever.</p>
+        <p class="mb-6 text-base md:text-lg text-gray-300">Choose your plan. Lock in 50-60% off for life. All features included.</p>
         <div class="inline-flex items-center gap-3 px-6 py-4 mb-6 bg-gray-900/50 border border-brand rounded-lg">
-          <span class="text-4xl md:text-5xl font-bold text-brand">${foundersRemaining}</span>
-          <span class="text-sm md:text-base text-gray-300">spots remaining out of 10</span>
+          <span class="text-4xl md:text-5xl font-bold text-brand">${adoptersRemaining}</span>
+          <span class="text-sm md:text-base text-gray-300">spots remaining out of 15</span>
         </div>
         <a href="/pricing" class="inline-flex justify-center items-center py-3 px-8 text-base font-medium text-gray-900 bg-brand rounded-lg hover:bg-cyan-500 transition-all">
           Claim Your Spot
