@@ -290,7 +290,7 @@ ${getHTMLHead('Pricing - Basement')}
             🚀 Early Adopter Pricing - Only 15 Spots
         </div>
         <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4">Lock In Lifetime Pricing</h1>
-        <p class="text-gray-400 text-lg mb-2">Real servers. Real specs. No surprises. Your bill will never exceed your plan.</p>
+        <p class="text-gray-400 text-lg mb-2">Full-stack hosting in 5 minutes: Git deploy, one-click databases, SSL, and SSH.</p>
         <p class="text-gray-500 text-sm italic">*Add-ons not included. Base plan pricing locked for life.</p>
       </section>
       

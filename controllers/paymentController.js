@@ -7,14 +7,14 @@ const { getHTMLHead, getScripts, getFooter, getResponsiveNav } = require('../hel
 exports.showCheckout = (req, res) => {
   const plan = req.query.plan || 'basic';
   const planConfig = {
-    basic: { name: 'Basic Plan', price: 25, description: '1GB RAM, 1 CPU, 25GB SSD - Perfect for small projects' },
-    priority: { name: 'Priority Plan', price: 60, description: '2GB RAM, 2 CPUs, 50GB SSD - For production apps' },
-    premium: { name: 'Premium Plan', price: 120, description: '4GB RAM, 2 CPUs, 80GB SSD - For serious projects' }
+    basic: { name: 'Basic Plan — Early Adopter', price: 10, was: 25, description: '1GB RAM, 1 CPU, 25GB SSD · 60% OFF for life' },
+    priority: { name: 'Priority Plan — Early Adopter', price: 30, was: 60, description: '2GB RAM, 2 CPUs, 50GB SSD · 50% OFF for life' },
+    premium: { name: 'Premium Plan — Early Adopter', price: 60, was: 120, description: '4GB RAM, 2 CPUs, 80GB SSD · 50% OFF for life' }
   };
   const selectedPlan = planConfig[plan] || planConfig.basic;
   
   res.send(`
-${getHTMLHead('Checkout - Basement')}
+${getHTMLHead('Checkout - Clouded  Basement')}
     ${getResponsiveNav(req)}
     
     <main class="bg-gray-900 min-h-screen flex items-center justify-center py-12 px-4">
@@ -32,7 +32,7 @@ ${getHTMLHead('Checkout - Basement')}
             <div class="text-5xl font-bold text-brand">
               $${selectedPlan.price}<span class="text-2xl text-gray-400">/month</span>
             </div>
-            <p class="text-gray-400 text-xs mt-2">Pay monthly, cancel anytime</p>
+            <p class="text-gray-400 text-xs mt-2">Early Adopter price · was $${selectedPlan.was} · locked for life</p>
           </div>
           
           <div class="border-t border-gray-700 pt-4 space-y-3">
@@ -73,10 +73,11 @@ ${getHTMLHead('Checkout - Basement')}
 exports.createCheckoutSession = async (req, res) => {
   try {
     const plan = req.body.plan || 'basic';
+    // Early Adopter lifetime pricing (UI already reflects this)
     const planPrices = {
-      basic: { amount: 2500, name: 'Basic Plan' },
-      priority: { amount: 6000, name: 'Priority Plan' },
-      premium: { amount: 12000, name: 'Premium Plan' }
+      basic: { amount: 1000, name: 'Basic Plan — Early Adopter' },
+      priority: { amount: 3000, name: 'Priority Plan — Early Adopter' },
+      premium: { amount: 6000, name: 'Premium Plan — Early Adopter' }
     };
     const selectedPlan = planPrices[plan] || planPrices.basic;
     
