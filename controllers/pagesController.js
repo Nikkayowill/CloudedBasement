@@ -26,7 +26,7 @@ ${getHTMLHead('About - Basement')}
         
         <h2 class="text-2xl font-bold text-brand mt-12 mb-4">THE TECH</h2>
         
-        <p class="text-gray-400 mb-8">Built with <strong class="text-white">Node.js</strong>, <strong class="text-white">Express</strong>, <strong class="text-white">PostgreSQL</strong>, and <strong class="text-white">Stripe</strong>. Servers run <strong class="text-white">Ubuntu LTS</strong> on <strong class="text-white">DigitalOcean</strong>. Security includes automated OS updates, daily backups, and DDoS protection.</p>
+        <p class="text-gray-400 mb-8">Built with <strong class="text-white">Node.js</strong>, <strong class="text-white">Express</strong>, <strong class="text-white">PostgreSQL</strong>, and <strong class="text-white">Stripe</strong>. Servers run <strong class="text-white">Ubuntu LTS</strong> on <strong class="text-white">DigitalOcean</strong>. Security includes automated OS updates and DDoS protection.</p>
         
         <h2 class="text-2xl font-bold text-brand mt-12 mb-4">OPEN SOURCE</h2>
         
@@ -311,7 +311,6 @@ ${getHTMLHead('Pricing - Basement')}
             <li class="text-gray-300"><strong class="text-white">25 GB SSD storage</strong></li>
             <li class="text-gray-300"><strong class="text-white">1 TB bandwidth</strong></li>
             <li class="text-gray-400">Full SSH/root access</li>
-            <li class="text-gray-400">Daily automated backups</li>
             <li class="text-gray-400">Security updates included</li>
             <li class="text-gray-400">Web dashboard</li>
             <li class="text-gray-400">Email support (48hr response)</li>
@@ -337,7 +336,6 @@ ${getHTMLHead('Pricing - Basement')}
             <li class="text-gray-300"><strong class="text-white">50 GB SSD storage</strong></li>
             <li class="text-gray-300"><strong class="text-white">2 TB bandwidth</strong></li>
             <li class="text-gray-400">Full SSH/root access</li>
-            <li class="text-gray-400">Daily automated backups</li>
             <li class="text-gray-400">Security updates included</li>
             <li class="text-gray-400">Web dashboard</li>
             <li class="text-brand pt-3 border-t border-gray-700">Plus everything in Basic:</li>
@@ -366,7 +364,6 @@ ${getHTMLHead('Pricing - Basement')}
             <li class="text-gray-300"><strong class="text-white">80 GB SSD storage</strong></li>
             <li class="text-gray-300"><strong class="text-white">4 TB bandwidth</strong></li>
             <li class="text-gray-400">Full SSH/root access</li>
-            <li class="text-gray-400">Daily automated backups</li>
             <li class="text-gray-400">Security updates included</li>
             <li class="text-gray-400">Web dashboard</li>
             <li class="text-gray-400">Priority support (12hr response)</li>
@@ -719,7 +716,6 @@ ${getHTMLHead('Documentation - Basement')}
             <p class="text-gray-400 mb-3">While you have full control, we handle the foundational maintenance:</p>
             <ul class="list-disc list-inside space-y-2 text-gray-400">
                 <li><strong class="text-white">Security updates:</strong> Operating system patches applied automatically</li>
-                <li><strong class="text-white">Daily backups:</strong> Server snapshots every 24 hours</li>
                 <li><strong class="text-white">Uptime monitoring:</strong> We're alerted if your server goes down</li>
                 <li><strong class="text-white">DDoS protection:</strong> Network-level protection included</li>
             </ul>
