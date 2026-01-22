@@ -246,6 +246,70 @@ exports.stripeWebhook = async (req, res) => {
         break;
       }
 
+      case 'checkout.session.completed': {
+        const session = event.data.object;
+        console.log('Checkout session completed:', session.id);
+
+        // Use database transaction for atomicity
+        const client = await pool.connect();
+        try {
+          await client.query('BEGIN');
+
+          // Extract customer email and session data
+          const customerEmail = session.customer_details?.email || session.customer_email;
+          const paymentIntentId = session.payment_intent;
+          const amount = session.amount_total / 100; // Convert cents to dollars
+          
+          // Extract plan from success_url
+          const successUrl = session.success_url || '';
+          const planMatch = successUrl.match(/[?&]plan=([^&]+)/);
+          const plan = planMatch ? planMatch[1] : 'basic';
+
+          if (!customerEmail) {
+            console.log('No customer email found in checkout session');
+            await client.query('ROLLBACK');
+            client.release();
+            break;
+          }
+
+          // Find user by email
+          const userResult = await client.query(
+            'SELECT id FROM users WHERE email = $1',
+            [customerEmail]
+          );
+
+          if (userResult.rows.length === 0) {
+            console.log(`User not found for email: ${customerEmail}`);
+            await client.query('ROLLBACK');
+            client.release();
+            break;
+          }
+
+          const userId = userResult.rows[0].id;
+
+          // Check if server provisioning already started (avoid duplicates)
+          const serverCheck = await client.query(
+            'SELECT * FROM servers WHERE user_id = $1 AND status NOT IN (\'deleted\', \'failed\')',
+            [userId]
+          );
+          
+          if (serverCheck.rows.length === 0) {
+            console.log('Creating server for user from webhook:', userId, 'Plan:', plan);
+            await createRealServer(userId, plan, paymentIntentId || session.id);
+          } else {
+            console.log('User already has active/provisioning server, skipping creation');
+          }
+
+          await client.query('COMMIT');
+          client.release();
+        } catch (error) {
+          await client.query('ROLLBACK');
+          client.release();
+          console.error('Error processing checkout.session.completed:', error);
+        }
+        break;
+      }
+
       case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object;
         console.log('PaymentIntent succeeded:', paymentIntent.id);
