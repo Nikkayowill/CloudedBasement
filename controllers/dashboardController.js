@@ -23,6 +23,9 @@ exports.showDashboard = async (req, res) => {
         );
         const server = serverResult.rows[0] || null;
         const hasServer = !!server;
+        // Explicit boolean check - if column doesn't exist, treats as false (safe default)
+        const postgresInstalled = server?.postgres_installed === true;
+        const mongodbInstalled = server?.mongodb_installed === true;
 
         // Get payment details to determine plan
         const paymentResult = hasPaid ? await pool.query(
@@ -60,6 +63,8 @@ exports.showDashboard = async (req, res) => {
             plan: (server?.plan || paidPlan || 'basic').toString(),
             ipAddress: server?.ip_address || '',
             serverIp: server?.ip_address || '',
+            sshUsername: server?.ssh_username || 'root',
+            sshPassword: server?.ssh_password || '',
             csrfToken,
             deployments: deploymentsResult.rows || [],
             domains: domainsResult.rows || [],
@@ -68,7 +73,9 @@ exports.showDashboard = async (req, res) => {
             userRole: req.session.userRole,
             hasPaid,
             hasServer,
-            dismissedNextSteps: req.session.dismissedNextSteps || false
+            dismissedNextSteps: req.session.dismissedNextSteps || false,
+            postgresInstalled,
+            mongodbInstalled
         });
 
         res.send(`
@@ -359,6 +366,38 @@ const buildDashboardTemplate = (data) => {
                 </div>
             </div>
         </div>
+
+        <!-- SSH Access Card -->
+        <div class="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-6">🔒 SSH Access</h4>
+            <p class="text-xs text-gray-500 mb-4">Use these credentials to connect to your server via SSH:</p>
+            
+            <div class="space-y-4">
+                <div>
+                    <p class="text-xs text-gray-400 uppercase font-bold mb-2">Username</p>
+                    <div class="flex gap-2">
+                        <input type="text" value="${data.sshUsername}" readonly class="flex-1 px-3 py-2 bg-black bg-opacity-30 border border-gray-700 rounded text-white font-mono text-sm">
+                        <button onclick="navigator.clipboard.writeText('${data.sshUsername}')" class="px-4 py-2 bg-brand text-gray-900 font-bold rounded hover:bg-cyan-500 transition-colors text-xs">Copy</button>
+                    </div>
+                </div>
+                
+                <div>
+                    <p class="text-xs text-gray-400 uppercase font-bold mb-2">Password</p>
+                    <div class="flex gap-2">
+                        <input type="text" value="${data.sshPassword}" readonly class="flex-1 px-3 py-2 bg-black bg-opacity-30 border border-gray-700 rounded text-white font-mono text-sm">
+                        <button onclick="navigator.clipboard.writeText('${data.sshPassword}')" class="px-4 py-2 bg-brand text-gray-900 font-bold rounded hover:bg-cyan-500 transition-colors text-xs">Copy</button>
+                    </div>
+                </div>
+                
+                <div>
+                    <p class="text-xs text-gray-400 uppercase font-bold mb-2">Connection Command</p>
+                    <div class="flex gap-2">
+                        <input type="text" value="ssh ${data.sshUsername}@${data.ipAddress}" readonly class="flex-1 px-3 py-2 bg-black bg-opacity-30 border border-gray-700 rounded text-white font-mono text-sm">
+                        <button onclick="navigator.clipboard.writeText('ssh ${data.sshUsername}@${data.ipAddress}')" class="px-4 py-2 bg-brand text-gray-900 font-bold rounded hover:bg-cyan-500 transition-colors text-xs">Copy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
         ` : `
         <!-- Server Placeholder (Provisioning or No Server) -->
         <div class="bg-gray-800 border border-gray-700 border-l-4 border-l-gray-600 rounded-lg p-8 text-center">
@@ -446,6 +485,58 @@ const buildDashboardTemplate = (data) => {
             ${!data.deployments.length ? '<p class="px-6 py-6 text-gray-500 text-xs italic">No deployments yet. Deploy your first app to see history here.</p>' : ''}
         </div>
         ` : ''}
+
+        <!-- Database Setup -->
+        <div class="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-6">Add Database</h4>
+            ${data.hasServer ? `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                <form action="/setup-database" method="POST" class="flex gap-3">
+                    <input type="hidden" name="_csrf" value="${data.csrfToken}">
+                    <input type="hidden" name="database_type" value="postgres">
+                    <button type="submit" class="flex-1 px-6 py-3 bg-brand text-gray-900 font-bold rounded-lg hover:bg-cyan-500 transition-colors text-sm">
+                        📦 Add PostgreSQL
+                    </button>
+                </form>
+                <form action="/setup-database" method="POST" class="flex gap-3">
+                    <input type="hidden" name="_csrf" value="${data.csrfToken}">
+                    <input type="hidden" name="database_type" value="mongodb">
+                    <button type="submit" class="flex-1 px-6 py-3 bg-brand text-gray-900 font-bold rounded-lg hover:bg-cyan-500 transition-colors text-sm">
+                        🍃 Add MongoDB
+                    </button>
+                </form>
+            </div>
+            <p class="text-xs text-gray-500">One-click setup installs and configures the database. SSH to /root/.database_config for credentials.</p>
+            ` : `
+            <div class="bg-red-900 bg-opacity-20 border-2 border-red-600 rounded-lg p-4">
+                <p class="text-red-400 text-sm font-medium">⚠️ No active server detected</p>
+                <p class="text-red-300 text-xs">Add a database after your server is provisioned.</p>
+            </div>
+            `}
+        </div>
+
+        <!-- Database Status -->
+        <div class="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-6">Database Status</h4>
+            ${data.hasServer ? `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="bg-black bg-opacity-30 border border-gray-700 rounded-lg p-3">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-xs text-gray-400 uppercase font-bold">PostgreSQL</p>
+                        ${data.postgresInstalled ? '<span class="px-2 py-1 text-xs font-bold uppercase rounded bg-green-900 text-green-300">Installed</span>' : '<span class="px-2 py-1 text-xs font-bold uppercase rounded bg-yellow-900 text-yellow-300">Not Installed</span>'}
+                    </div>
+                    <p class="text-xs text-gray-500">After install, SSH and run <span class="text-white">cat /root/.database_config</span> to view credentials.</p>
+                </div>
+                <div class="bg-black bg-opacity-30 border border-gray-700 rounded-lg p-3">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-xs text-gray-400 uppercase font-bold">MongoDB</p>
+                        ${data.mongodbInstalled ? '<span class="px-2 py-1 text-xs font-bold uppercase rounded bg-green-900 text-green-300">Installed</span>' : '<span class="px-2 py-1 text-xs font-bold uppercase rounded bg-yellow-900 text-yellow-300">Not Installed</span>'}
+                    </div>
+                    <p class="text-xs text-gray-500">After install, SSH and run <span class="text-white">cat /root/.database_config</span> to view connection string.</p>
+                </div>
+            </div>
+            ` : '<p class="text-gray-500 text-xs italic">Provision a server to enable databases.</p>'}
+        </div>
 
         <!-- Custom Domains -->
         <div class="bg-gray-800 border border-gray-700 rounded-lg p-6">

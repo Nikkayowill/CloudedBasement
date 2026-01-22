@@ -178,7 +178,7 @@ exports.deploy = async (req, res) => {
 
     const server = serverResult.rows[0];
 
-    if (!server.ip_address || !server.root_password) {
+    if (!server.ip_address || !server.ssh_password) {
       return res.redirect('/dashboard?error=Server not ready yet. Please wait for provisioning to complete.');
     }
 
@@ -220,7 +220,7 @@ async function performDeployment(server, gitUrl, repoName, deploymentId) {
         host: server.ip_address,
         port: 22,
         username: 'root',
-        password: server.root_password,
+        password: server.ssh_password,
         readyTimeout: 30000
       });
     });
@@ -655,10 +655,136 @@ async function triggerSSLCertificateForCustomer(serverId, domain, server) {
   });
 }
 
+// POST /setup-database - One-click database installation
+exports.setupDatabase = async (req, res) => {
+  try {
+    const { database_type } = req.body;
+    const userId = req.session.userId;
+
+    if (!['postgres', 'mongodb'].includes(database_type)) {
+      return res.redirect('/dashboard?error=Invalid database type');
+    }
+
+    // Get user's server
+    const serverResult = await pool.query(
+      'SELECT * FROM servers WHERE user_id = $1',
+      [userId]
+    );
+
+    if (serverResult.rows.length === 0) {
+      return res.redirect('/dashboard?error=No server found');
+    }
+
+    const server = serverResult.rows[0];
+
+    if (!server.ip_address || !server.ssh_password) {
+      return res.redirect('/dashboard?error=Server not ready yet');
+    }
+
+    // Perform database setup asynchronously
+    setupDatabaseAsync(server, database_type, userId).catch(err => {
+      console.error(`[DB] Database setup failed:`, err);
+    });
+
+    res.redirect(`/dashboard?success=Setting up ${database_type === 'postgres' ? 'PostgreSQL' : 'MongoDB'}... Check status in a moment.`);
+  } catch (error) {
+    console.error('Setup database error:', error);
+    res.redirect('/dashboard?error=Failed to start database setup');
+  }
+};
+
+// Async database setup function
+async function setupDatabaseAsync(server, databaseType, userId) {
+  const conn = new Client();
+
+  try {
+    // Connect via SSH
+    await new Promise((resolve, reject) => {
+      conn.on('ready', resolve);
+      conn.on('error', reject);
+      conn.connect({
+        host: server.ip_address,
+        port: 22,
+        username: 'root',
+        password: server.ssh_password,
+        readyTimeout: 30000
+      });
+    });
+
+    if (databaseType === 'postgres') {
+      console.log(`[DB] Installing PostgreSQL on server ${server.id}...`);
+      await execSSH(conn, `apt update && apt install -y postgresql postgresql-contrib`);
+      await execSSH(conn, `systemctl start postgresql && systemctl enable postgresql`);
+      
+      // Create database user and store credentials
+      const dbUser = 'basement_user';
+      const dbPass = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      
+      // Use psql -v variables to safely pass values (immune to SQL injection even with special chars)
+      const createUserCmd = `sudo -u postgres psql -v "username=${dbUser}" -v "password=${dbPass}" -c "CREATE USER :\\"username\\" WITH PASSWORD :'password';" || true`;
+      const createDbCmd = `sudo -u postgres psql -v "username=${dbUser}" -c "CREATE DATABASE app_db OWNER :\\"username\\";" || true`;
+      
+      await execSSH(conn, createUserCmd);
+      await execSSH(conn, createDbCmd);
+      
+      // Store credentials file using base64 encoding (prevents shell injection)
+      const credsContent = `PostgreSQL Credentials\n\nHost: localhost\nPort: 5432\nDatabase: app_db\nUsername: ${dbUser}\nPassword: ${dbPass}\n\nConnection String:\npostgresql://${dbUser}:${dbPass}@localhost:5432/app_db`;
+      const credsBase64 = Buffer.from(credsContent).toString('base64');
+      await execSSH(conn, `echo '${credsBase64}' | base64 -d > /root/.database_config`);
+      
+      console.log(`[DB] PostgreSQL installed successfully on server ${server.id}`);
+      
+      // Store in database that PostgreSQL is installed
+      await pool.query(
+        'UPDATE servers SET postgres_installed = true WHERE id = $1',
+        [server.id]
+      );
+    } else if (databaseType === 'mongodb') {
+      console.log(`[DB] Installing MongoDB on server ${server.id}...`);
+      
+      // Add official MongoDB repository (mongodb-org not in default Ubuntu repos)
+      await execSSH(conn, `curl -fsSL https://pgp.mongodb.com/server-7.0.asc | gpg --dearmor -o /usr/share/keyrings/mongodb-server-7.0.gpg`);
+      await execSSH(conn, `echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-7.0.list`);
+      await execSSH(conn, `apt update`);
+      
+      // Install MongoDB
+      await execSSH(conn, `apt install -y mongodb-org`);
+      await execSSH(conn, `systemctl start mongod && systemctl enable mongod`);
+      
+      // Store credentials file using base64 encoding (prevents shell injection)
+      const credsContent = `MongoDB Credentials\n\nHost: localhost\nPort: 27017\nDatabase: app_db\n\nConnection String:\nmongodb://localhost:27017/app_db`;
+      const credsBase64 = Buffer.from(credsContent).toString('base64');
+      await execSSH(conn, `echo '${credsBase64}' | base64 -d > /root/.database_config`);
+      
+      console.log(`[DB] MongoDB installed successfully on server ${server.id}`);
+      
+      // Store in database that MongoDB is installed
+      await pool.query(
+        'UPDATE servers SET mongodb_installed = true WHERE id = $1',
+        [server.id]
+      );
+    }
+  } catch (error) {
+    console.error(`[DB] Database setup failed: ${error.message}`);
+    
+    // Mark installation as failed (NULL = failed, false = not attempted, true = success)
+    const columnName = databaseType === 'postgres' ? 'postgres_installed' : 'mongodb_installed';
+    await pool.query(
+      `UPDATE servers SET ${columnName} = NULL WHERE id = $1`,
+      [server.id]
+    ).catch(dbError => {
+      console.error(`[DB] Failed to update failure status:`, dbError.message);
+    });
+  } finally {
+    conn.end();
+  }
+}
+
 module.exports = {
   serverAction: exports.serverAction,
   deleteServer: exports.deleteServer,
   deploy: exports.deploy,
   addDomain: exports.addDomain,
-  enableSSL: exports.enableSSL
+  enableSSL: exports.enableSSL,
+  setupDatabase: exports.setupDatabase
 };

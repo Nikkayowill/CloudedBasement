@@ -75,7 +75,18 @@ echo "Setup complete!" > /root/setup.log
 `;
 
   try {
-    // Create droplet via DigitalOcean API
+    // CRITICAL: Check if user already has a server BEFORE creating expensive droplet
+    const existingServer = await pool.query(
+      `SELECT id, status FROM servers WHERE user_id = $1 AND status NOT IN ('deleted', 'failed')`,
+      [userId]
+    );
+
+    if (existingServer.rows.length > 0) {
+      console.log(`User ${userId} already has active server (ID: ${existingServer.rows[0].id}, status: ${existingServer.rows[0].status})`);
+      return existingServer.rows[0];
+    }
+
+    // Create droplet via DigitalOcean API (only after confirming no existing server)
     const response = await axios.post('https://api.digitalocean.com/v2/droplets', {
       name: `basement-${userId}-${Date.now()}`,
       region: 'nyc3',
@@ -97,27 +108,46 @@ echo "Setup complete!" > /root/setup.log
     const droplet = response.data.droplet;
     console.log('Droplet created:', droplet.id);
     
-    // Save to database with conflict handling to prevent duplicate servers
-    const result = await pool.query(
-      `INSERT INTO servers (user_id, plan, status, ip_address, ssh_username, ssh_password, specs, stripe_charge_id, droplet_id)
-       VALUES ($1, $2, 'provisioning', $3, 'root', $4, $5, $6, $7)
-       ON CONFLICT DO NOTHING
-       RETURNING *`,
-      [userId, plan, droplet.networks?.v4?.[0]?.ip_address || 'pending', password, JSON.stringify(selectedSpec), stripeChargeId, String(droplet.id)]
-    );
+    // Save to database - wrapped in try-catch to handle race condition
+    try {
+      const result = await pool.query(
+        `INSERT INTO servers (user_id, plan, status, ip_address, ssh_username, ssh_password, specs, stripe_charge_id, droplet_id)
+         VALUES ($1, $2, 'provisioning', $3, 'root', $4, $5, $6, $7)
+         RETURNING *`,
+        [userId, plan, droplet.networks?.v4?.[0]?.ip_address || 'pending', password, JSON.stringify(selectedSpec), stripeChargeId, String(droplet.id)]
+      );
 
-    // If no rows returned, another process already created the server
-    if (result.rows.length === 0) {
-      console.log('Server already exists for user, skipping duplicate creation');
-      // Note: Droplet was created but DB insert blocked - admin should manually clean up orphaned droplet
-      return null;
+      // Always poll for IP - droplet might not have it immediately
+      console.log('Starting polling for droplet:', droplet.id, 'server:', result.rows[0].id);
+      pollDropletStatus(droplet.id, result.rows[0].id);
+
+      return result.rows[0];
+    } catch (insertError) {
+      // If INSERT failed due to race condition (unique constraint violation)
+      if (insertError.code === '23505') {
+        console.log(`Race condition detected: Another process created server for user ${userId}. Destroying orphaned droplet ${droplet.id}`);
+        
+        // Destroy the orphaned droplet we just created
+        try {
+          await axios.delete(`https://api.digitalocean.com/v2/droplets/${droplet.id}`, {
+            headers: { 'Authorization': `Bearer ${process.env.DIGITALOCEAN_TOKEN}` }
+          });
+          console.log(`Orphaned droplet ${droplet.id} destroyed successfully`);
+        } catch (deleteError) {
+          console.error(`Failed to destroy orphaned droplet ${droplet.id}:`, deleteError.message);
+        }
+        
+        // Return the existing server that won the race
+        const existingServer = await pool.query(
+          `SELECT * FROM servers WHERE user_id = $1 AND status NOT IN ('deleted', 'failed') LIMIT 1`,
+          [userId]
+        );
+        return existingServer.rows[0];
+      }
+      
+      // If it's a different error, re-throw it
+      throw insertError;
     }
-
-    // Always poll for IP - droplet might not have it immediately
-    console.log('Starting polling for droplet:', droplet.id, 'server:', result.rows[0].id);
-    pollDropletStatus(droplet.id, result.rows[0].id);
-
-    return result.rows[0];
   } catch (error) {
     console.error('DigitalOcean API error:', error.response?.data || error.message);
     
@@ -168,10 +198,10 @@ async function pollDropletStatus(dropletId, serverId) {
   let attempts = 0;
   const startTime = Date.now();
 
-  // Clear any existing poll for this server
-  if (activePolls.has(serverId)) {
-    clearInterval(activePolls.get(serverId));
-    activePolls.delete(serverId);
+  // Thread-safe check: prevent race condition if two polls start simultaneously
+  const existingPoll = activePolls.get(serverId);
+  if (existingPoll) {
+    clearInterval(existingPoll);
     console.log(`Cleared existing poll for server ${serverId}`);
   }
 

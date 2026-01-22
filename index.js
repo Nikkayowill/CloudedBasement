@@ -27,6 +27,7 @@ const domainController = require('./controllers/domainController');
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./middleware/logger');
 const { sendServerRequestEmail } = require('./services/email');
+const { runMigrations } = require('./migrations/run-migrations');
 
 const app = express();
 
@@ -215,6 +216,9 @@ app.post('/dashboard/dismiss-next-steps', requireAuth, (req, res) => {
   res.json({ success: true });
 });
 
+// Database setup
+app.post('/setup-database', requireAuth, csrfProtection, serverController.setupDatabase);
+
 // Admin - dashboard
 app.get('/admin', requireAuth, requireAdmin, csrfProtection, adminController.listUsers);
 app.post('/admin/delete-user/:id', requireAuth, requireAdmin, csrfProtection, adminController.deleteUser);
@@ -371,32 +375,39 @@ setTimeout(syncDigitalOceanDropletsService, 30000);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
-const server = app.listen(PORT, () => console.log(`Server on http://localhost:${PORT}`));
 
-// Graceful shutdown handler to cleanup polling intervals
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully...');
-  server.close(() => {
-    console.log('HTTP server closed');
-    pool.end(() => {
-      console.log('Database pool closed');
-      process.exit(0);
+// Run database migrations before starting server
+runMigrations().then(() => {
+  const server = app.listen(PORT, () => console.log(`Server on http://localhost:${PORT}`));
+
+  // Graceful shutdown handler to cleanup polling intervals
+  process.on('SIGTERM', () => {
+    console.log('SIGTERM received, shutting down gracefully...');
+    server.close(() => {
+      console.log('HTTP server closed');
+      pool.end(() => {
+        console.log('Database pool closed');
+        process.exit(0);
+      });
     });
   });
-});
 
-process.on('SIGINT', () => {
-  console.log('SIGINT received, shutting down gracefully...');
-  
-  // Cleanup polling intervals
-  const { cleanupPolls } = require('./services/digitalocean');
-  cleanupPolls();
-  
-  server.close(() => {
-    console.log('HTTP server closed');
-    pool.end(() => {
-      console.log('Database pool closed');
-      process.exit(0);
+  process.on('SIGINT', () => {
+    console.log('SIGINT received, shutting down gracefully...');
+    
+    // Cleanup polling intervals
+    const { cleanupPolls } = require('./services/digitalocean');
+    cleanupPolls();
+    
+    server.close(() => {
+      console.log('HTTP server closed');
+      pool.end(() => {
+        console.log('Database pool closed');
+        process.exit(0);
+      });
     });
   });
+}).catch(error => {
+  console.error('Failed to run migrations:', error);
+  process.exit(1);
 });
