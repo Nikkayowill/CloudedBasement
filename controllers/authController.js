@@ -102,17 +102,29 @@ const handleRegister = async (req, res) => {
       [email, passwordHash, code, expiresAt]
     );
 
-    // Send confirmation email with code
-    const emailResult = await sendConfirmationEmail(email, code);
+    // Send confirmation email with code (non-blocking)
+    sendConfirmationEmail(email, code).catch(err => {
+      console.error('Failed to send confirmation email:', err);
+    });
     
-    if (emailResult.success) {
-      req.session.unverifiedEmail = email;
-      req.session.flashMessage = `Confirmation code sent to ${email}. Check your inbox!`;
-      res.redirect('/verify-email');
-    } else {
-      console.error('Failed to send confirmation email:', emailResult.error);
-      res.status(500).send('Registration successful but email delivery failed. Please contact support.');
-    }
+    // Get the new user ID
+    const newUser = await pool.query('SELECT id, role FROM users WHERE email = $1', [email]);
+    
+    // Create session immediately (allow access without confirmation)
+    req.session.regenerate((err) => {
+      if (err) {
+        console.error('Session regeneration error:', err);
+        return res.redirect('/login?error=Registration successful. Please login.');
+      }
+      
+      req.session.userId = newUser.rows[0].id;
+      req.session.userEmail = email;
+      req.session.userRole = newUser.rows[0].role;
+      req.session.emailConfirmed = false; // Mark as unconfirmed
+      req.session.flashMessage = `Welcome! Check your email (${email}) to verify your account.`;
+      
+      res.redirect('/dashboard');
+    });
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).send('Registration failed');
@@ -464,14 +476,78 @@ const handleVerifyCode = async (req, res) => {
 
 // GET /verify-email - Show code entry page
 const showVerifyEmail = (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'verify-email.html'));
+  const error = req.query.error || '';
+  const success = req.query.success || '';
+  
+  res.send(`
+${getHTMLHead('Verify Email - Basement')}
+    ${getResponsiveNav(req)}
+    
+    <main class="bg-gray-900 min-h-screen flex items-center justify-center py-12 px-4">
+      <div class="max-w-md w-full bg-gray-800 border border-gray-700 rounded-lg p-8">
+        <h1 class="text-3xl font-bold text-white text-center mb-4">VERIFY EMAIL</h1>
+        <p class="text-gray-400 text-center mb-8">
+          We sent a 6-digit code to your email.<br>
+          Enter it below to verify your account.
+        </p>
+        
+        ${error ? `<div class="bg-red-900 border border-red-700 text-red-300 px-4 py-3 rounded-lg mb-6">${error}</div>` : ''}
+        ${success ? `<div class="bg-green-900 border border-green-700 text-green-300 px-4 py-3 rounded-lg mb-6">${success}</div>` : ''}
+        
+        <form method="POST" action="/verify-email" id="verifyForm" class="space-y-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-2">Verification Code</label>
+            <input type="text" name="code" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" required
+              class="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white text-center text-2xl font-mono tracking-widest focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none"
+              placeholder="000000" autocomplete="off">
+          </div>
+          
+          <button type="submit" class="w-full py-3 bg-brand text-gray-900 font-bold rounded-lg hover:bg-cyan-500 transition-colors">
+            Verify Email
+          </button>
+        </form>
+        
+        <div class="mt-6 pt-6 border-t border-gray-700 text-center">
+          <p class="text-gray-400 text-sm mb-2">Code expires in 15 minutes</p>
+          <p class="text-gray-400 text-sm">
+            Didn't receive it? <button type="button" id="resendBtn" class="text-brand hover:text-cyan-400 underline cursor-pointer">Resend Code</button>
+          </p>
+        </div>
+      </div>
+    </main>
+    
+    ${getFooter()}
+    ${getScripts('nav.js')}
+    
+    <script>
+      document.getElementById('resendBtn')?.addEventListener('click', async () => {
+        const btn = document.getElementById('resendBtn');
+        btn.textContent = 'Sending...';
+        btn.disabled = true;
+        
+        try {
+          const response = await fetch('/resend-code', { method: 'POST' });
+          if (response.ok) {
+            alert('Code resent! Check your email.');
+          } else {
+            alert('Failed to resend code. Please try again.');
+          }
+        } catch (err) {
+          alert('Error sending code. Please try again.');
+        } finally {
+          btn.textContent = 'Resend Code';
+          btn.disabled = false;
+        }
+      });
+    </script>
+  `);
 };
 
 // POST /verify-email - Handle code verification
 const verifyEmailCode = async (req, res) => {
   try {
     const { code } = req.body;
-    const email = req.session.unverifiedEmail;
+    const email = req.session.userEmail; // Use logged-in user's email
 
     if (!code || !email) {
       return res.redirect('/verify-email?error=Invalid request');
@@ -515,10 +591,9 @@ const verifyEmailCode = async (req, res) => {
     // Set session
     req.session.userId = user.id;
     req.session.emailConfirmed = true;
-    delete req.session.unverifiedEmail;
 
     // Redirect to dashboard
-    res.redirect('/dashboard?message=Email confirmed! Welcome to Basement.');
+    res.redirect('/dashboard?success=Email confirmed! Welcome to Basement.');
   } catch (error) {
     console.error('Email verification error:', error);
     res.redirect('/verify-email?error=Verification failed. Please try again.');
@@ -528,8 +603,8 @@ const verifyEmailCode = async (req, res) => {
 // POST /resend-code - Resend verification code (returns JSON)
 const resendCode = async (req, res) => {
   try {
-    // Get email from either unverified session or logged-in user
-    let email = req.session.unverifiedEmail || req.session.userEmail;
+    // Get email from logged-in user
+    let email = req.session.userEmail;
 
     if (!email) {
       return res.json({ success: false, error: 'No email in session' });
