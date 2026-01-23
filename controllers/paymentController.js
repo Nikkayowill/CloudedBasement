@@ -17,11 +17,11 @@ exports.showCheckout = (req, res) => {
 ${getHTMLHead('Checkout - Clouded  Basement')}
     ${getResponsiveNav(req)}
     
-    <main class="bg-gray-900 min-h-screen flex items-center justify-center py-12 px-4">
+    <main class="bg-gray-900 min-h-screen flex items-center justify-center py-16 px-4">
       <div class="max-w-md w-full bg-gray-800 border border-brand rounded-lg p-8">
         <div class="text-center mb-6">
           <div class="inline-block px-4 py-2 bg-brand bg-opacity-20 border border-brand rounded-full mb-4">
-            <span class="text-brand text-xs font-bold uppercase">Monthly Billing</span>
+            <span class="text-white text-xs font-bold uppercase">Monthly Billing</span>
           </div>
           <h1 class="text-3xl font-bold text-white mb-2">${selectedPlan.name}</h1>
           <p class="text-gray-400 text-sm">${selectedPlan.description}</p>
