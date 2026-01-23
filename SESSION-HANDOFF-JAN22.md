@@ -8,7 +8,7 @@
 1. ✅ Set up uptime monitoring (UptimeRobot - live)
 2. ✅ Fixed email confirmation (users can access dashboard immediately, banner shows)
 3. ✅ Added Stripe test mode webhook endpoint
-4. ✅ Updated production webhook secret: `whsec_tVyy18jyZSVf5PGY8WvIOGcb3TWIbJDN`
+4. ✅ Updated production webhook secret: `whsec_***REDACTED***`
 5. ✅ Added `checkout.session.completed` webhook handler (commit `9964480`)
 6. ✅ Pushed all changes to GitHub
 
@@ -464,7 +464,7 @@ psql -U postgres -d webserver_db -f db/schema/add_stripe_charge_id.sql
 - **Mode:** Test keys active
 - **Webhook endpoint:** `https://cloudedbasement.ca/webhook/stripe`
 - **Events:** `checkout.session.completed`, `charge.refunded`
-- **Secret:** `whsec_tVyy18jyZSVf5PGY8WvIOGcb3TWIbJDN` (updated in production .env)
+- **Secret:** `whsec_***REDACTED***` (updated in production .env)
 
 ### Git Status
 - **Branch:** main
