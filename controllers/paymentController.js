@@ -7,9 +7,9 @@ const { getHTMLHead, getScripts, getFooter, getResponsiveNav } = require('../hel
 exports.showCheckout = (req, res) => {
   const plan = req.query.plan || 'basic';
   const planConfig = {
-    basic: { name: 'Basic Plan — Early Adopter', price: 10, was: 25, description: '1GB RAM, 1 CPU, 25GB SSD · 60% OFF for life' },
-    priority: { name: 'Priority Plan — Early Adopter', price: 30, was: 60, description: '2GB RAM, 2 CPUs, 50GB SSD · 50% OFF for life' },
-    premium: { name: 'Premium Plan — Early Adopter', price: 60, was: 120, description: '4GB RAM, 2 CPUs, 80GB SSD · 50% OFF for life' }
+    basic: { name: 'Basic Plan — TEST', price: 0.50, was: 25, description: '1GB RAM, 1 CPU, 25GB SSD · TESTING ONLY' },
+    priority: { name: 'Priority Plan — TEST', price: 0.50, was: 60, description: '2GB RAM, 2 CPUs, 50GB SSD · TESTING ONLY' },
+    premium: { name: 'Premium Plan — TEST', price: 0.50, was: 120, description: '4GB RAM, 2 CPUs, 80GB SSD · TESTING ONLY' }
   };
   const selectedPlan = planConfig[plan] || planConfig.basic;
   
@@ -73,11 +73,11 @@ ${getHTMLHead('Checkout - Clouded  Basement')}
 exports.createCheckoutSession = async (req, res) => {
   try {
     const plan = req.body.plan || 'basic';
-    // Early Adopter lifetime pricing (UI already reflects this)
+    // TEST PRICING - 50 CENTS (Stripe minimum)
     const planPrices = {
-      basic: { amount: 1000, name: 'Basic Plan — Early Adopter' },
-      priority: { amount: 3000, name: 'Priority Plan — Early Adopter' },
-      premium: { amount: 6000, name: 'Premium Plan — Early Adopter' }
+      basic: { amount: 50, name: 'Basic Plan — TEST' },
+      priority: { amount: 50, name: 'Priority Plan — TEST' },
+      premium: { amount: 50, name: 'Premium Plan — TEST' }
     };
     const selectedPlan = planPrices[plan] || planPrices.basic;
     
