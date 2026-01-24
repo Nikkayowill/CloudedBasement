@@ -212,14 +212,20 @@ ${getHTMLHead('Checkout - Clouded  Basement')}
             body: JSON.stringify({ plan })
           });
           
-          const { clientSecret, error } = await response.json();
+          // Check if response is JSON
+          const contentType = response.headers.get('content-type');
+          if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Session expired. Please log in again.');
+          }
           
-          if (error) {
-            throw new Error(error);
+          const data = await response.json();
+          
+          if (data.error) {
+            throw new Error(data.error);
           }
           
           // Confirm payment with card
-          const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+          const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(data.clientSecret, {
             payment_method: {
               card: cardNumberElement,
               billing_details: {
