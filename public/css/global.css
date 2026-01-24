@@ -68,19 +68,19 @@ button, a, input, textarea, select {
     left: 0;
     right: 0;
     z-index: 50;
-    background: rgba(10, 8, 18, 0.75);
+    background: rgba(0, 0, 0, 0.75);
     backdrop-filter: blur(20px) saturate(180%);
-    border-bottom: 1px solid rgba(45, 167, 223, 0.08);
+    border-bottom: 1px solid rgba(0, 102, 255, 0.08);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.4s ease, box-shadow 0.4s ease;
     height: 60px;
     transform: translateY(0);
 }
 
 .main-nav.scrolled {
-    background: rgba(10, 8, 18, 0.5);
+    background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(12px) saturate(150%);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    border-bottom: 1px solid rgba(45, 167, 223, 0.05);
+    border-bottom: 1px solid rgba(0, 102, 255, 0.05);
 }
 
 .main-nav.hidden {
@@ -135,7 +135,7 @@ button, a, input, textarea, select {
     display: block;
     width: 25px;
     height: 2px;
-    background: var(--brand-cyan);
+    background: var(--brand-blue);
     transition: all 0.3s ease;
 }
 
@@ -162,12 +162,12 @@ button, a, input, textarea, select {
         top: 65px;
         left: 0;
         right: 0;
-        background: rgba(10, 8, 18, 0.98);
+        background: rgba(0, 0, 0, 0.98);
         backdrop-filter: blur(12px);
         flex-direction: column;
         gap: 0;
         padding: 1rem 0;
-        border-bottom: 1px solid rgba(45, 167, 223, 0.1);
+        border-bottom: 1px solid rgba(0, 102, 255, 0.1);
         transform: translateY(-100%);
         opacity: 0;
         transition: all 0.3s ease;
