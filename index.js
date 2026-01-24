@@ -319,6 +319,8 @@ app.get('/payment-cancel', requireAuth, paymentController.paymentCancel);
 
 app.get('/pay', requireAuth, csrfProtection, paymentController.showCheckout);
 
+app.post('/create-payment-intent', requireAuth, paymentLimiter, paymentController.createPaymentIntent);
+
 app.post('/create-checkout-session', requireAuth, paymentLimiter, csrfProtection, paymentController.createCheckoutSession);
 
 // Logout route
