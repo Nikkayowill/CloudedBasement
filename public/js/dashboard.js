@@ -5,6 +5,11 @@ function copyToClipboard(text) {
     });
 }
 
+// Refresh dashboard manually
+function refreshDashboard() {
+    window.location.reload();
+}
+
 // Toggle deployment log visibility
 function toggleDeploymentLog(deploymentId) {
     const logRow = document.getElementById(`deployment-log-${deploymentId}`);
@@ -33,17 +38,17 @@ async function dismissNextSteps() {
     }
 }
 
-// Auto-refresh dashboard every 2 minutes if server is provisioning
+// Auto-refresh dashboard every 15 seconds if server is provisioning
 const serverStatusElement = document.querySelector('[data-server-status]');
 if (serverStatusElement) {
     const serverStatus = serverStatusElement.dataset.serverStatus;
     
     if (serverStatus === 'provisioning') {
-        console.log('Server is provisioning, will auto-refresh in 2 minutes...');
+        console.log('Server is provisioning, will auto-refresh in 15 seconds...');
         setTimeout(() => {
             console.log('Auto-refreshing dashboard to check server status...');
             window.location.reload();
-        }, 120000); // 2 minutes
+        }, 15000); // 15 seconds
     }
 }
 
