@@ -298,14 +298,14 @@ const buildDashboardTemplate = (data) => {
             <div class="px-6 py-4 border-b border-gray-700 bg-white bg-opacity-5">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        ${data.serverStatus === 'running' ? '<svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>' : data.serverStatus === 'provisioning' ? '<svg class="animate-spin h-5 w-5 text-brand" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><circle class="opacity-75" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" stroke-dasharray="32" stroke-dashoffset="16"></circle></svg>' : '<div class="w-2 h-2 rounded-full bg-gray-500 shadow-lg"></div>'}
+                        ${data.serverStatus === 'running' ? '<svg class="w-5 h-5 text-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>' : data.serverStatus === 'provisioning' ? '<svg class="animate-spin h-5 w-5 text-brand drop-shadow-[0_0_10px_rgba(45,167,223,0.8)]" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><circle class="opacity-75" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" stroke-dasharray="32" stroke-dashoffset="16"></circle></svg>' : '<div class="w-2 h-2 rounded-full bg-gray-500 shadow-lg"></div>'}
                         <h4 class="text-sm font-bold uppercase tracking-wide text-white">
                             Instance Core: <span class="text-brand">${data.serverName}</span>
                         </h4>
                     </div>
                     <div class="flex gap-2">
-                        <button class="p-2 border border-white border-opacity-5 bg-transparent hover:bg-white hover:bg-opacity-5 text-brand rounded">⟳</button>
-                        <button class="p-2 border border-white border-opacity-5 bg-transparent hover:bg-white hover:bg-opacity-5 text-gray-500 rounded">Settings</button>
+                        <button onclick="refreshDashboard()" class="p-2 border border-white border-opacity-5 bg-transparent hover:bg-white hover:bg-opacity-5 text-brand rounded transition-transform hover:rotate-180" title="Refresh Dashboard">⟳</button>
+                        <button class="p-2 border border-white border-opacity-5 bg-transparent hover:bg-white hover:bg-opacity-5 text-gray-500 rounded" disabled title="Coming Soon">Settings</button>
                     </div>
                 </div>
             </div>
@@ -327,7 +327,7 @@ const buildDashboardTemplate = (data) => {
                             </div>
                             <div class="flex justify-between items-center pb-2 border-b border-white border-opacity-5">
                                 <span class="text-xs text-gray-500 uppercase font-bold">Status</span>
-                                <span class="text-sm font-mono ${data.serverStatus === 'running' ? 'text-green-500' : 'text-red-400'}">${data.serverStatus.toUpperCase()}</span>
+                                <span class="text-sm font-mono ${data.serverStatus === 'running' ? 'text-green-500' : data.serverStatus === 'provisioning' ? 'text-brand animate-pulse' : 'text-red-400'}">${data.serverStatus.toUpperCase()}</span>
                             </div>
                         </div>
                         <div class="flex gap-3">
