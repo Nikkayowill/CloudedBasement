@@ -87,12 +87,24 @@ ${getHTMLHead('Checkout - Clouded  Basement')}
             </div>
           </div>
           
-          <!-- Card Input (full width) -->
+          <!-- Card Input (split into 3 fields) -->
           <div class="mb-4">
-            <label class="block text-gray-300 text-sm font-semibold mb-2">Card Details</label>
-            <div id="card-element" class="bg-gray-900 border border-gray-600 rounded-lg p-4"></div>
-            <div id="card-errors" class="text-red-400 text-sm mt-2"></div>
+            <label class="block text-gray-300 text-sm font-semibold mb-2">Card Number</label>
+            <div id="card-number-element" class="bg-gray-900 border border-gray-600 rounded-lg p-4"></div>
           </div>
+          
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block text-gray-300 text-sm font-semibold mb-2">Expiry Date</label>
+              <div id="card-expiry-element" class="bg-gray-900 border border-gray-600 rounded-lg p-4"></div>
+            </div>
+            <div>
+              <label class="block text-gray-300 text-sm font-semibold mb-2">CVC</label>
+              <div id="card-cvc-element" class="bg-gray-900 border border-gray-600 rounded-lg p-4"></div>
+            </div>
+          </div>
+          
+          <div id="card-errors" class="text-red-400 text-sm mb-4"></div>
           
           <button type="submit" id="submit-button" class="w-full py-4 bg-brand text-gray-900 font-bold text-lg rounded-lg hover:bg-cyan-500 transition-colors shadow-lg hover:shadow-brand/50 disabled:opacity-50 disabled:cursor-not-allowed">
             <span id="button-text">Complete Payment</span>
@@ -112,8 +124,8 @@ ${getHTMLHead('Checkout - Clouded  Basement')}
       const stripe = Stripe('${process.env.STRIPE_PUBLISHABLE_KEY}');
       const elements = stripe.elements();
       
-      // Create and mount card element
-      const cardElement = elements.create('card', {
+      // Create separate card elements
+      const cardNumberElement = elements.create('cardNumber', {
         style: {
           base: {
             color: '#e0e6f0',
@@ -128,16 +140,53 @@ ${getHTMLHead('Checkout - Clouded  Basement')}
           }
         }
       });
-      cardElement.mount('#card-element');
+      
+      const cardExpiryElement = elements.create('cardExpiry', {
+        style: {
+          base: {
+            color: '#e0e6f0',
+            fontFamily: 'JetBrains Mono, monospace',
+            fontSize: '16px',
+            '::placeholder': {
+              color: '#8892a0'
+            }
+          },
+          invalid: {
+            color: '#ef4444'
+          }
+        }
+      });
+      
+      const cardCvcElement = elements.create('cardCvc', {
+        style: {
+          base: {
+            color: '#e0e6f0',
+            fontFamily: 'JetBrains Mono, monospace',
+            fontSize: '16px',
+            '::placeholder': {
+              color: '#8892a0'
+            }
+          },
+          invalid: {
+            color: '#ef4444'
+          }
+        }
+      });
+      
+      cardNumberElement.mount('#card-number-element');
+      cardExpiryElement.mount('#card-expiry-element');
+      cardCvcElement.mount('#card-cvc-element');
       
       // Handle real-time validation errors
-      cardElement.on('change', (event) => {
-        const displayError = document.getElementById('card-errors');
-        if (event.error) {
-          displayError.textContent = event.error.message;
-        } else {
-          displayError.textContent = '';
-        }
+      const displayError = document.getElementById('card-errors');
+      [cardNumberElement, cardExpiryElement, cardCvcElement].forEach(element => {
+        element.on('change', (event) => {
+          if (event.error) {
+            displayError.textContent = event.error.message;
+          } else {
+            displayError.textContent = '';
+          }
+        });
       });
       
       // Handle form submission
@@ -172,7 +221,7 @@ ${getHTMLHead('Checkout - Clouded  Basement')}
           // Confirm payment with card
           const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
             payment_method: {
-              card: cardElement,
+              card: cardNumberElement,
               billing_details: {
                 name: document.getElementById('cardholder-name').value,
                 address: {
