@@ -8,34 +8,37 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Brand Colors */
+/* PS5 Design System - Brand Colors */
 :root {
-    --brand-cyan: #2DA7DF;
-    --brand-dark: #0a0812;
+    --brand-blue: #0066FF;
+    --brand-dark: #000000;
+    --text-primary: #FFFFFF;
+    --text-secondary: #B3B3B3;
 }
 
-/* Dark theme background */
+/* True black background with subtle blue spotlight */
 body {
-    background: #0a0812;
-    color: #e0e6f0;
+    background: #000000;
+    background-image: radial-gradient(ellipse at top, rgba(0, 102, 255, 0.1) 0%, transparent 50%);
+    color: var(--text-primary);
 }
 
-/* Custom brand color utilities */
+/* Brand color utilities */
 .text-brand {
-    color: var(--brand-cyan);
+    color: var(--brand-blue);
 }
 
 .bg-brand {
-    background-color: var(--brand-cyan);
+    background-color: var(--brand-blue);
 }
 
 .border-brand {
-    border-color: var(--brand-cyan);
+    border-color: var(--brand-blue);
 }
 
-/* Cyan glow effect */
+/* Blue glow effect (PS5 style) */
 .glow-brand {
-    box-shadow: 0 0 15px rgba(45, 167, 223, 0.4);
+    box-shadow: 0 0 20px rgba(0, 102, 255, 0.4);
 }
 
 /* Container max-width override */
