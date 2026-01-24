@@ -372,8 +372,21 @@ exports.paymentSuccess = async (req, res) => {
       console.log('Session expired at payment-success, webhook will handle payment recording');
     }
     
-    // Server creation now handled by webhook only to prevent race conditions
-    console.log('Payment recorded. Server provisioning will be handled by webhook.');
+    // CRITICAL FIX: Create server here as fallback since webhook may not fire for Payment Intents
+    // Check if user already has a server (race condition protection)
+    if (req.session.userId) {
+      const existingServer = await pool.query(
+        'SELECT * FROM servers WHERE user_id = $1 AND status NOT IN (\'deleted\', \'failed\')',
+        [req.session.userId]
+      );
+      
+      if (existingServer.rows.length === 0) {
+        console.log('Creating server from payment-success page for user:', req.session.userId);
+        await createRealServer(req.session.userId, plan, paymentIntentId);
+      } else {
+        console.log('User already has server, skipping creation');
+      }
+    }
 
   } catch (error) {
     console.error('Payment processing error:', error);
