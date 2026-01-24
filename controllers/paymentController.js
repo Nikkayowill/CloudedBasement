@@ -59,36 +59,39 @@ ${getHTMLHead('Checkout - Clouded  Basement')}
         <form id="payment-form" class="mb-4">
           <input type="hidden" name="plan" value="${plan}">
           
-          <!-- Cardholder Name -->
-          <div class="mb-4">
-            <label class="block text-gray-300 text-sm font-semibold mb-2">Cardholder Name</label>
-            <input 
-              type="text" 
-              id="cardholder-name" 
-              required
-              placeholder="John Doe"
-              class="w-full bg-gray-900 border border-gray-600 rounded-lg p-4 text-white placeholder-gray-500 focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none"
-            />
+          <!-- Name and Postal in 2 columns on desktop -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <!-- Cardholder Name -->
+            <div>
+              <label class="block text-gray-300 text-sm font-semibold mb-2">Cardholder Name</label>
+              <input 
+                type="text" 
+                id="cardholder-name" 
+                required
+                placeholder="John Doe"
+                class="w-full bg-gray-900 border border-gray-600 rounded-lg p-4 text-white placeholder-gray-500 focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none"
+              />
+            </div>
+            
+            <!-- Billing Postal Code -->
+            <div>
+              <label class="block text-gray-300 text-sm font-semibold mb-2">Postal Code / Zip Code</label>
+              <input 
+                type="text" 
+                id="billing-zip" 
+                required
+                placeholder="12345 or A1A 1A1"
+                maxlength="10"
+                class="w-full bg-gray-900 border border-gray-600 rounded-lg p-4 text-white placeholder-gray-500 focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none"
+              />
+            </div>
           </div>
           
-          <!-- Card Input -->
+          <!-- Card Input (full width) -->
           <div class="mb-4">
             <label class="block text-gray-300 text-sm font-semibold mb-2">Card Details</label>
             <div id="card-element" class="bg-gray-900 border border-gray-600 rounded-lg p-4"></div>
             <div id="card-errors" class="text-red-400 text-sm mt-2"></div>
-          </div>
-          
-          <!-- Billing Zip Code -->
-          <div class="mb-4">
-            <label class="block text-gray-300 text-sm font-semibold mb-2">Postal Code / Zip Code</label>
-            <input 
-              type="text" 
-              id="billing-zip" 
-              required
-              placeholder="12345 or A1A 1A1"
-              maxlength="10"
-              class="w-full bg-gray-900 border border-gray-600 rounded-lg p-4 text-white placeholder-gray-500 focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none"
-            />
           </div>
           
           <button type="submit" id="submit-button" class="w-full py-4 bg-brand text-gray-900 font-bold text-lg rounded-lg hover:bg-cyan-500 transition-colors shadow-lg hover:shadow-brand/50 disabled:opacity-50 disabled:cursor-not-allowed">
