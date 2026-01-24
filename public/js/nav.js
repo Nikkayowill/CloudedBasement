@@ -27,13 +27,34 @@ if (hamburger && navLinks) {
     });
 }
 
-// Transparent nav on scroll
+// Hide/show nav on scroll with direction detection
 if (nav) {
+    let lastScroll = 0;
+    let ticking = false;
+
     window.addEventListener('scroll', () => {
-        if (window.scrollY > 50) {
-            nav.classList.add('scrolled');
-        } else {
-            nav.classList.remove('scrolled');
+        if (!ticking) {
+            window.requestAnimationFrame(() => {
+                const currentScroll = window.scrollY;
+
+                if (currentScroll <= 50) {
+                    // At top - show fully
+                    nav.classList.remove('scrolled');
+                    nav.classList.remove('hidden');
+                } else if (currentScroll > lastScroll && currentScroll > 100) {
+                    // Scrolling down - hide
+                    nav.classList.add('scrolled');
+                    nav.classList.add('hidden');
+                } else {
+                    // Scrolling up - show
+                    nav.classList.add('scrolled');
+                    nav.classList.remove('hidden');
+                }
+
+                lastScroll = currentScroll;
+                ticking = false;
+            });
+            ticking = true;
         }
     });
 }

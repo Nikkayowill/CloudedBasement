@@ -109,7 +109,7 @@ function getResponsiveNav(req) {
       <li><a href="/admin" class="uppercase tracking-wider text-gray-400 text-xs transition-all duration-300 hover:text-cyan-400 hover:drop-shadow-[0_0_8px_rgba(45,167,223,0.8)]">Admin</a></li>
       <li><a href="/docs" class="uppercase tracking-wider text-gray-400 text-xs transition-all duration-300 hover:text-cyan-400 hover:drop-shadow-[0_0_8px_rgba(45,167,223,0.8)]">Docs</a></li>
       <li><a href="/logout" class="uppercase tracking-wider text-gray-400 text-xs transition-all duration-300 hover:text-cyan-400 hover:drop-shadow-[0_0_8px_rgba(45,167,223,0.8)]">Logout</a></li>
-      ${userInitial ? `<li style="margin-left: auto;"><div class="w-8 h-8 rounded-full bg-brand text-gray-900 flex items-center justify-center font-bold text-sm" title="${req.session.userEmail}">${userInitial}</div></li>` : ''}
+      ${userInitial ? `<li class="ml-4"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500 to-cyan-600 text-white flex items-center justify-center font-bold text-sm shadow-lg shadow-cyan-500/30 border border-cyan-400/20 hover:shadow-cyan-500/50 transition-all cursor-pointer" title="${req.session.userEmail}">${userInitial}</div></li>` : ''}
     `;
   } else {
     navLinks = `
@@ -119,7 +119,7 @@ function getResponsiveNav(req) {
       <li><a href="/pricing" class="uppercase tracking-wider text-gray-400 text-xs transition-all duration-300 hover:text-cyan-400 hover:drop-shadow-[0_0_8px_rgba(45,167,223,0.8)]">Pricing</a></li>
       <li><a href="/contact" class="uppercase tracking-wider text-gray-400 text-xs transition-all duration-300 hover:text-cyan-400 hover:drop-shadow-[0_0_8px_rgba(45,167,223,0.8)]">Contact</a></li>
       ${getAuthLinks(req)}
-      ${userInitial ? `<li style="margin-left: auto;"><div class="w-8 h-8 rounded-full bg-brand text-gray-900 flex items-center justify-center font-bold text-sm" title="${req.session.userEmail}">${userInitial}</div></li>` : ''}
+      ${userInitial ? `<li class="ml-4"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500 to-cyan-600 text-white flex items-center justify-center font-bold text-sm shadow-lg shadow-cyan-500/30 border border-cyan-400/20 hover:shadow-cyan-500/50 transition-all cursor-pointer" title="${req.session.userEmail}">${userInitial}</div></li>` : ''}
     `;
   }
 
