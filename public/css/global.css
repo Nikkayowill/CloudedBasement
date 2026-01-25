@@ -206,11 +206,11 @@ button, a, input, textarea, select {
 /* Primary Button - Glassy Liquid Blue */
 .btn-primary, button[type="submit"], .bg-blue-600 {
     position: relative;
-    background: linear-gradient(135deg, rgba(0, 102, 255, 0.8) 0%, rgba(0, 153, 255, 0.6) 100%) !important;
+    background: linear-gradient(135deg, rgba(135, 206, 250, 0.7) 0%, rgba(173, 216, 230, 0.5) 100%) !important;
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(0, 102, 255, 0.5) !important;
+    border: 1px solid rgba(135, 206, 250, 0.5) !important;
     border-radius: 4px !important;
-    box-shadow: 0 8px 32px 0 rgba(0, 102, 255, 0.37),
+    box-shadow: 0 8px 32px 0 rgba(135, 206, 250, 0.37),
                 inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
@@ -229,9 +229,9 @@ button, a, input, textarea, select {
 
 .btn-primary:hover, button[type="submit"]:hover {
     transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 12px 48px 0 rgba(0, 102, 255, 0.5),
+    box-shadow: 0 12px 48px 0 rgba(135, 206, 250, 0.5),
                 inset 0 1px 0 0 rgba(255, 255, 255, 0.3),
-                0 0 30px rgba(0, 102, 255, 0.6);
+                0 0 30px rgba(135, 206, 250, 0.6);
 }
 
 .btn-primary:hover::before, button[type="submit"]:hover::before {
