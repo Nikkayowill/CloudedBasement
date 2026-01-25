@@ -391,7 +391,7 @@ exports.showPrivacy = (req, res) => {
 ${getHTMLHead('Privacy Policy - Basement')}
     ${getResponsiveNav(req)}
     
-    <main class="bg-gray-900 min-h-screen pt-24 pb-16">
+    <main class="bg-black min-h-screen pt-24 pb-16">
       <div class="max-w-4xl mx-auto px-8 md:px-12 lg:px-16">
         <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-2">Privacy Policy</h1>
         <p class="text-gray-500 text-sm mb-8"><strong>Last Updated:</strong> January 19, 2026</p>
@@ -565,7 +565,7 @@ exports.showFaq = (req, res) => {
 ${getHTMLHead('FAQ - Basement')}
     ${getResponsiveNav(req)}
     
-    <main class="bg-gray-900 min-h-screen pt-24 pb-16">
+    <main class="bg-black min-h-screen pt-24 pb-16">
       <div class="max-w-4xl mx-auto px-8 md:px-12 lg:px-16">
         <h1 class="text-4xl md:text-5xl font-extrabold text-white text-center mb-4">Frequently Asked Questions</h1>
         <p class="text-gray-400 text-center mb-16">Quick answers to common questions</p>
@@ -666,7 +666,7 @@ exports.showDocs = (req, res) => {
 ${getHTMLHead('Documentation - Basement')}
     ${getResponsiveNav(req)}
     
-    <main class="bg-gray-900 min-h-screen pt-24 pb-16">
+    <main class="bg-black min-h-screen pt-24 pb-16">
       <div class="max-w-4xl mx-auto px-8 md:px-12 lg:px-16">
         <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4">Documentation</h1>
         <p class="text-xl text-gray-400 mb-12">Complete guide to Basement hosting—what you get, how to use it, and technical details.</p>
@@ -811,7 +811,7 @@ exports.showContact = (req, res) => {
 ${getHTMLHead('Contact - Basement')}
   ${getResponsiveNav(req)}
   
-  <main class="bg-gray-900 min-h-screen pt-24 pb-16">
+  <main class="bg-black min-h-screen pt-24 pb-16">
     <div class="max-w-2xl mx-auto px-8 md:px-12 lg:px-16">
       <h1 class="text-4xl md:text-5xl font-extrabold text-white text-center mb-4">Contact Us</h1>
       <p class="text-gray-400 text-center mb-12">Get in touch with our team</p>
