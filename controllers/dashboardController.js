@@ -182,7 +182,7 @@ module.exports = { showDashboard: exports.showDashboard, submitSupportTicket, ch
 const buildDashboardTemplate = (data) => {
   return `
 <!-- Main Content -->
-<main class="flex-1 px-4 md:px-8 lg:px-12 pt-24 pb-12">
+<main class="flex-1 px-4 md:px-8 lg:px-12 pt-24 pb-12 bg-black">
     <!-- Header -->
     <div class="max-w-6xl mx-auto px-8 md:px-12 lg:px-16">
     <header class="flex flex-col gap-6 mb-12">
@@ -294,7 +294,7 @@ const buildDashboardTemplate = (data) => {
     <!-- Main Content Grid -->
     <div class="max-w-6xl mx-auto px-8 md:px-12 lg:px-16 space-y-6">
         ${data.hasServer ? `
-        <div class="bg-gray-800 border border-gray-700 border-l-4 border-l-brand rounded-lg overflow-hidden" data-server-status="${data.serverStatus}">
+        <div class="bg-gray-800 rounded-lg overflow-hidden" data-server-status="${data.serverStatus}">
             <div class="px-6 py-4 border-b border-gray-700 bg-white bg-opacity-5">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
@@ -356,7 +356,7 @@ const buildDashboardTemplate = (data) => {
         </div>
 
         <!-- SSH Access Card -->
-        <div class="bg-gray-800 border border-gray-700 rounded-lg p-6">
+        <div class="bg-gray-800 rounded-lg p-6">
             <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-6">🔒 SSH Access</h4>
             <p class="text-xs text-gray-500 mb-4">Use these credentials to connect to your server via SSH:</p>
             
@@ -388,20 +388,20 @@ const buildDashboardTemplate = (data) => {
         </div>
         ` : `
         <!-- Server Placeholder (Provisioning or No Server) -->
-        <div class="bg-gray-800 border border-gray-700 border-l-4 border-l-gray-600 rounded-lg p-8 text-center">
+        <div class="bg-gray-800 rounded-lg p-8 text-center">
             <h3 class="text-xl font-bold text-gray-400 mb-2">Server Details</h3>
             <p class="text-sm text-gray-500">${data.hasPaid ? 'Waiting for server setup (contact support if delayed)' : 'Purchase a plan to see your server details here'}</p>
         </div>
         `}
 
         <!-- Deploy from GitHub -->
-        <div class="bg-gray-800 border border-gray-700 rounded-lg p-6">
+        <div class="bg-gray-800 rounded-lg p-6">
             <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-6">Deploy from GitHub</h4>
             ${data.hasServer ? `
             <form action="/deploy" method="POST" class="mb-4">
                 <input type="hidden" name="_csrf" value="${data.csrfToken}">
                 <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
-                    <input type="text" name="git_url" placeholder="https://github.com/username/repo.git" required class="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none">
+                    <input type="text" name="git_url" placeholder="https://github.com/username/repo.git" required class="w-full px-4 py-3 bg-gray-900 rounded-lg text-white focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none">
                     <button type="submit" class="px-6 py-3 bg-blue-600 text-white font-bold whitespace-nowrap">Deploy Now</button>
                 </div>
                 <p class="text-xs text-gray-500 mt-2">Paste your public or private GitHub repository URL to deploy automatically.</p>
@@ -417,7 +417,7 @@ const buildDashboardTemplate = (data) => {
 
         <!-- Deployments Card -->
         ${data.hasServer && data.deployments.length > 0 ? `
-        <div class="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
+        <div class="bg-gray-800 rounded-lg overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-700 bg-white bg-opacity-5">
                 <h4 class="text-sm font-bold uppercase tracking-wide text-white">Deployment Pipeline</h4>
             </div>
@@ -475,7 +475,7 @@ const buildDashboardTemplate = (data) => {
         ` : ''}
 
         <!-- Database Setup -->
-        <div class="bg-gray-800 border border-gray-700 rounded-lg p-6">
+        <div class="bg-gray-800 rounded-lg p-6">
             <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-6">Add Database</h4>
             ${data.hasServer ? `
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
@@ -504,7 +504,7 @@ const buildDashboardTemplate = (data) => {
         </div>
 
         <!-- Database Status -->
-        <div class="bg-gray-800 border border-gray-700 rounded-lg p-6">
+        <div class="bg-gray-800 rounded-lg p-6">
             <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-6">Database Status</h4>
             ${data.hasServer ? `
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -539,12 +539,12 @@ const buildDashboardTemplate = (data) => {
         </div>
 
         <!-- Custom Domains -->
-        <div class="bg-gray-800 border border-gray-700 rounded-lg p-6">
+        <div class="bg-gray-800 rounded-lg p-6">
             <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-6">Custom Domains</h4>
             <form action="/add-domain" method="POST" class="mb-6">
                 <input type="hidden" name="_csrf" value="${data.csrfToken}">
                 <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
-                    <input type="text" name="domain" placeholder="example.com" required class="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none">
+                    <input type="text" name="domain" placeholder="example.com" required class="w-full px-4 py-3 bg-gray-900 rounded-lg text-white focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none">
                     <button type="submit" class="px-6 py-3 bg-blue-600 text-white font-bold">Add Domain</button>
                 </div>
             </form>
@@ -562,7 +562,7 @@ const buildDashboardTemplate = (data) => {
         </div>
 
         <!-- Support Tickets -->
-        <div class="bg-gray-800 border border-gray-700 rounded-lg p-6">
+        <div class="bg-gray-800 rounded-lg p-6">
             <div class="flex justify-between items-center mb-6">
                 <h4 class="text-sm font-bold uppercase tracking-wide text-white">Support Tickets</h4>
                 <button onclick="openSubmitTicketModal()" class="px-4 py-2 bg-brand bg-opacity-90 text-black font-bold text-xs rounded-lg hover:bg-brand transition-colors">+ New</button>
@@ -588,7 +588,7 @@ const buildDashboardTemplate = (data) => {
         </div>
 
         <!-- Account Settings -->
-        <div class="bg-gray-800 border border-gray-700 rounded-lg p-6">
+        <div class="bg-gray-800 rounded-lg p-6">
             <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-6">Account Settings</h4>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
@@ -604,9 +604,9 @@ const buildDashboardTemplate = (data) => {
             <div class="pt-6 border-t border-gray-700 mb-6">
                 <h5 class="text-xs font-bold uppercase tracking-wide text-brand mb-4">Change Password</h5>
                 <form onsubmit="changePassword(event)" class="grid grid-cols-1 md:grid-cols-4 gap-3">
-                    <input type="password" id="currentPassword" placeholder="Current" required class="px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none">
-                    <input type="password" id="newPassword" placeholder="New Password" required class="px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none">
-                    <input type="password" id="confirmPassword" placeholder="Confirm" required class="px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none">
+                    <input type="password" id="currentPassword" placeholder="Current" required class="px-4 py-3 bg-gray-900 rounded-lg text-white focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none">
+                    <input type="password" id="newPassword" placeholder="New Password" required class="px-4 py-3 bg-gray-900 rounded-lg text-white focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none">
+                    <input type="password" id="confirmPassword" placeholder="Confirm" required class="px-4 py-3 bg-gray-900 rounded-lg text-white focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none">
                     <button type="submit" class="px-6 py-3 bg-blue-600 text-white font-bold">Update</button>
                 </form>
             </div>
@@ -621,7 +621,7 @@ const buildDashboardTemplate = (data) => {
 
 <!-- Submit Ticket Modal -->
 <div id="submitTicketModal" class="hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center">
-    <div class="bg-gray-900 border border-gray-700 rounded-lg p-8 max-w-md w-11/12 max-h-[80vh] overflow-y-auto">
+    <div class="bg-gray-900 rounded-lg p-8 max-w-md w-11/12 max-h-[80vh] overflow-y-auto">
         <h2 class="text-lg font-bold text-white mb-6">Submit Support Ticket</h2>
         <form onsubmit="submitTicket(event)" class="space-y-4">
             <div>
