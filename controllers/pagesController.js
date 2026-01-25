@@ -312,7 +312,7 @@ ${getHTMLHead('Pricing - Basement')}
             <li class="text-gray-300"><strong class="text-white">1 TB bandwidth</strong></li>
             <li class="text-gray-400">Weekly automated backups</li>
             <li class="text-gray-400">Full SSH/root access</li>
-            <li class="text-gray-400">Git deployment</li>
+            <li class="text-gray-400">One-click Git deployment</li>
             <li class="text-gray-400">One-click database setup (MongoDB, PostgreSQL)</li>
             <li class="text-gray-400">Custom domains</li>
             <li class="text-gray-400">One-click SSL</li>
@@ -340,13 +340,12 @@ ${getHTMLHead('Pricing - Basement')}
             <li class="text-gray-300"><strong class="text-white">2 TB bandwidth</strong></li>
             <li class="text-gray-400">Weekly automated backups</li>
             <li class="text-gray-400">Full SSH/root access</li>
-            <li class="text-gray-400">Git deployment</li>
+            <li class="text-gray-400">One-click Git deployment</li>
+            <li class="text-gray-400">One-click database setup (MongoDB, PostgreSQL)</li>
             <li class="text-gray-400">Custom domains</li>
             <li class="text-gray-400">One-click SSL</li>
             <li class="text-gray-400">Deployment logs</li>
             <li class="text-blue-400 pt-3 border-t border-blue-500/30">Plus Priority perks:</li>
-            <li class="text-blue-400">One-click Git deployment</li>
-            <li class="text-blue-400">Database setup</li>
             <li class="text-blue-400">Priority support (12hr response)</li>
             <li class="text-blue-400">Server controls (start/stop/restart)</li>
           </ul>
@@ -370,13 +369,12 @@ ${getHTMLHead('Pricing - Basement')}
             <li class="text-gray-300"><strong class="text-white">4 TB bandwidth</strong></li>
             <li class="text-gray-400">Weekly automated backups</li>
             <li class="text-gray-400">Full SSH/root access</li>
-            <li class="text-gray-400">Git deployment</li>
+            <li class="text-gray-400">One-click Git deployment</li>
+            <li class="text-gray-400">One-click database setup (MongoDB, PostgreSQL)</li>
             <li class="text-gray-400">Custom domains</li>
             <li class="text-gray-400">One-click SSL</li>
             <li class="text-gray-400">Deployment logs</li>
-            <li class="text-gray-400">Server controls</li>
-            <li class="text-gray-400">One-click Git deployment</li>
-            <li class="text-gray-400">Database setup</li>
+            <li class="text-gray-400">Server controls (start/stop/restart)</li>
             <li class="text-blue-400 pt-3 border-t border-blue-500/30">Plus Premium perks:</li>
             <li class="text-blue-400">Priority support (4-8hr response)</li>
             <li class="text-blue-400">Email/ticket support priority</li>
