@@ -953,32 +953,32 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
     </section>
 
     <!-- Features List -->
-    <section class="bg-gray-900 py-12 md:py-20">
+    <section class="bg-black py-12 md:py-20">
       <div class="max-w-3xl px-8 md:px-12 lg:px-16 mx-auto sm:px-6 lg:px-8">
         <h2 class="mb-12 text-3xl md:text-4xl font-extrabold text-center text-white">What You Get</h2>
         <ul class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <li class="flex items-center gap-3 p-4 bg-gray-800/30 border border-cyan-500/10 rounded-lg">
-            <span class="text-cyan-400 text-xl font-bold">✓</span>
+          <li class="flex items-center gap-3 p-4 bg-black border border-blue-500/30 rounded-lg hover:border-blue-500 hover:shadow-[0_0_15px_rgba(0,102,255,0.2)] transition-all duration-300">
+            <span class="text-blue-400 text-xl font-bold">✓</span>
             <span class="text-gray-300">Full hosting environment</span>
           </li>
-          <li class="flex items-center gap-3 p-4 bg-gray-800/30 border border-cyan-500/10 rounded-lg">
-            <span class="text-cyan-400 text-xl font-bold">✓</span>
+          <li class="flex items-center gap-3 p-4 bg-black border border-blue-500/30 rounded-lg hover:border-blue-500 hover:shadow-[0_0_15px_rgba(0,102,255,0.2)] transition-all duration-300">
+            <span class="text-blue-400 text-xl font-bold">✓</span>
             <span class="text-gray-300">SSD storage</span>
           </li>
-          <li class="flex items-center gap-3 p-4 bg-gray-800/30 border border-cyan-500/10 rounded-lg">
-            <span class="text-cyan-400 text-xl font-bold">✓</span>
+          <li class="flex items-center gap-3 p-4 bg-black border border-blue-500/30 rounded-lg hover:border-blue-500 hover:shadow-[0_0_15px_rgba(0,102,255,0.2)] transition-all duration-300">
+            <span class="text-blue-400 text-xl font-bold">✓</span>
             <span class="text-gray-300">Secure isolation</span>
           </li>
-          <li class="flex items-center gap-3 p-4 bg-gray-800/30 border border-cyan-500/10 rounded-lg">
-            <span class="text-cyan-400 text-xl font-bold">✓</span>
+          <li class="flex items-center gap-3 p-4 bg-black border border-blue-500/30 rounded-lg hover:border-blue-500 hover:shadow-[0_0_15px_rgba(0,102,255,0.2)] transition-all duration-300">
+            <span class="text-blue-400 text-xl font-bold">✓</span>
             <span class="text-gray-300">Free setup</span>
           </li>
-          <li class="flex items-center gap-3 p-4 bg-gray-800/30 border border-cyan-500/10 rounded-lg">
-            <span class="text-cyan-400 text-xl font-bold">✓</span>
+          <li class="flex items-center gap-3 p-4 bg-black border border-blue-500/30 rounded-lg hover:border-blue-500 hover:shadow-[0_0_15px_rgba(0,102,255,0.2)] transition-all duration-300">
+            <span class="text-blue-400 text-xl font-bold">✓</span>
             <span class="text-gray-300">Modern dashboard</span>
           </li>
-          <li class="flex items-center gap-3 p-4 bg-gray-800/30 border border-cyan-500/10 rounded-lg">
-            <span class="text-cyan-400 text-xl font-bold">✓</span>
+          <li class="flex items-center gap-3 p-4 bg-black border border-blue-500/30 rounded-lg hover:border-blue-500 hover:shadow-[0_0_15px_rgba(0,102,255,0.2)] transition-all duration-300">
+            <span class="text-blue-400 text-xl font-bold">✓</span>
             <span class="text-gray-300">All future features included</span>
           </li>
         </ul>
