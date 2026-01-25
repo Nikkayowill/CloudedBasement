@@ -986,25 +986,25 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
     </section>
 
     <!-- How It Works with Timeline -->
-    <section class="bg-gray-900 py-12 md:py-20">
+    <section class="bg-black py-12 md:py-20">
       <div class="max-w-6xl mx-auto px-8 md:px-12 lg:px-16">
         <h2 class="mb-16 text-3xl md:text-4xl font-extrabold text-center text-white">How It Works</h2>
         <ol class="grid grid-cols-1 gap-8 sm:grid-cols-3">
           <!-- Step 1 -->
           <li class="relative text-center">
-            <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-cyan-400 rounded-full text-gray-900 text-2xl font-bold">1</div>
+            <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-blue-500 rounded-full text-white text-2xl font-bold shadow-[0_0_20px_rgba(0,102,255,0.4)]">1</div>
             <h3 class="mb-2 text-xl font-bold text-white">Choose your plan</h3>
             <p class="text-gray-400">Pick the hosting tier that fits your needs.</p>
           </li>
           <!-- Step 2 -->
           <li class="relative text-center">
-            <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-cyan-400 rounded-full text-gray-900 text-2xl font-bold">2</div>
+            <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-blue-500 rounded-full text-white text-2xl font-bold shadow-[0_0_20px_rgba(0,102,255,0.4)]">2</div>
             <h3 class="mb-2 text-xl font-bold text-white">Get instant access</h3>
             <p class="text-gray-400">Your server is provisioned and ready in minutes.</p>
           </li>
           <!-- Step 3 -->
           <li class="relative text-center">
-            <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-cyan-400 rounded-full text-gray-900 text-2xl font-bold">3</div>
+            <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-blue-500 rounded-full text-white text-2xl font-bold shadow-[0_0_20px_rgba(0,102,255,0.4)]">3</div>
             <h3 class="mb-2 text-xl font-bold text-white">Deploy your site</h3>
             <p class="text-gray-400">DIY or let us handle the setup — your choice.</p>
           </li>
