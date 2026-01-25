@@ -816,7 +816,7 @@ ${getHTMLHead('Contact - Basement')}
       <h1 class="text-4xl md:text-5xl font-extrabold text-white text-center mb-4">Contact Us</h1>
       <p class="text-gray-400 text-center mb-12">Get in touch with our team</p>
       
-      <form method="POST" action="/contact" class="bg-gray-900/80 backdrop-blur-xl border border-blue-500/30 rounded p-8 shadow-[0_0_60px_rgba(0,102,255,0.15),0_0_100px_rgba(0,102,255,0.08),inset_0_0_30px_rgba(0,102,255,0.02)]">
+      <form method="POST" action="/contact" class="bg-gray-900/80 backdrop-blur-xl border border-blue-500/30 rounded p-8 shadow-[0_0_70px_rgba(0,102,255,0.25),0_0_110px_rgba(0,102,255,0.12),inset_0_0_35px_rgba(0,102,255,0.03)]">
         <input type="hidden" name="_csrf" value="${req.csrfToken()}">
         
         <div class="mb-6">
