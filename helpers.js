@@ -133,7 +133,7 @@ function getResponsiveNav(req) {
     <nav class="main-nav">
         <div class="nav-container">
             <a href="/" class="nav-logo">
-                <img src="/C.svg" alt="Clouded Basement">
+                <img src="/Architype Van Der Leck23.svg" alt="Clouded Basement">
             </a>
             <ul class="nav-links">
                 ${navLinks}
