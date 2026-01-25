@@ -200,19 +200,26 @@ button, a, input, textarea, select {
 }
 
 /* ============================================
-   GLASSY GAMING BUTTONS & CARDS
+   iOS-STYLE LIQUID RAINDROP BUTTONS & CARDS
    ============================================ */
 
-/* Primary Button - Glassy Liquid Blue */
+/* Primary Button - iOS Liquid Raindrop Blue */
 .btn-primary, button[type="submit"], .bg-blue-600 {
     position: relative;
-    background: linear-gradient(135deg, rgba(135, 206, 250, 0.7) 0%, rgba(173, 216, 230, 0.5) 100%) !important;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(135, 206, 250, 0.5) !important;
-    border-radius: 4px !important;
-    box-shadow: 0 8px 32px 0 rgba(135, 206, 250, 0.37),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(145deg, 
+        rgba(135, 206, 250, 0.85) 0%, 
+        rgba(100, 181, 246, 0.75) 50%,
+        rgba(173, 216, 230, 0.65) 100%) !important;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 0.5px solid rgba(255, 255, 255, 0.4) !important;
+    border-radius: 14px !important;
+    box-shadow: 
+        0 1px 2px 0 rgba(0, 0, 0, 0.05),
+        0 8px 24px -4px rgba(135, 206, 250, 0.3),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.5),
+        inset 0 -1px 2px 0 rgba(0, 0, 0, 0.1);
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     overflow: hidden;
 }
 
@@ -223,15 +230,25 @@ button, a, input, textarea, select {
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    transition: left 0.5s;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.4), 
+        transparent);
+    transition: left 0.6s ease;
 }
 
 .btn-primary:hover, button[type="submit"]:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 12px 48px 0 rgba(135, 206, 250, 0.5),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.3),
-                0 0 30px rgba(135, 206, 250, 0.6);
+    transform: translateY(-1px) scale(1.01);
+    background: linear-gradient(145deg, 
+        rgba(135, 206, 250, 0.95) 0%, 
+        rgba(100, 181, 246, 0.85) 50%,
+        rgba(173, 216, 230, 0.75) 100%) !important;
+    box-shadow: 
+        0 2px 4px 0 rgba(0, 0, 0, 0.08),
+        0 12px 32px -4px rgba(135, 206, 250, 0.5),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.6),
+        inset 0 -1px 2px 0 rgba(0, 0, 0, 0.1),
+        0 0 40px rgba(135, 206, 250, 0.4);
 }
 
 .btn-primary:hover::before, button[type="submit"]:hover::before {
@@ -239,63 +256,95 @@ button, a, input, textarea, select {
 }
 
 .btn-primary:active, button[type="submit"]:active {
-    transform: translateY(0) scale(0.98);
+    transform: translateY(0) scale(0.99);
+    transition: all 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* Secondary Button - Glassy Dark */
+/* Secondary Button - iOS Liquid Dark Glass */
 .btn-secondary, .bg-gray-700 {
-    background: linear-gradient(135deg, rgba(26, 26, 46, 0.7) 0%, rgba(15, 15, 30, 0.9) 100%) !important;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 4px !important;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(145deg, 
+        rgba(40, 40, 50, 0.8) 0%, 
+        rgba(25, 25, 35, 0.9) 100%) !important;
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    border: 0.5px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 14px !important;
+    box-shadow: 
+        0 1px 2px 0 rgba(0, 0, 0, 0.2),
+        0 8px 24px -4px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.15),
+        inset 0 -1px 2px 0 rgba(0, 0, 0, 0.2);
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .btn-secondary:hover {
-    border-color: rgba(0, 102, 255, 0.5) !important;
-    box-shadow: 0 12px 48px 0 rgba(0, 0, 0, 0.4),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
-                0 0 20px rgba(0, 102, 255, 0.3);
-    transform: translateY(-2px);
+    border-color: rgba(100, 181, 246, 0.4) !important;
+    background: linear-gradient(145deg, 
+        rgba(45, 45, 60, 0.85) 0%, 
+        rgba(30, 30, 40, 0.95) 100%) !important;
+    box-shadow: 
+        0 2px 4px 0 rgba(0, 0, 0, 0.25),
+        0 12px 32px -4px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+        inset 0 -1px 2px 0 rgba(0, 0, 0, 0.2),
+        0 0 30px rgba(100, 181, 246, 0.2);
+    transform: translateY(-1px);
 }
 
-/* Danger Button - Glassy Red */
+/* Danger Button - iOS Liquid Red Glass */
 .btn-danger, .bg-red-600 {
-    background: linear-gradient(135deg, rgba(220, 38, 38, 0.8) 0%, rgba(185, 28, 28, 0.6) 100%) !important;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(220, 38, 38, 0.5) !important;
-    border-radius: 4px !important;
-    box-shadow: 0 8px 32px 0 rgba(220, 38, 38, 0.37),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(145deg, 
+        rgba(239, 68, 68, 0.85) 0%, 
+        rgba(220, 38, 38, 0.75) 100%) !important;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 0.5px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 14px !important;
+    box-shadow: 
+        0 1px 2px 0 rgba(0, 0, 0, 0.05),
+        0 8px 24px -4px rgba(220, 38, 38, 0.3),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.4),
+        inset 0 -1px 2px 0 rgba(0, 0, 0, 0.1);
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .btn-danger:hover {
-    box-shadow: 0 12px 48px 0 rgba(220, 38, 38, 0.5),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.3),
-                0 0 30px rgba(220, 38, 38, 0.6);
-    transform: translateY(-2px);
+    background: linear-gradient(145deg, 
+        rgba(239, 68, 68, 0.95) 0%, 
+        rgba(220, 38, 38, 0.85) 100%) !important;
+    box-shadow: 
+        0 2px 4px 0 rgba(0, 0, 0, 0.08),
+        0 12px 32px -4px rgba(220, 38, 38, 0.5),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.5),
+        inset 0 -1px 2px 0 rgba(0, 0, 0, 0.1),
+        0 0 40px rgba(220, 38, 38, 0.4);
+    transform: translateY(-1px);
 }
 
-/* Cards - Glassy Gaming Aesthetic */
+/* Cards - iOS Liquid Glass Aesthetic */
 .bg-gray-800, .bg-gray-900, .card {
-    background: linear-gradient(135deg, rgba(20, 20, 40, 0.6) 0%, rgba(10, 10, 25, 0.8) 100%) !important;
+    background: linear-gradient(135deg, 
+        rgba(20, 20, 40, 0.6) 0%, 
+        rgba(10, 10, 25, 0.8) 100%) !important;
     backdrop-filter: blur(16px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-radius: 4px !important;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 0.5px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 16px !important;
+    box-shadow: 
+        0 1px 2px 0 rgba(0, 0, 0, 0.2),
+        0 8px 32px -4px rgba(0, 0, 0, 0.37),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .bg-gray-800:hover, .bg-gray-900:hover, .card:hover {
-    border-color: rgba(0, 102, 255, 0.3) !important;
-    box-shadow: 0 12px 48px 0 rgba(0, 0, 0, 0.5),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
-                0 0 40px rgba(0, 102, 255, 0.15);
-    transform: translateY(-4px);
+    border-color: rgba(100, 181, 246, 0.3) !important;
+    box-shadow: 
+        0 2px 4px 0 rgba(0, 0, 0, 0.25),
+        0 12px 48px -4px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
+        0 0 40px rgba(100, 181, 246, 0.15);
+    transform: translateY(-2px);
 }
 
 /* Input Fields - Glassy */
@@ -329,6 +378,14 @@ input:focus, textarea:focus, select:focus {
 /* Liquid Animation Keyframe */
 @keyframes liquid-flow {
     0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+/* Apply liquid effect to primary buttons */
+.btn-primary, button[type="submit"] {
+    background-size: 200% 200%;
+    animation: liquid-flow 3s ease infinite;
+}
     50% { background-position: 100% 50%; }
 }
 
