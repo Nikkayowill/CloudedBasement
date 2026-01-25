@@ -310,11 +310,13 @@ ${getHTMLHead('Pricing - Basement')}
             <li class="text-gray-300"><strong class="text-white">1 CPU core</strong></li>
             <li class="text-gray-300"><strong class="text-white">25 GB SSD storage</strong></li>
             <li class="text-gray-300"><strong class="text-white">1 TB bandwidth</strong></li>
+            <li class="text-gray-400">Weekly automated backups</li>
             <li class="text-gray-400">Full SSH/root access</li>
-            <li class="text-gray-400">Security updates included</li>
-            <li class="text-gray-400">Web dashboard</li>
-            <li class="text-gray-400">Email support (48hr response)</li>
-            <li class="text-gray-400">Open source tools</li>
+            <li class="text-gray-400">Git deployment</li>
+            <li class="text-gray-400">Custom domains</li>
+            <li class="text-gray-400">One-click SSL</li>
+            <li class="text-gray-400">Deployment logs</li>
+            <li class="text-gray-400">Email support (24-48hr)</li>
           </ul>
           <a href="/pay?plan=basic" class="block w-full px-6 py-3 bg-transparent border border-blue-500 text-blue-400 text-center font-medium rounded hover:bg-blue-600 hover:text-white hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all uppercase tracking-wider text-sm">Select Basic</a>
         </div>
@@ -335,15 +337,15 @@ ${getHTMLHead('Pricing - Basement')}
             <li class="text-gray-300"><strong class="text-white">2 CPU cores</strong></li>
             <li class="text-gray-300"><strong class="text-white">50 GB SSD storage</strong></li>
             <li class="text-gray-300"><strong class="text-white">2 TB bandwidth</strong></li>
+            <li class="text-gray-400">Weekly automated backups</li>
             <li class="text-gray-400">Full SSH/root access</li>
-            <li class="text-gray-400">Security updates included</li>
-            <li class="text-gray-400">Web dashboard</li>
-            <li class="text-blue-400 pt-3 border-t border-blue-500/30">Plus everything in Basic:</li>
-            <li class="text-blue-400">Priority support (1-2hr response)</li>
-            <li class="text-blue-400">SSL automation</li>
-            <li class="text-blue-400">One-click staging environments</li>
-            <li class="text-blue-400">Advanced monitoring</li>
-            <li class="text-blue-400">Deploy logs & history</li>
+            <li class="text-gray-400">Git deployment</li>
+            <li class="text-gray-400">Custom domains</li>
+            <li class="text-gray-400">One-click SSL</li>
+            <li class="text-gray-400">Deployment logs</li>
+            <li class="text-blue-400 pt-3 border-t border-blue-500/30">Plus Priority perks:</li>
+            <li class="text-blue-400">Priority support (12hr response)</li>
+            <li class="text-blue-400">Server controls (start/stop/restart)</li>
           </ul>
           <a href="/pay?plan=priority" class="block w-full px-6 py-3 bg-blue-600 text-white text-center font-bold rounded hover:bg-blue-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all uppercase tracking-wider text-sm">Select Priority</a>
         </div>
@@ -363,18 +365,16 @@ ${getHTMLHead('Pricing - Basement')}
             <li class="text-gray-300"><strong class="text-white">2 CPU cores</strong></li>
             <li class="text-gray-300"><strong class="text-white">80 GB SSD storage</strong></li>
             <li class="text-gray-300"><strong class="text-white">4 TB bandwidth</strong></li>
+            <li class="text-gray-400">Weekly automated backups</li>
             <li class="text-gray-400">Full SSH/root access</li>
-            <li class="text-gray-400">Security updates included</li>
-            <li class="text-gray-400">Web dashboard</li>
-            <li class="text-gray-400">Priority support (12hr response)</li>
-            <li class="text-gray-400">SSL automation</li>
-            <li class="text-gray-400">Staging environments</li>
-            <li class="text-blue-400 pt-3 border-t border-blue-500/30">Plus everything in Priority:</li>
-            <li class="text-blue-400">Direct chat support</li>
-            <li class="text-blue-400">Custom deployment assistance</li>
-            <li class="text-blue-400">Database optimization help</li>
-            <li class="text-blue-400">Performance tuning</li>
-            <li class="text-blue-400">Priority feature requests</li>
+            <li class="text-gray-400">Git deployment</li>
+            <li class="text-gray-400">Custom domains</li>
+            <li class="text-gray-400">One-click SSL</li>
+            <li class="text-gray-400">Deployment logs</li>
+            <li class="text-gray-400">Server controls</li>
+            <li class="text-blue-400 pt-3 border-t border-blue-500/30">Plus Premium perks:</li>
+            <li class="text-blue-400">Priority support (4-8hr response)</li>
+            <li class="text-blue-400">Email/ticket support priority</li>
           </ul>
           <a href="/pay?plan=premium" class="block w-full px-6 py-3 bg-transparent border border-blue-500 text-blue-400 text-center font-medium rounded hover:bg-blue-600 hover:text-white hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all uppercase tracking-wider text-sm">Select Premium</a>
         </div>
