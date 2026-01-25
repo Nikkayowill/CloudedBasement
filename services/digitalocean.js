@@ -93,7 +93,7 @@ echo "Setup complete!" > /root/setup.log
       size: selectedSpec.slug,
       image: 'ubuntu-22-04-x64',
       ssh_keys: null,
-      backups: false,
+      backups: true,
       ipv6: false,
       user_data: setupScript,
       monitoring: true,
