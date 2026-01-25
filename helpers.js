@@ -7,7 +7,7 @@ function getHTMLHead(title) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${title}</title>
-    <link rel="icon" type="image/svg+xml" href="/logo.svg">
+    <link rel="icon" type="image/svg+xml" href="/C.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -28,7 +28,7 @@ function getDashboardHead(title) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${title}</title>
-    <link rel="icon" type="image/svg+xml" href="/logo.svg">
+    <link rel="icon" type="image/svg+xml" href="/C.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -133,7 +133,7 @@ function getResponsiveNav(req) {
     <nav class="main-nav">
         <div class="nav-container">
             <a href="/" class="nav-logo">
-                <img src="/logo.svg" alt="Clouded Basement">
+                <img src="/C.svg" alt="Clouded Basement">
             </a>
             <ul class="nav-links">
                 ${navLinks}
