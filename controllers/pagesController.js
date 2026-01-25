@@ -900,22 +900,22 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
     </section>
 
     <!-- Founder Plan Card -->
-    <section class="py-12 px-8 md:px-12 lg:px-16 bg-gray-900">
-      <div class="max-w-3xl mx-auto p-8 md:p-12 bg-gradient-to-br from-cyan-900/40 to-gray-900 border-2 border-brand rounded-xl text-center glow-brand">
-        <span class="inline-block px-3 py-1 mb-4 text-xs font-bold text-gray-900 bg-brand rounded-full">🚀 EARLY ADOPTER PRICING 🚀</span>
-        <h2 class="mb-4 text-3xl md:text-4xl font-extrabold text-white">Lock In Lifetime Pricing</h2>
-        <div class="my-6">
-          <span class="text-5xl md:text-6xl font-bold text-brand">$10-$60</span>
-          <span class="text-xl text-gray-400">/month</span>
+    <section class="py-8 px-8 md:px-12 lg:px-16 bg-black">
+      <div class="max-w-2xl mx-auto p-6 bg-black border border-blue-500/30 rounded-lg text-center shadow-[0_0_30px_rgba(0,102,255,0.2)]">
+        <span class="inline-block px-3 py-1 mb-3 text-xs font-bold text-black bg-blue-500 rounded-full uppercase tracking-wider">Early Adopter</span>
+        <h2 class="mb-2 text-2xl font-bold text-white">Lock In Lifetime Pricing</h2>
+        <div class="my-4">
+          <span class="text-4xl font-bold text-blue-500">$10-$60</span>
+          <span class="text-sm text-gray-400">/month forever</span>
         </div>
-        <p class="mb-6 text-base md:text-lg text-gray-300">Choose your plan. Lock in 50-60% off for life. All features included.</p>
-        <div class="inline-flex items-center gap-3 px-6 py-4 mb-6 bg-gray-900/50 border border-brand rounded-lg">
-          <span class="text-4xl md:text-5xl font-bold text-brand">${adoptersRemaining}</span>
-          <span class="text-sm md:text-base text-gray-300">spots remaining out of 15</span>
+        <p class="mb-4 text-sm text-gray-400">Choose your plan. Lock in 50-60% off for life.</p>
+        <div class="inline-flex items-center gap-2 px-4 py-2 mb-4 bg-blue-500/10 border border-blue-500/30 rounded">
+          <span class="text-2xl font-bold text-blue-400">${adoptersRemaining}</span>
+          <span class="text-xs text-gray-400">spots left</span>
         </div>
-        <a href="/pricing" class="inline-flex justify-center items-center py-3 px-8 text-base font-medium text-gray-900 bg-brand rounded-lg hover:bg-cyan-500 transition-all">
+        <a href="/pricing" class="inline-flex justify-center items-center py-2 px-6 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all duration-300">
           Claim Your Spot
-          <svg class="ml-2 w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <svg class="ml-2 w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
           </svg>
         </a>
@@ -923,24 +923,24 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
     </section>
 
     <!-- Why Choose Section -->
-    <section class="py-12 md:py-20 bg-gray-900">
+    <section class="py-12 md:py-20 bg-black">
       <div class="max-w-6xl mx-auto px-8 md:px-12 lg:px-16">
         <h2 class="mb-12 text-3xl md:text-4xl font-extrabold text-center text-white">Why Choose Clouded Basement</h2>
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          <div class="p-6 bg-gray-800 border border-gray-700 rounded-lg hover:border-brand hover:-translate-y-1 transition-all">
-            <h3 class="mb-2 text-xl font-bold text-brand">Personal Support</h3>
+          <div class="p-6 bg-black border border-gray-700 rounded-lg hover:border-blue-500 hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(0,102,255,0.3)] transition-all duration-300">
+            <h3 class="mb-2 text-xl font-bold text-blue-400">Personal Support</h3>
             <p class="text-gray-400">You talk to the person who built the platform.</p>
           </div>
-          <div class="p-6 bg-gray-800 border border-gray-700 rounded-lg hover:border-brand hover:-translate-y-1 transition-all">
-            <h3 class="mb-2 text-xl font-bold text-brand">Fast, Clean Infrastructure</h3>
+          <div class="p-6 bg-black border border-gray-700 rounded-lg hover:border-blue-500 hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(0,102,255,0.3)] transition-all duration-300">
+            <h3 class="mb-2 text-xl font-bold text-blue-400">Fast, Clean Infrastructure</h3>
             <p class="text-gray-400">No noisy neighbors. No overselling.</p>
           </div>
-          <div class="p-6 bg-gray-800 border border-gray-700 rounded-lg hover:border-brand hover:-translate-y-1 transition-all">
-            <h3 class="mb-2 text-xl font-bold text-brand">Transparent Pricing</h3>
+          <div class="p-6 bg-black border border-gray-700 rounded-lg hover:border-blue-500 hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(0,102,255,0.3)] transition-all duration-300">
+            <h3 class="mb-2 text-xl font-bold text-blue-400">Transparent Pricing</h3>
             <p class="text-gray-400">No hidden fees. No surprise renewals.</p>
           </div>
-          <div class="p-6 bg-gray-800 border border-gray-700 rounded-lg hover:border-brand hover:-translate-y-1 transition-all">
-            <h3 class="mb-2 text-xl font-bold text-brand">Indie-Built, Indie-Powered</h3>
+          <div class="p-6 bg-black border border-gray-700 rounded-lg hover:border-blue-500 hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(0,102,255,0.3)] transition-all duration-300">
+            <h3 class="mb-2 text-xl font-bold text-blue-400">Indie-Built, Indie-Powered</h3>
             <p class="text-gray-400">Hosting with personality, not corporate scripts.</p>
           </div>
         </div>
