@@ -195,16 +195,19 @@ exports.deploy = async (req, res) => {
     console.log(`[DEPLOY] Deployment #${deploymentId} started for user ${userId}: ${gitUrl}`);
 
     // Perform deployment asynchronously (don't block response)
-    performDeployment(server, gitUrl, repoName, deploymentId).catch(async (err) => {
-      console.error(`[DEPLOY] Deployment #${deploymentId} failed:`, err);
-      try {
-        await pool.query(
-          'UPDATE deployments SET status = $1, output = $2, deployed_at = NOW() WHERE id = $3',
-          ['failed', `❌ Deployment failed: ${err.message}`, deploymentId]
-        );
-      } catch (dbErr) {
-        console.error(`[DEPLOY] Failed to update deployment #${deploymentId} status:`, dbErr);
-      }
+    setImmediate(() => {
+      performDeployment(server, gitUrl, repoName, deploymentId).catch(async (err) => {
+        console.error(`[DEPLOY] Deployment #${deploymentId} failed:`, err);
+        console.error(`[DEPLOY] Stack trace:`, err.stack);
+        try {
+          await pool.query(
+            'UPDATE deployments SET status = $1, output = $2, deployed_at = NOW() WHERE id = $3',
+            ['failed', `❌ Deployment failed: ${err.message}\n\nStack trace:\n${err.stack}`, deploymentId]
+          );
+        } catch (dbErr) {
+          console.error(`[DEPLOY] Failed to update deployment #${deploymentId} status:`, dbErr);
+        }
+      });
     });
     
     res.redirect('/dashboard?success=Deployment started! Check deployment history below for progress.');
@@ -216,8 +219,11 @@ exports.deploy = async (req, res) => {
 
 // Async deployment function
 async function performDeployment(server, gitUrl, repoName, deploymentId) {
+  console.log(`[DEPLOY] ============================================`);
   console.log(`[DEPLOY] Starting performDeployment for deployment #${deploymentId}`);
   console.log(`[DEPLOY] Server IP: ${server.ip_address}, Repo: ${gitUrl}`);
+  console.log(`[DEPLOY] Server SSH password length: ${server.ssh_password?.length || 0}`);
+  console.log(`[DEPLOY] ============================================`);
   
   const conn = new Client();
   let output = '';
