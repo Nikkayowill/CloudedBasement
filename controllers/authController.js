@@ -875,7 +875,7 @@ const handleResetPassword = async (req, res) => {
     
     // Update password and clear reset token
     await pool.query(
-      'UPDATE users SET password = $1, reset_token = NULL, reset_token_expires = NULL WHERE id = $2',
+      'UPDATE users SET password_hash = $1, reset_token = NULL, reset_token_expires = NULL WHERE id = $2',
       [hashedPassword, userId]
     );
     
