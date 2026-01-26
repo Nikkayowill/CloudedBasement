@@ -142,7 +142,7 @@
 - **Payments:** Stripe (webhooks + Checkout)
 - **Infrastructure:** DigitalOcean API
 - **Frontend:** Server-rendered HTML + Tailwind CSS 3.x + Flowbite 2.5.2
-- **Process Manager:** PM2 on Ubuntu
+- **Process Manager:** systemd on Ubuntu
 - **Security:** Helmet, CSRF, rate limiting, bcrypt, parameterized queries
 
 ---
@@ -201,7 +201,7 @@ sudo systemctl restart cloudedbasement.service
 ```
 
 **Service:** cloudedbasement.service (systemd)  
-**Logs:** `pm2 logs cloudedbasement` or `journalctl -u cloudedbasement.service -f`
+**Logs:** `journalctl -u cloudedbasement.service -f`
 
 ---
 

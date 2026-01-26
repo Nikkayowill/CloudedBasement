@@ -53,7 +53,7 @@ You're working on **Clouded Basement** (cloudedbasement.ca) - a **fully automate
 - **Sessions:** PostgreSQL-backed (connect-pg-simple)
 - **Payments:** Stripe (test & live keys in .env)
 - **Hosting:** DigitalOcean Droplets via API
-- **Server Management:** PM2 process manager
+- **Server Management:** systemd service
 - **CSS:** Tailwind CSS 3.x (CDN) + Flowbite 2.5.2 (CDN)
 
 ### Security Features
@@ -181,7 +181,6 @@ PORT=3000
 - **Domain:** cloudedbasement.ca
 - **OS:** Ubuntu
 - **User:** `deploy`
-- **Process Manager:** PM2
 - **Service:** `cloudedbasement.service` (systemd)
 - **Credentials:** See `docs/password for Web Application server.md`
 
@@ -191,7 +190,7 @@ PORT=3000
 ssh deploy@68.183.203.226
 
 # Navigate to project
-cd /path/to/server-ui
+cd ~/server-ui
 
 # Pull latest code
 git pull origin main
@@ -204,10 +203,8 @@ sudo systemctl restart cloudedbasement.service
 
 # Check status
 sudo systemctl status cloudedbasement.service
-pm2 status
 
 # View logs
-pm2 logs cloudedbasement --lines 50
 journalctl -u cloudedbasement.service -f
 ```
 
@@ -315,6 +312,7 @@ git commit -m "chore: update dependencies"
 3. **Test admin controls** - Ensure destroy/delete works safely
 4. **Mobile device testing** - Real iPhone/Android
 5. **Legal review** - Privacy policy, terms of service
+6. **Remove PM2 references** - Already using systemd
 
 ### Medium Priority
 6. Update `.github/copilot-instructions.md` with new architecture
@@ -351,7 +349,7 @@ git commit -m "chore: update dependencies"
 ## 🔍 DIAGNOSTICS CHECKLIST
 
 When debugging, check:
-- [ ] Server logs: `pm2 logs cloudedbasement`
+- [ ] Server logs: `journalctl -u cloudedbasement.service -f`
 - [ ] Browser console (F12 → Console)
 - [ ] Network tab (F12 → Network)
 - [ ] Database connection: `/health` endpoint
