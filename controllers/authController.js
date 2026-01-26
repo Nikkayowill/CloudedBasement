@@ -751,23 +751,25 @@ async function sendPasswordResetEmail(email, resetLink) {
   const { sendEmail } = require('../services/email');
   
   const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #000; color: #fff;">
-      <h2 style="color: #87CEFA;">Reset Your Password</h2>
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <h2>Reset Your Password</h2>
       <p>You requested to reset your password for Clouded Basement.</p>
       <p>Click the link below to set a new password:</p>
       <p style="margin: 30px 0;">
-        <a href="${resetLink}" style="display: inline-block; padding: 12px 24px; background: #87CEFA; color: #000; text-decoration: none; border-radius: 4px; font-weight: bold;">Reset Password</a>
+        <a href="${resetLink}">Reset Password</a>
       </p>
-      <p style="color: #888; font-size: 14px;">This link expires in 1 hour.</p>
-      <p style="color: #888; font-size: 14px;">If you didn't request this, ignore this email.</p>
-      <hr style="border: 1px solid #333; margin: 30px 0;">
-      <p style="color: #666; font-size: 12px;">Clouded Basement - Fast, Simple Cloud Hosting</p>
+      <p>Or copy and paste this link into your browser:</p>
+      <p style="word-break: break-all; color: #0066cc;">${resetLink}</p>
+      <p style="margin-top: 30px; color: #666;">This link expires in 1 hour.</p>
+      <p style="color: #666;">If you didn't request this, you can safely ignore this email.</p>
+      <hr style="margin: 30px 0; border: 1px solid #ddd;">
+      <p style="color: #999; font-size: 12px;">Clouded Basement - Fast, Simple Cloud Hosting</p>
     </div>
   `;
   
-  const text = `Reset your password for Clouded Basement.\n\nClick this link: ${resetLink}\n\nThis link expires in 1 hour.\n\nIf you didn't request this, ignore this email.`;
+  const text = `Reset your password for Clouded Basement.\n\nClick this link: ${resetLink}\n\nThis link expires in 1 hour.\n\nIf you didn't request this, you can safely ignore this email.`;
   
-  await sendEmail(email, 'Reset Your Password - Clouded Basement', html, text);
+  await sendEmail(email, 'Reset Your Password - Clouded Basement', html, text, true);
 }
 
 // GET /reset-password/:token - Display reset password form
