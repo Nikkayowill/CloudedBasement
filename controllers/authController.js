@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt');
 const path = require('path');
+const crypto = require('crypto');
 const pool = require('../db');
 const { validationResult } = require('express-validator');
 const { getHTMLHead, getFooter, getScripts, getResponsiveNav } = require('../helpers');
@@ -703,6 +704,68 @@ ${getHTMLHead('Forgot Password - Basement')}
   `);
 };
 
+// POST /forgot-password - Generate reset token and send email
+const handleForgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    // Check if user exists
+    const result = await pool.query('SELECT id, email FROM users WHERE email = $1', [email]);
+    
+    // Always show success message (security: don't reveal if email exists)
+    if (result.rows.length === 0) {
+      return res.redirect('/forgot-password?message=If that email exists, you will receive a reset link shortly.');
+    }
+    
+    const user = result.rows[0];
+    
+    // Generate secure random token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpires = new Date(Date.now() + 3600000); // 1 hour from now
+    
+    // Store token in database
+    await pool.query(
+      'UPDATE users SET reset_token = $1, reset_token_expires = $2 WHERE id = $3',
+      [resetToken, resetTokenExpires, user.id]
+    );
+    
+    // Send reset email (don't wait for it)
+    const resetLink = `${req.protocol}://${req.get('host')}/reset-password/${resetToken}`;
+    sendPasswordResetEmail(user.email, resetLink).catch(err => {
+      console.error('[FORGOT PASSWORD] Failed to send email:', err);
+    });
+    
+    res.redirect('/forgot-password?message=If that email exists, you will receive a reset link shortly.');
+  } catch (error) {
+    console.error('[FORGOT PASSWORD] Error:', error);
+    res.redirect('/forgot-password?error=An error occurred. Please try again.');
+  }
+};
+
+// Helper function to send password reset email
+async function sendPasswordResetEmail(email, resetLink) {
+  const { sendEmail } = require('../services/email');
+  
+  await sendEmail({
+    to: email,
+    subject: 'Reset Your Password - Clouded Basement',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #000; color: #fff;">
+        <h2 style="color: #87CEFA;">Reset Your Password</h2>
+        <p>You requested to reset your password for Clouded Basement.</p>
+        <p>Click the link below to set a new password:</p>
+        <p style="margin: 30px 0;">
+          <a href="${resetLink}" style="display: inline-block; padding: 12px 24px; background: #87CEFA; color: #000; text-decoration: none; border-radius: 4px; font-weight: bold;">Reset Password</a>
+        </p>
+        <p style="color: #888; font-size: 14px;">This link expires in 1 hour.</p>
+        <p style="color: #888; font-size: 14px;">If you didn't request this, ignore this email.</p>
+        <hr style="border: 1px solid #333; margin: 30px 0;">
+        <p style="color: #666; font-size: 12px;">Clouded Basement - Fast, Simple Cloud Hosting</p>
+      </div>
+    `
+  });
+}
+
 module.exports = {
   showRegister,
   register: handleRegister,
@@ -716,5 +779,6 @@ module.exports = {
   showVerifyEmail,
   verifyEmailCode,
   resendCode,
-  showForgotPassword
+  showForgotPassword,
+  handleForgotPassword
 };
