@@ -123,7 +123,7 @@ async function sendConfirmationEmail(email, code) {
 }
 
 // Send generic email
-async function sendEmail(to, subject, html, text) {
+async function sendEmail(to, subject, html, text, disableTracking = false) {
   const mailOptions = {
     from: fromAddress,
     replyTo: process.env.SMTP_REPLY_TO || undefined,
@@ -132,6 +132,14 @@ async function sendEmail(to, subject, html, text) {
     html,
     text
   };
+
+  // Disable click/open tracking for sensitive emails (password resets)
+  if (disableTracking && provider === 'sendgrid') {
+    mailOptions.trackingSettings = {
+      clickTracking: { enable: false },
+      openTracking: { enable: false }
+    };
+  }
 
   try {
     if (provider === 'sendgrid') {
