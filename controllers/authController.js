@@ -766,6 +766,67 @@ async function sendPasswordResetEmail(email, resetLink) {
   });
 }
 
+// GET /reset-password/:token - Display reset password form
+const showResetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    
+    // Verify token exists and is not expired
+    const result = await pool.query(
+      'SELECT id, email FROM users WHERE reset_token = $1 AND reset_token_expires > NOW()',
+      [token]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.redirect('/forgot-password?error=Invalid or expired reset link. Please request a new one.');
+    }
+    
+    res.send(`
+${getHTMLHead('Reset Password - Basement')}
+    ${getResponsiveNav(req)}
+    
+    <main class="bg-black min-h-screen flex items-center justify-center py-12 px-4">
+      <div class="max-w-md w-full bg-gray-900/80 backdrop-blur-xl border border-blue-500/30 rounded p-6 shadow-[0_0_70px_rgba(0,102,255,0.25),0_0_110px_rgba(0,102,255,0.12),inset_0_0_35px_rgba(0,102,255,0.03)]">
+        <h1 class="text-2xl font-bold text-white text-center mb-2">SET NEW PASSWORD</h1>
+        <p class="text-center text-gray-400 text-sm mb-6">Enter your new password below</p>
+        
+        <form method="POST" action="/reset-password/${token}" class="space-y-4">
+          <input type="hidden" name="_csrf" value="${req.csrfToken()}">
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-1.5">New Password</label>
+            <input type="password" name="password" minlength="8" required 
+              class="w-full px-4 py-2.5 bg-black/40 border border-blue-500/30 rounded text-white placeholder-gray-500 focus:border-blue-500 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-blue-500/50 transition-all"
+              placeholder="Minimum 8 characters">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-1.5">Confirm Password</label>
+            <input type="password" name="confirmPassword" minlength="8" required 
+              class="w-full px-4 py-2.5 bg-black/40 border border-blue-500/30 rounded text-white placeholder-gray-500 focus:border-blue-500 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-blue-500/50 transition-all"
+              placeholder="Re-enter password">
+          </div>
+          
+          <button type="submit" class="w-full py-2.5 bg-blue-600 text-white font-bold rounded hover:bg-blue-500 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all">
+            Reset Password
+          </button>
+        </form>
+        
+        <p class="text-center text-gray-400 mt-5 text-sm">
+          <a href="/login" class="text-blue-400 hover:text-blue-300 font-medium">Back to Login</a>
+        </p>
+      </div>
+    </main>
+    
+    ${getFooter()}
+    ${getScripts('nav.js')}
+    `);
+  } catch (error) {
+    console.error('[RESET PASSWORD] Error:', error);
+    res.redirect('/forgot-password?error=An error occurred. Please try again.');
+  }
+};
+
 module.exports = {
   showRegister,
   register: handleRegister,
@@ -780,5 +841,6 @@ module.exports = {
   verifyEmailCode,
   resendCode,
   showForgotPassword,
-  handleForgotPassword
+  handleForgotPassword,
+  showResetPassword
 };
