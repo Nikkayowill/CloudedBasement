@@ -17,14 +17,11 @@ async function createRealServer(userId, plan, stripeChargeId = null) {
   const selectedSpec = specs[plan] || specs.basic;
   // Generate cryptographically secure password (256 bits of entropy)
   const password = crypto.randomBytes(16).toString('base64').replace(/[+/=]/g, '') + '!@#';
-  
-  // Escape password for safe bash usage (escape single quotes)
-  const escapedPassword = password.replace(/'/g, "'\\''");
 
   // Setup script for automatic Nginx + Certbot installation
   const setupScript = `#!/bin/bash
 # Set root password
-echo 'root:${escapedPassword}' | chpasswd
+echo "root:${password}" | chpasswd
 
 # Enable password authentication for SSH
 sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
