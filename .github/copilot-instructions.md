@@ -9,7 +9,7 @@ Production cloud hosting platform (cloudedbasement.ca) where customers pay $10/m
 - **Frontend**: Server-rendered HTML with Tailwind CSS 3.x + Flowbite 2.5.2 (CDN)
 - **Payments**: Stripe (test & live modes)
 - **Infrastructure**: DigitalOcean droplets via API
-- **Process Manager**: PM2 on Ubuntu server
+- **Process Manager**: systemd on Ubuntu server
 - **Security**: Helmet, CSRF, rate limiting, bcrypt, parameterized queries
 
 ## Key Routes
@@ -36,10 +36,10 @@ npm run dev   # if using nodemon
 - Delete branches after merge: `git branch -d feat/name`
 
 **Production deployment:**
-- Server: 68.183.203.226 (Ubuntu, PM2, systemd)
+- Server: 68.183.203.226 (Ubuntu, systemd)
 - SSH: `ssh deploy@68.183.203.226`
 - Deploy: `git pull origin main && sudo systemctl restart cloudedbasement.service`
-- Logs: `pm2 logs cloudedbasement` or `journalctl -u cloudedbasement.service -f`
+- Logs: `journalctl -u cloudedbasement.service -f`
 - See [docs/DEPLOYMENT.md](../docs/DEPLOYMENT.md) for full process
 
 ## Project Conventions
@@ -181,4 +181,4 @@ PORT (default: 3000)
 - **Never commit to `main` directly** - Always use feature branches
 - **Test Stripe in test mode first** - Card 4242 4242 4242 4242
 - **Manual server provisioning required** - No automated flow yet
-- **Check logs after deployment** - `pm2 logs cloudedbasement`
+- **Check logs after deployment** - `journalctl -u cloudedbasement.service -f`
