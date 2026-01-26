@@ -443,7 +443,7 @@ async function fileExists(conn, path) {
 async function updateDeploymentOutput(deploymentId, output, status) {
   try {
     await pool.query(
-      'UPDATE deployments SET output = $1, status = $2, deployed_at = CASE WHEN $2 = \'success\' THEN NOW() ELSE deployed_at END WHERE id = $3',
+      'UPDATE deployments SET output = $1::text, status = $2::text, deployed_at = CASE WHEN $2 = \'success\' THEN NOW() ELSE deployed_at END WHERE id = $3',
       [output, status, deploymentId]
     );
   } catch (err) {
