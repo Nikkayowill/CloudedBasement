@@ -794,11 +794,42 @@ async function setupDatabaseAsync(server, databaseType, userId) {
   }
 }
 
+// POST /delete-deployment
+exports.deleteDeployment = async (req, res) => {
+  try {
+    const { deploymentId } = req.body;
+    const userId = req.session.userId;
+    
+    if (!deploymentId) {
+      return res.redirect('/dashboard?error=Invalid deployment ID');
+    }
+    
+    // Verify deployment belongs to this user
+    const deploymentCheck = await pool.query(
+      'SELECT d.id FROM deployments d JOIN servers s ON d.user_id = s.user_id WHERE d.id = $1 AND s.user_id = $2',
+      [deploymentId, userId]
+    );
+    
+    if (deploymentCheck.rows.length === 0) {
+      return res.redirect('/dashboard?error=Deployment not found or unauthorized');
+    }
+    
+    // Delete deployment
+    await pool.query('DELETE FROM deployments WHERE id = $1', [deploymentId]);
+    
+    res.redirect('/dashboard?success=Deployment deleted successfully');
+  } catch (error) {
+    console.error('Delete deployment error:', error);
+    res.redirect('/dashboard?error=Failed to delete deployment');
+  }
+};
+
 module.exports = {
   serverAction: exports.serverAction,
   deleteServer: exports.deleteServer,
   deploy: exports.deploy,
   addDomain: exports.addDomain,
   enableSSL: exports.enableSSL,
-  setupDatabase: exports.setupDatabase
+  setupDatabase: exports.setupDatabase,
+  deleteDeployment: exports.deleteDeployment
 };

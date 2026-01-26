@@ -452,9 +452,16 @@ const buildDashboardTemplate = (data) => {
                                 ` : ''}
                             </td>
                             <td class="px-6 py-4">
-                                <button onclick="toggleDeploymentLog(${dep.id})" class="text-brand hover:text-cyan-400 text-xs font-bold uppercase">
+                                <button onclick="toggleDeploymentLog(${dep.id})" class="text-brand hover:text-cyan-400 text-xs font-bold uppercase mr-4">
                                     View Logs
                                 </button>
+                                <form method="POST" action="/delete-deployment" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this deployment record?');">
+                                    <input type="hidden" name="_csrf" value="${data.csrfToken}">
+                                    <input type="hidden" name="deploymentId" value="${dep.id}">
+                                    <button type="submit" class="text-red-400 hover:text-red-300 text-xs font-bold uppercase">
+                                        Delete
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                         <tr id="deployment-log-${dep.id}" class="hidden border-b border-gray-700">
