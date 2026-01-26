@@ -787,6 +787,9 @@ const showResetPassword = async (req, res) => {
       return res.redirect('/forgot-password?error=Invalid or expired reset link. Please request a new one.');
     }
     
+    const errorMsg = req.query.error;
+    const successMsg = req.query.message;
+    
     res.send(`
 ${getHTMLHead('Reset Password - Basement')}
     ${getResponsiveNav(req)}
@@ -795,6 +798,9 @@ ${getHTMLHead('Reset Password - Basement')}
       <div class="max-w-md w-full bg-gray-900/80 backdrop-blur-xl border border-blue-500/30 rounded p-6 shadow-[0_0_70px_rgba(0,102,255,0.25),0_0_110px_rgba(0,102,255,0.12),inset_0_0_35px_rgba(0,102,255,0.03)]">
         <h1 class="text-2xl font-bold text-white text-center mb-2">SET NEW PASSWORD</h1>
         <p class="text-center text-gray-400 text-sm mb-6">Enter your new password below</p>
+        
+        ${errorMsg ? `<div class="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded text-red-400 text-sm">${errorMsg}</div>` : ''}
+        ${successMsg ? `<div class="mb-4 p-3 bg-green-500/20 border border-green-500/50 rounded text-green-400 text-sm">${successMsg}</div>` : ''}
         
         <form method="POST" action="/reset-password/${token}" class="space-y-4">
           <input type="hidden" name="_csrf" value="${req.csrfToken()}">
@@ -839,8 +845,11 @@ const handleResetPassword = async (req, res) => {
     const { token } = req.params;
     const { password, confirmPassword } = req.body;
     
+    console.log('[RESET PASSWORD] Received request:', { token, passwordLength: password?.length, confirmPasswordLength: confirmPassword?.length });
+    
     // Validate passwords match
     if (password !== confirmPassword) {
+      console.log('[RESET PASSWORD] Passwords do not match');
       return res.redirect(`/reset-password/${token}?error=Passwords do not match`);
     }
     
