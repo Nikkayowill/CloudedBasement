@@ -31,8 +31,8 @@ systemctl restart sshd
 # Update system
 apt-get update
 
-# Install Nginx and Certbot
-apt-get install -y nginx certbot python3-certbot-nginx
+# Install Git, Nginx and Certbot
+apt-get install -y git nginx certbot python3-certbot-nginx
 
 # Configure firewall
 ufw allow 'Nginx Full'
