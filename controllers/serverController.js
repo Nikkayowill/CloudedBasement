@@ -347,26 +347,69 @@ async function performDeployment(server, gitUrl, repoName, deploymentId) {
   }
 }
 
+// Helper: Setup Node version using nvm if specified in package.json
+async function setupNodeVersion(conn, repoName, output, deploymentId) {
+  try {
+    // Read package.json to check for Node version requirement
+    const packageJson = await execSSH(conn, `cat /root/${repoName}/package.json`);
+    const parsed = JSON.parse(packageJson);
+    
+    // Check for Node version in engines field
+    const nodeVersion = parsed.engines?.node;
+    
+    if (nodeVersion) {
+      output += `📦 Detected Node version requirement: ${nodeVersion}\n`;
+      await updateDeploymentOutput(deploymentId, output, 'in-progress');
+      
+      // Extract major version (e.g., "14.x" -> "14", ">=12.0.0" -> "12")
+      const majorVersion = nodeVersion.match(/\d+/)?.[0];
+      
+      if (majorVersion) {
+        output += `🔄 Installing Node ${majorVersion} via nvm...\n`;
+        await updateDeploymentOutput(deploymentId, output, 'in-progress');
+        
+        // Source nvm and install/use specified version
+        const nvmCommand = `source /root/.nvm/nvm.sh && nvm install ${majorVersion} && nvm use ${majorVersion}`;
+        await execSSH(conn, nvmCommand);
+        
+        output += `✓ Switched to Node ${majorVersion}\n`;
+        await updateDeploymentOutput(deploymentId, output, 'in-progress');
+      }
+    }
+  } catch (error) {
+    // If nvm setup fails, continue with default Node version
+    output += `⚠️ Could not detect/switch Node version, using default\n`;
+    await updateDeploymentOutput(deploymentId, output, 'in-progress');
+  }
+}
+
+// Helper: Wrap command with nvm sourcing
+function withNvm(command) {
+  return `source /root/.nvm/nvm.sh 2>/dev/null || true; ${command}`;
+}
+
 // Deploy static site (React/Vue/Vite)
 async function deployStaticSite(conn, repoName, output, deploymentId) {
+  // Detect and switch Node version if specified
   output += `\n[3/5] Installing dependencies...\n`;
+  await setupNodeVersion(conn, repoName, output, deploymentId);
   
   // Try npm install with progressively more aggressive flags
   let installSuccess = false;
   try {
-    await execSSH(conn, `cd /root/${repoName} && npm install --legacy-peer-deps`);
+    await execSSH(conn, withNvm(`cd /root/${repoName} && npm install --legacy-peer-deps`));
     output += `✓ Dependencies installed\n`;
     installSuccess = true;
   } catch (e) {
     output += `⚠️ Standard install failed, trying with --force...\n`;
     try {
-      await execSSH(conn, `cd /root/${repoName} && npm install --legacy-peer-deps --force`);
+      await execSSH(conn, withNvm(`cd /root/${repoName} && npm install --legacy-peer-deps --force`));
       output += `✓ Dependencies installed (with --force)\n`;
       installSuccess = true;
     } catch (e2) {
       output += `⚠️ Install with --force failed, trying with --ignore-scripts...\n`;
       try {
-        await execSSH(conn, `cd /root/${repoName} && npm install --legacy-peer-deps --force --ignore-scripts`);
+        await execSSH(conn, withNvm(`cd /root/${repoName} && npm install --legacy-peer-deps --force --ignore-scripts`));
         output += `✓ Dependencies installed (ignoring scripts)\n`;
         installSuccess = true;
       } catch (e3) {
@@ -388,7 +431,7 @@ async function deployStaticSite(conn, repoName, output, deploymentId) {
   } else if (installSuccess) {
     // Only try to build if install succeeded
     try {
-      await execSSH(conn, `cd /root/${repoName} && npm run build`);
+      await execSSH(conn, withNvm(`cd /root/${repoName} && npm run build`));
       output += `✓ Build completed\n`;
     } catch (buildError) {
       output += `⚠️ Build failed: ${buildError.message}\n`;
