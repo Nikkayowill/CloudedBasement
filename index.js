@@ -253,9 +253,9 @@ app.post('/delete-env-var', requireAuth, csrfProtection, serverController.delete
 
 // Dashboard route
 app.get('/dashboard', requireAuth, csrfProtection, dashboardController.showDashboard);
-app.post('/submit-ticket', requireAuth, dashboardController.submitSupportTicket);
-app.post('/change-password', requireAuth, dashboardController.changePassword);
-app.post('/dashboard/dismiss-next-steps', requireAuth, (req, res) => {
+app.post('/submit-ticket', requireAuth, csrfProtection, dashboardController.submitSupportTicket);
+app.post('/change-password', requireAuth, csrfProtection, dashboardController.changePassword);
+app.post('/dashboard/dismiss-next-steps', requireAuth, csrfProtection, (req, res) => {
   req.session.dismissedNextSteps = true;
   res.json({ success: true });
 });
