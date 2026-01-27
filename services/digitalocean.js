@@ -133,7 +133,7 @@ echo "Setup complete!" > /root/setup.log
     });
 
     const droplet = response.data.droplet;
-    console.log('Droplet created:', droplet.id);
+    console.log('Droplet created:', droplet.id, '(password hidden for security)');
     
     // Save to database - wrapped in try-catch to handle race condition
     try {
