@@ -713,16 +713,24 @@ WantedBy=multi-user.target`;
   return output;
 }
 
-// Helper: Execute SSH command
-function execSSH(conn, command) {
+// Helper: Execute SSH command with timeout
+function execSSH(conn, command, timeoutMs = 900000) { // 15 min default timeout
   return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      reject(new Error(`Command timed out after ${timeoutMs / 1000}s: ${command.substring(0, 100)}...`));
+    }, timeoutMs);
+    
     conn.exec(command, (err, stream) => {
-      if (err) return reject(err);
+      if (err) {
+        clearTimeout(timeoutId);
+        return reject(err);
+      }
       
       let output = '';
       let errorOutput = '';
       
       stream.on('close', (code) => {
+        clearTimeout(timeoutId);
         if (code === 0) {
           resolve(output);
         } else {
