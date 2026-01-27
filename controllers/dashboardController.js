@@ -1,5 +1,5 @@
 const pool = require('../db');
-const { getDashboardHead, getFooter, getScripts, getResponsiveNav } = require('../helpers');
+const { getDashboardHead, getFooter, getScripts, getResponsiveNav, escapeHtml } = require('../helpers');
 
 // GET /dashboard
 exports.showDashboard = async (req, res) => {
@@ -10,8 +10,8 @@ exports.showDashboard = async (req, res) => {
         const sessionFlash = req.session.flashMessage || '';
         delete req.session.flashMessage; // Clear after reading
         
-        const flashSuccess = req.query.success || sessionFlash || '';
-        const flashError = req.query.error || '';
+        const flashSuccess = escapeHtml(req.query.success || sessionFlash || '');
+        const flashError = escapeHtml(req.query.error || '');
         const emailConfirmed = !!req.session.emailConfirmed;
 
         // Check if user has paid (not currently used in template but kept for logic)

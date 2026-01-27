@@ -5,7 +5,7 @@ const getStripe = () => {
 };
 const pool = require('../db');
 const { createRealServer } = require('../services/digitalocean');
-const { getHTMLHead, getScripts, getFooter, getResponsiveNav } = require('../helpers');
+const { getHTMLHead, getScripts, getFooter, getResponsiveNav, escapeHtml } = require('../helpers');
 
 // GET /pay
 exports.showCheckout = (req, res) => {
