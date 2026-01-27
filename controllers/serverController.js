@@ -319,17 +319,17 @@ async function performDeployment(server, gitUrl, repoName, deploymentId) {
       
       if (isReactOrVue) {
         output += `✓ Detected: Static site (React/Vue)\n`;
-        await deployStaticSite(conn, repoName, output, deploymentId);
+        output = await deployStaticSite(conn, repoName, output, deploymentId);
       } else {
         output += `✓ Detected: Node.js backend\n`;
-        await deployNodeBackend(conn, repoName, output, deploymentId);
+        output = await deployNodeBackend(conn, repoName, output, deploymentId);
       }
     } else if (hasRequirementsTxt) {
       output += `✓ Detected: Python application\n`;
-      await deployPythonApp(conn, repoName, output, deploymentId);
+      output = await deployPythonApp(conn, repoName, output, deploymentId);
     } else if (hasIndexHtml) {
       output += `✓ Detected: Static HTML site\n`;
-      await deployStaticHTML(conn, repoName, output, deploymentId);
+      output = await deployStaticHTML(conn, repoName, output, deploymentId);
     } else {
       throw new Error('Unable to detect project type. Ensure package.json, requirements.txt, or index.html exists.');
     }
@@ -420,6 +420,7 @@ async function deployStaticSite(conn, repoName, output, deploymentId) {
   
   output += `\n🌐 Your site is live at: http://${conn.config.host}/\n`;
   await updateDeploymentOutput(deploymentId, output, 'in-progress');
+  return output;
 }
 
 // Deploy static HTML (no build step)
@@ -431,6 +432,7 @@ async function deployStaticHTML(conn, repoName, output, deploymentId) {
   output += `✓ Site deployed to Nginx\n`;
   output += `\n🌐 Your site is live at: http://${conn.config.host}/\n`;
   await updateDeploymentOutput(deploymentId, output, 'in-progress');
+  return output;
 }
 
 // Deploy Node.js backend
@@ -490,6 +492,7 @@ WantedBy=multi-user.target`;
   output += `\n🚀 Your backend is running!\n`;
   output += `Note: Configure Nginx reverse proxy for public access.\n`;
   await updateDeploymentOutput(deploymentId, output, 'in-progress');
+  return output;
 }
 
 // Deploy Python app
@@ -524,6 +527,7 @@ WantedBy=multi-user.target`;
   output += `✓ Application started\n`;
   output += `\n🐍 Your Python app is running!\n`;
   await updateDeploymentOutput(deploymentId, output, 'in-progress');
+  return output;
 }
 
 // Helper: Execute SSH command
