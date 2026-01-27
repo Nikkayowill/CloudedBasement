@@ -65,13 +65,13 @@ ${getHTMLHead('Domain Management - Admin')}
               <tbody>
                 ${domains.map(domain => `
                   <tr>
-                    <td class="domain-name">${domain.name}</td>
-                    <td><span class="badge ${domain.status === 'active' ? 'active' : domain.status === 'pending' ? 'pending' : 'expired'}">${domain.status || 'active'}</span></td>
-                    <td><span class="badge hostinger">${domain.provider || 'hostinger'}</span></td>
+                    <td class="domain-name">${escapeHtml(domain.name)}</td>
+                    <td><span class="badge ${domain.status === 'active' ? 'active' : domain.status === 'pending' ? 'pending' : 'expired'}">${escapeHtml(domain.status || 'active')}</span></td>
+                    <td><span class="badge hostinger">${escapeHtml(domain.provider || 'hostinger')}</span></td>
                     <td>${domain.renewal_date ? new Date(domain.renewal_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '-'}</td>
                     <td class="action-cell">
-                      <button class="action-btn" onclick="openEditModal(${domain.id}, '${domain.name}', '${domain.status}', '${domain.provider}', '${domain.renewal_date || ''}', '${(domain.notes || '').replace(/'/g, "\\'")}')">Edit</button>
-                      <button class="action-btn danger" onclick="openDeleteModal(${domain.id}, '${domain.name}')">Delete</button>
+                      <button class="action-btn" onclick="openEditModal(${domain.id}, '${escapeHtml(domain.name).replace(/'/g, "\\'")}', '${escapeHtml(domain.status).replace(/'/g, "\\'")}', '${escapeHtml(domain.provider).replace(/'/g, "\\'")}', '${domain.renewal_date || ''}', '${escapeHtml(domain.notes || '').replace(/'/g, "\\'")}')">Edit</button>
+                      <button class="action-btn danger" onclick="openDeleteModal(${domain.id}, '${escapeHtml(domain.name).replace(/'/g, "\\'")}')">Delete</button>
                     </td>
                   </tr>
                 `).join('')}
@@ -327,7 +327,7 @@ const addDomain = async (req, res) => {
     const domain = result.rows[0];
     await logAdminAction(adminId, adminEmail, 'add_domain', name, null, JSON.stringify({ status, provider }));
 
-    res.json({ success: true, message: `Domain ${name} added`, domain });
+    res.json({ success: true, message: `Domain ${escapeHtml(name)} added`, domain });
   } catch (error) {
     console.error('[ADMIN] Add domain error:', error);
     if (error.code === '23505') {
@@ -359,7 +359,7 @@ const updateDomain = async (req, res) => {
     const domain = result.rows[0];
     await logAdminAction(adminId, adminEmail, 'update_domain', name || domain.name, JSON.stringify(oldDomain), JSON.stringify({ status: domain.status, provider: domain.provider }));
 
-    res.json({ success: true, message: `Domain ${domain.name} updated`, domain });
+    res.json({ success: true, message: `Domain ${escapeHtml(domain.name)} updated`, domain });
   } catch (error) {
     console.error('[ADMIN] Update domain error:', error);
     res.status(500).json({ success: false, error: 'Failed to update domain' });
@@ -382,7 +382,7 @@ const deleteDomain = async (req, res) => {
     await pool.query('DELETE FROM domains WHERE id = $1', [id]);
     await logAdminAction(adminId, adminEmail, 'delete_domain', domain.name, JSON.stringify({ deleted: true }), null);
 
-    res.json({ success: true, message: `Domain ${domain.name} deleted` });
+    res.json({ success: true, message: `Domain ${escapeHtml(domain.name)} deleted` });
   } catch (error) {
     console.error('[ADMIN] Delete domain error:', error);
     res.status(500).json({ success: false, error: 'Failed to delete domain' });

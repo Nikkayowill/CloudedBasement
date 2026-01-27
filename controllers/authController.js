@@ -496,8 +496,8 @@ const handleVerifyCode = async (req, res) => {
 
 // GET /verify-email - Show code entry page
 const showVerifyEmail = (req, res) => {
-  const error = req.query.error || '';
-  const success = req.query.success || '';
+  const error = escapeHtml(req.query.error || '');
+  const success = escapeHtml(req.query.success || '');
   
   res.send(`
 ${getHTMLHead('Verify Email - Basement')}
@@ -668,8 +668,8 @@ const resendCode = async (req, res) => {
 
 // GET /forgot-password - Display forgot password form
 const showForgotPassword = (req, res) => {
-  const message = req.query.message || '';
-  const error = req.query.error || '';
+  const message = escapeHtml(req.query.message || '');
+  const error = escapeHtml(req.query.error || '');
   
   res.send(`
 ${getHTMLHead('Forgot Password - Basement')}
@@ -788,8 +788,8 @@ const showResetPassword = async (req, res) => {
       return res.redirect('/forgot-password?error=Invalid or expired reset link. Please request a new one.');
     }
     
-    const errorMsg = req.query.error;
-    const successMsg = req.query.message;
+    const errorMsg = escapeHtml(req.query.error || '');
+    const successMsg = escapeHtml(req.query.message || '');
     
     res.send(`
 ${getHTMLHead('Reset Password - Basement')}
