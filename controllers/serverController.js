@@ -1321,14 +1321,14 @@ exports.deleteDeployment = async (req, res) => {
       return res.redirect('/dashboard?error=Invalid deployment ID');
     }
     
-    // Verify deployment belongs to this user
+    // SECURITY: Verify deployment belongs to this user (direct ownership check)
     const deploymentCheck = await pool.query(
-      'SELECT d.id FROM deployments d JOIN servers s ON d.user_id = s.user_id WHERE d.id = $1 AND s.user_id = $2',
+      'SELECT id FROM deployments WHERE id = $1 AND user_id = $2',
       [deploymentId, userId]
     );
     
     if (deploymentCheck.rows.length === 0) {
-      return res.redirect('/dashboard?error=Deployment not found or unauthorized');
+      return res.redirect('/dashboard?error=Deployment not found or access denied');
     }
     
     // Delete deployment
@@ -1390,19 +1390,18 @@ exports.deleteEnvVar = async (req, res) => {
     const { id } = req.body;
     const userId = req.session.userId;
     
-    // Verify env var belongs to user's server
-    const check = await pool.query(
-      `SELECT ev.id FROM environment_variables ev
-       JOIN servers s ON ev.server_id = s.id
-       WHERE ev.id = $1 AND s.user_id = $2`,
+    // SECURITY: Atomic delete with ownership verification (prevents TOCTOU race)
+    const result = await pool.query(
+      `DELETE FROM environment_variables ev
+       USING servers s
+       WHERE ev.id = $1 AND ev.server_id = s.id AND s.user_id = $2
+       RETURNING ev.id`,
       [id, userId]
     );
     
-    if (check.rows.length === 0) {
-      return res.redirect('/dashboard?error=Environment variable not found');
+    if (result.rows.length === 0) {
+      return res.redirect('/dashboard?error=Environment variable not found or access denied');
     }
-    
-    await pool.query('DELETE FROM environment_variables WHERE id = $1', [id]);
     
     res.redirect('/dashboard?success=Environment variable deleted');
   } catch (error) {

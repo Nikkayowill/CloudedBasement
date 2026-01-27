@@ -219,7 +219,8 @@ app.get('/api/deployment-status/:id', requireAuth, async (req, res) => {
     );
     
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Deployment not found' });
+      // SECURITY: Return 403 instead of 404 to prevent enumeration
+      return res.status(403).json({ error: 'Access denied' });
     }
     
     res.json(result.rows[0]);
