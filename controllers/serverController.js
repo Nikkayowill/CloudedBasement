@@ -845,6 +845,50 @@ WantedBy=multi-user.target`;
   return output;
 }
 
+// Helper: Sanitize output to mask secrets
+function sanitizeOutput(output) {
+  if (!output) return output;
+  
+  // Mask common secret patterns
+  let sanitized = output;
+  
+  // API Keys (various formats)
+  sanitized = sanitized.replace(/(['"]?api[_-]?key['"]?\s*[:=]\s*['"]?)([A-Za-z0-9_\-]{20,})/gi, '$1***REDACTED***');
+  sanitized = sanitized.replace(/(['"]?apikey['"]?\s*[:=]\s*['"]?)([A-Za-z0-9_\-]{20,})/gi, '$1***REDACTED***');
+  
+  // Tokens (Bearer, JWT, OAuth)
+  sanitized = sanitized.replace(/(['"]?token['"]?\s*[:=]\s*['"]?)([A-Za-z0-9_\-\.]{20,})/gi, '$1***REDACTED***');
+  sanitized = sanitized.replace(/(['"]?bearer['"]?\s+)([A-Za-z0-9_\-\.]{20,})/gi, '$1***REDACTED***');
+  
+  // Passwords
+  sanitized = sanitized.replace(/(['"]?password['"]?\s*[:=]\s*['"]?)([^\s'"]+)/gi, '$1***REDACTED***');
+  sanitized = sanitized.replace(/(['"]?passwd['"]?\s*[:=]\s*['"]?)([^\s'"]+)/gi, '$1***REDACTED***');
+  sanitized = sanitized.replace(/(['"]?pwd['"]?\s*[:=]\s*['"]?)([^\s'"]+)/gi, '$1***REDACTED***');
+  
+  // Secret keys
+  sanitized = sanitized.replace(/(['"]?secret[_-]?key['"]?\s*[:=]\s*['"]?)([^\s'"]+)/gi, '$1***REDACTED***');
+  sanitized = sanitized.replace(/(['"]?private[_-]?key['"]?\s*[:=]\s*['"]?)([^\s'"]+)/gi, '$1***REDACTED***');
+  
+  // Database URLs
+  sanitized = sanitized.replace(/(postgres|mysql|mongodb):\/\/([^:]+):([^@]+)@/gi, '$1://$2:***REDACTED***@');
+  
+  // AWS credentials
+  sanitized = sanitized.replace(/(AKIA[0-9A-Z]{16})/g, '***REDACTED_AWS_KEY***');
+  sanitized = sanitized.replace(/(['"]?aws[_-]?secret[_-]?access[_-]?key['"]?\s*[:=]\s*['"]?)([^\s'"]+)/gi, '$1***REDACTED***');
+  
+  // Stripe keys
+  sanitized = sanitized.replace(/(sk_live_[A-Za-z0-9]{24,})/g, '***REDACTED_STRIPE_KEY***');
+  sanitized = sanitized.replace(/(pk_live_[A-Za-z0-9]{24,})/g, '***REDACTED_STRIPE_KEY***');
+  
+  // GitHub tokens
+  sanitized = sanitized.replace(/(ghp_[A-Za-z0-9]{36,})/g, '***REDACTED_GITHUB_TOKEN***');
+  
+  // Generic base64 secrets (>40 chars)
+  sanitized = sanitized.replace(/(['"]?secret['"]?\s*[:=]\s*['"]?)([A-Za-z0-9+\/]{40,}={0,2})/gi, '$1***REDACTED***');
+  
+  return sanitized;
+}
+
 // Helper: Execute SSH command with timeout
 function execSSH(conn, command, timeoutMs = 900000) { // 15 min default timeout
   return new Promise((resolve, reject) => {
@@ -894,9 +938,12 @@ async function fileExists(conn, path) {
 // Helper: Update deployment output in database
 async function updateDeploymentOutput(deploymentId, output, status) {
   try {
+    // Sanitize output before storing
+    const sanitizedOutput = sanitizeOutput(output);
+    
     await pool.query(
       'UPDATE deployments SET output = $1::text, status = $2::text, deployed_at = CASE WHEN $2 = \'success\' THEN NOW() ELSE deployed_at END WHERE id = $3',
-      [output, status, deploymentId]
+      [sanitizedOutput, status, deploymentId]
     );
   } catch (err) {
     console.error('[DEPLOY] Failed to update deployment output:', err);
