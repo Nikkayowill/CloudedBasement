@@ -350,13 +350,53 @@ async function performDeployment(server, gitUrl, repoName, deploymentId) {
 // Deploy static site (React/Vue/Vite)
 async function deployStaticSite(conn, repoName, output, deploymentId) {
   output += `\n[3/5] Installing dependencies...\n`;
-  await execSSH(conn, `cd /root/${repoName} && npm install`);
-  output += `✓ Dependencies installed\n`;
+  
+  // Try npm install with progressively more aggressive flags
+  let installSuccess = false;
+  try {
+    await execSSH(conn, `cd /root/${repoName} && npm install --legacy-peer-deps`);
+    output += `✓ Dependencies installed\n`;
+    installSuccess = true;
+  } catch (e) {
+    output += `⚠️ Standard install failed, trying with --force...\n`;
+    try {
+      await execSSH(conn, `cd /root/${repoName} && npm install --legacy-peer-deps --force`);
+      output += `✓ Dependencies installed (with --force)\n`;
+      installSuccess = true;
+    } catch (e2) {
+      output += `⚠️ Install with --force failed, trying with --ignore-scripts...\n`;
+      try {
+        await execSSH(conn, `cd /root/${repoName} && npm install --legacy-peer-deps --force --ignore-scripts`);
+        output += `✓ Dependencies installed (ignoring scripts)\n`;
+        installSuccess = true;
+      } catch (e3) {
+        output += `⚠️ npm install failed completely, checking for pre-built files...\n`;
+      }
+    }
+  }
   await updateDeploymentOutput(deploymentId, output, 'in-progress');
 
   output += `\n[4/5] Building project...\n`;
-  const buildOutput = await execSSH(conn, `cd /root/${repoName} && npm run build`);
-  output += `✓ Build completed\n`;
+  
+  // Check if build directory already exists (pre-built)
+  const prebuiltDist = await fileExists(conn, `/root/${repoName}/dist`);
+  const prebuiltBuild = await fileExists(conn, `/root/${repoName}/build`);
+  const prebuiltOut = await fileExists(conn, `/root/${repoName}/out`);
+  
+  if (prebuiltDist || prebuiltBuild || prebuiltOut) {
+    output += `✓ Found pre-built files, skipping build step\n`;
+  } else if (installSuccess) {
+    // Only try to build if install succeeded
+    try {
+      await execSSH(conn, `cd /root/${repoName} && npm run build`);
+      output += `✓ Build completed\n`;
+    } catch (buildError) {
+      output += `⚠️ Build failed: ${buildError.message}\n`;
+      output += `Attempting to deploy source files directly...\n`;
+    }
+  } else {
+    output += `⚠️ Skipping build (dependencies not installed)\n`;
+  }
   await updateDeploymentOutput(deploymentId, output, 'in-progress');
 
   output += `\n[5/5] Deploying to web server...\n`;
@@ -364,12 +404,20 @@ async function deployStaticSite(conn, repoName, output, deploymentId) {
   const hasDist = await fileExists(conn, `/root/${repoName}/dist`);
   const hasBuild = await fileExists(conn, `/root/${repoName}/build`);
   const hasOut = await fileExists(conn, `/root/${repoName}/out`);
+  const hasPublic = await fileExists(conn, `/root/${repoName}/public`);
   
-  const buildDir = hasDist ? 'dist' : hasBuild ? 'build' : hasOut ? 'out' : null;
-  if (!buildDir) throw new Error('Build directory not found. Expected dist/, build/, or out/');
-
-  await execSSH(conn, `rm -rf /var/www/html/* && cp -r /root/${repoName}/${buildDir}/* /var/www/html/`);
-  output += `✓ Site deployed to Nginx\n`;
+  let buildDir = hasDist ? 'dist' : hasBuild ? 'build' : hasOut ? 'out' : hasPublic ? 'public' : null;
+  
+  // If no build directory found, try deploying source directly
+  if (!buildDir) {
+    output += `⚠️ No build directory found. Deploying source files directly...\n`;
+    await execSSH(conn, `rm -rf /var/www/html/* && cp -r /root/${repoName}/* /var/www/html/`);
+    output += `✓ Source files deployed to Nginx\n`;
+  } else {
+    await execSSH(conn, `rm -rf /var/www/html/* && cp -r /root/${repoName}/${buildDir}/* /var/www/html/`);
+    output += `✓ Site deployed to Nginx (from ${buildDir}/)\n`;
+  }
+  
   output += `\n🌐 Your site is live at: http://${conn.config.host}/\n`;
   await updateDeploymentOutput(deploymentId, output, 'in-progress');
 }
@@ -388,8 +436,31 @@ async function deployStaticHTML(conn, repoName, output, deploymentId) {
 // Deploy Node.js backend
 async function deployNodeBackend(conn, repoName, output, deploymentId) {
   output += `\n[3/5] Installing dependencies...\n`;
-  await execSSH(conn, `cd /root/${repoName} && npm install`);
-  output += `✓ Dependencies installed\n`;
+  
+  // Try npm install with progressively more aggressive flags
+  let installSuccess = false;
+  try {
+    await execSSH(conn, `cd /root/${repoName} && npm install --legacy-peer-deps --production`);
+    output += `✓ Dependencies installed\n`;
+    installSuccess = true;
+  } catch (e) {
+    output += `⚠️ Standard install failed, trying with --force...\n`;
+    try {
+      await execSSH(conn, `cd /root/${repoName} && npm install --legacy-peer-deps --force --production`);
+      output += `✓ Dependencies installed (with --force)\n`;
+      installSuccess = true;
+    } catch (e2) {
+      output += `⚠️ Install with --force failed, trying with --ignore-scripts...\n`;
+      try {
+        await execSSH(conn, `cd /root/${repoName} && npm install --legacy-peer-deps --force --ignore-scripts --production`);
+        output += `✓ Dependencies installed (ignoring scripts)\n`;
+        installSuccess = true;
+      } catch (e3) {
+        output += `❌ npm install failed: ${e3.message}\n`;
+        throw new Error('Failed to install Node.js dependencies');
+      }
+    }
+  }
   await updateDeploymentOutput(deploymentId, output, 'in-progress');
 
   output += `\n[4/5] Creating systemd service...\n`;
