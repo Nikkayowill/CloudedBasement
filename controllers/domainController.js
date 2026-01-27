@@ -347,7 +347,7 @@ const updateDomain = async (req, res) => {
 
     const oldResult = await pool.query('SELECT status, provider FROM domains WHERE id = $1', [id]);
     if (oldResult.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Domain not found' });
+      return res.status(403).json({ success: false, error: 'Domain not found or access denied' });
     }
 
     const oldDomain = oldResult.rows[0];
@@ -375,7 +375,7 @@ const deleteDomain = async (req, res) => {
 
     const result = await pool.query('SELECT name FROM domains WHERE id = $1', [id]);
     if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Domain not found' });
+      return res.status(403).json({ success: false, error: 'Domain not found or access denied' });
     }
 
     const domain = result.rows[0];
