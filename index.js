@@ -34,7 +34,7 @@ const bcrypt = require('bcrypt');
 const { getHTMLHead, getDashboardHead, getScripts, getFooter, getAuthLinks, getResponsiveNav } = require('./helpers');
 const { createRealServer: createRealServerService, syncDigitalOceanDroplets: syncDigitalOceanDropletsService } = require('./services/digitalocean');
 const { requireAuth, requireAdmin } = require('./middleware/auth');
-const { generalLimiter, contactLimiter, paymentLimiter, emailVerifyLimiter } = require('./middleware/rateLimiter');
+const { generalLimiter, contactLimiter, paymentLimiter, emailVerifyLimiter, deploymentLimiter } = require('./middleware/rateLimiter');
 const pagesController = require('./controllers/pagesController');
 const gettingStartedController = require('./controllers/gettingStartedController');
 const authController = require('./controllers/authController');
@@ -236,7 +236,7 @@ app.post('/server-action', requireAuth, csrfProtection, serverController.serverA
 app.post('/delete-server', requireAuth, csrfProtection, serverController.deleteServer);
 
 // Deploy route
-app.post('/deploy', requireAuth, csrfProtection, serverController.deploy);
+app.post('/deploy', requireAuth, deploymentLimiter, csrfProtection, serverController.deploy);
 
 // Delete deployment route
 app.post('/delete-deployment', requireAuth, csrfProtection, serverController.deleteDeployment);

@@ -31,9 +31,19 @@ const emailVerifyLimiter = rateLimit({
   legacyHeaders: false
 });
 
+const deploymentLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5, // 5 deployments per hour per user
+  message: 'Too many deployments, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => req.session.userId || req.ip // Rate limit by user ID
+});
+
 module.exports = {
   generalLimiter,
   contactLimiter,
   paymentLimiter,
-  emailVerifyLimiter
+  emailVerifyLimiter,
+  deploymentLimiter
 };
