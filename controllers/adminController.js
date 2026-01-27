@@ -56,17 +56,17 @@ ${getHTMLHead('Admin Dashboard')}
                 }, {});
                 return `
                 <tr class="hover:bg-gray-700 transition-colors">
-                  <td class="px-6 py-4 text-sm text-white font-bold">${r.customer_email}</td>
+                  <td class="px-6 py-4 text-sm text-white font-bold">${escapeHtml(r.customer_email)}</td>
                   <td class="px-6 py-4">
                     <div class="text-xs text-gray-400 space-y-1">
-                      <div>Region: <span class="text-brand font-bold">${details.Region || 'N/A'}</span></div>
-                      <div>Name: <span class="text-gray-300">${details['Server Name'] || 'Default'}</span></div>
-                      <div>Use: <span class="text-gray-300">${details['Use Case'] || 'Not specified'}</span></div>
+                      <div>Region: <span class="text-brand font-bold">${escapeHtml(details.Region || 'N/A')}</span></div>
+                      <div>Name: <span class="text-gray-300">${escapeHtml(details['Server Name'] || 'Default')}</span></div>
+                      <div>Use: <span class="text-gray-300">${escapeHtml(details['Use Case'] || 'Not specified')}</span></div>
                     </div>
                   </td>
                   <td class="px-6 py-4 text-sm">
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase bg-orange-500 bg-opacity-20 text-orange-400">
-                      ${r.status}
+                      ${escapeHtml(r.status)}
                     </span>
                   </td>
                   <td class="px-6 py-4 text-sm text-gray-400">
@@ -105,12 +105,12 @@ ${getHTMLHead('Admin Dashboard')}
             <tbody class="divide-y divide-gray-700">
               ${users.map(u => `
                 <tr class="hover:bg-gray-700 transition-colors">
-                  <td class="px-6 py-4 text-sm text-white">${u.email}</td>
+                  <td class="px-6 py-4 text-sm text-white">${escapeHtml(u.email)}</td>
                   <td class="px-6 py-4 text-sm text-gray-300">${u.role}</td>
                   <td class="px-6 py-4 text-sm text-gray-300">${u.email_confirmed ? 'Yes' : 'No'}</td>
                   <td class="px-6 py-4 text-sm text-gray-400">${new Date(u.created_at).toLocaleDateString()}</td>
                   <td class="px-6 py-4 text-sm">
-                    <form method="POST" action="/admin/delete-user/${u.id}" class="inline" onsubmit="return confirm('Delete user ${u.email}? This will also delete all their servers, deployments, and payments.');">
+                    <form method="POST" action="/admin/delete-user/${u.id}" class="inline" onsubmit="return confirm('Delete user ${escapeHtml(u.email)}? This will also delete all their servers, deployments, and payments.');">
                       <input type="hidden" name="_csrf" value="${req.csrfToken()}">
                       <button type="submit" class="px-3 py-1.5 bg-red-600 text-white font-bold text-xs rounded hover:bg-red-700 transition-colors">
                         Delete
@@ -144,10 +144,10 @@ ${getHTMLHead('Admin Dashboard')}
               ${servers.map(s => `
                 <tr class="hover:bg-gray-700 transition-colors">
                   <td class="px-6 py-4 text-sm text-gray-400 font-mono">#${s.id}</td>
-                  <td class="px-6 py-4 text-sm text-white">${s.owner_email || '-'}</td>
-                  <td class="px-6 py-4 text-sm text-gray-300">${s.plan}</td>
-                  <td class="px-6 py-4 text-sm text-gray-300">${s.status}</td>
-                  <td class="px-6 py-4 text-sm text-gray-300 font-mono">${s.ip_address || '-'}</td>
+                  <td class="px-6 py-4 text-sm text-white">${escapeHtml(s.owner_email || '-')}</td>
+                  <td class="px-6 py-4 text-sm text-gray-300">${escapeHtml(s.plan)}</td>
+                  <td class="px-6 py-4 text-sm text-gray-300">${escapeHtml(s.status)}</td>
+                  <td class="px-6 py-4 text-sm text-gray-300 font-mono">${escapeHtml(s.ip_address || '-')}</td>
                   <td class="px-6 py-4 text-sm text-gray-400">${new Date(s.created_at).toLocaleDateString()}</td>
                   <td class="px-6 py-4 text-sm">
                     <div class="flex flex-col sm:flex-row gap-2">
@@ -196,7 +196,7 @@ ${getHTMLHead('Admin Dashboard')}
             <tbody class="divide-y divide-gray-700">
               ${domains.map(d => `
                 <tr class="hover:bg-gray-700 transition-colors">
-                  <td class="px-6 py-4 text-sm text-white font-mono">${d.domain}</td>
+                  <td class="px-6 py-4 text-sm text-white font-mono">${escapeHtml(d.domain)}</td>
                   <td class="px-6 py-4 text-sm text-gray-300">${d.ssl_enabled ? 'Yes' : 'No'}</td>
                   <td class="px-6 py-4 text-sm text-gray-400">${d.ssl_expires_at ? new Date(d.ssl_expires_at).toLocaleDateString() : '-'}</td>
                   <td class="px-6 py-4 text-sm text-gray-400">${new Date(d.created_at).toLocaleDateString()}</td>
@@ -225,9 +225,9 @@ ${getHTMLHead('Admin Dashboard')}
               ${deployments.map(d => `
                 <tr class="hover:bg-gray-700 transition-colors">
                   <td class="px-6 py-4 text-sm text-gray-400 font-mono">#${d.id}</td>
-                  <td class="px-6 py-4 text-sm text-white">${d.owner_email || '-'}</td>
-                  <td class="px-6 py-4 text-xs text-gray-300 font-mono">${d.git_url || '-'}</td>
-                  <td class="px-6 py-4 text-sm text-gray-300">${d.status}</td>
+                  <td class="px-6 py-4 text-sm text-white">${escapeHtml(d.owner_email || '-')}</td>
+                  <td class="px-6 py-4 text-xs text-gray-300 font-mono">${escapeHtml(d.git_url || '-')}</td>
+                  <td class="px-6 py-4 text-sm text-gray-300">${escapeHtml(d.status)}</td>
                   <td class="px-6 py-4 text-sm text-gray-400">${d.deployed_at ? new Date(d.deployed_at).toLocaleDateString() : '-'}</td>
                 </tr>
               `).join('')}
@@ -255,10 +255,10 @@ ${getHTMLHead('Admin Dashboard')}
               ${payments.map(p => `
                 <tr class="hover:bg-gray-700 transition-colors">
                   <td class="px-6 py-4 text-sm text-gray-400 font-mono">#${p.id}</td>
-                  <td class="px-6 py-4 text-sm text-white">${p.customer_email || '-'}</td>
-                  <td class="px-6 py-4 text-sm text-gray-300">${p.plan}</td>
+                  <td class="px-6 py-4 text-sm text-white">${escapeHtml(p.customer_email || '-')}</td>
+                  <td class="px-6 py-4 text-sm text-gray-300">${escapeHtml(p.plan)}</td>
                   <td class="px-6 py-4 text-sm text-brand font-bold">$${(p.amount / 100).toFixed(2)}</td>
-                  <td class="px-6 py-4 text-sm text-gray-300">${p.status}</td>
+                  <td class="px-6 py-4 text-sm text-gray-300">${escapeHtml(p.status)}</td>
                   <td class="px-6 py-4 text-sm text-gray-400">${new Date(p.created_at).toLocaleDateString()}</td>
                 </tr>
               `).join('')}

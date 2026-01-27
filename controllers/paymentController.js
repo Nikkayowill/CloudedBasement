@@ -32,8 +32,8 @@ ${getHTMLHead('Checkout - Clouded  Basement')}
           <div class="inline-block px-4 py-2 bg-brand bg-opacity-20 border border-brand rounded-full mb-4">
             <span class="text-white text-xs font-bold uppercase">Monthly Billing</span>
           </div>
-          <h1 class="text-3xl font-bold text-white mb-2">${selectedPlan.name}</h1>
-          <p class="text-gray-400 text-sm">${selectedPlan.description}</p>
+          <h1 class="text-3xl font-bold text-white mb-2">${escapeHtml(selectedPlan.name)}</h1>
+          <p class="text-gray-400 text-sm">${escapeHtml(selectedPlan.description)}</p>
         </div>
         
         <div class="bg-black bg-opacity-30 rounded-lg p-6 mb-6">
@@ -449,7 +449,7 @@ exports.stripeWebhook = async (req, res) => {
     console.error('Webhook signature verification failed:', err.message);
     console.error('[WEBHOOK DEBUG] Signature:', sig ? 'present' : 'MISSING');
     console.error('[WEBHOOK DEBUG] Secret configured:', !!webhookSecret);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+    return res.status(400).send(`Webhook Error: ${escapeHtml(err.message)}`);
   }
 
   // Handle the event

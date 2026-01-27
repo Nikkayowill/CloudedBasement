@@ -320,19 +320,19 @@ const buildDashboardTemplate = (data) => {
                 <div class="space-y-4 mb-6">
                     <div class="flex justify-between items-center pb-2 border-b border-white border-opacity-5">
                         <span class="text-xs text-gray-500 uppercase font-bold">IPv4 Interface</span>
-                        <span class="text-sm font-mono text-brand">${data.ipAddress}</span>
+                        <span class="text-sm font-mono text-brand">${escapeHtml(data.ipAddress)}</span>
                     </div>
                     <div class="flex justify-between items-center pb-2 border-b border-white border-opacity-5">
                         <span class="text-xs text-gray-500 uppercase font-bold">Host Name</span>
-                        <span class="text-sm font-mono text-white">${data.serverName}</span>
+                        <span class="text-sm font-mono text-white">${escapeHtml(data.serverName)}</span>
                     </div>
                     <div class="flex justify-between items-center pb-2 border-b border-white border-opacity-5">
                         <span class="text-xs text-gray-500 uppercase font-bold">Plan</span>
-                        <span class="text-sm font-mono text-white">${data.plan.toUpperCase()}</span>
+                        <span class="text-sm font-mono text-white">${escapeHtml(data.plan.toUpperCase())}</span>
                     </div>
                     <div class="flex justify-between items-center pb-2 border-b border-white border-opacity-5">
                         <span class="text-xs text-gray-500 uppercase font-bold">Status</span>
-                        <span class="text-sm font-mono ${data.serverStatus === 'running' ? 'text-green-500' : data.serverStatus === 'provisioning' ? 'text-brand animate-pulse' : 'text-red-400'}">${data.serverStatus.toUpperCase()}</span>
+                        <span class="text-sm font-mono ${data.serverStatus === 'running' ? 'text-green-500' : data.serverStatus === 'provisioning' ? 'text-brand animate-pulse' : 'text-red-400'}">${escapeHtml(data.serverStatus.toUpperCase())}</span>
                     </div>
                 </div>
                 <div class="flex gap-3">
@@ -371,24 +371,24 @@ const buildDashboardTemplate = (data) => {
                 <div>
                     <p class="text-xs text-gray-400 uppercase font-bold mb-2">Username</p>
                     <div class="flex gap-2">
-                        <input type="text" value="${data.sshUsername}" readonly class="flex-1 px-3 py-2 bg-black bg-opacity-30 border border-gray-700 rounded text-white font-mono text-sm">
-                        <button onclick="navigator.clipboard.writeText('${data.sshUsername}')" class="px-4 py-2 bg-brand text-gray-900 font-bold rounded hover:bg-cyan-500 transition-colors text-xs">Copy</button>
+                        <input type="text" value="${escapeHtml(data.sshUsername)}" readonly class="flex-1 px-3 py-2 bg-black bg-opacity-30 border border-gray-700 rounded text-white font-mono text-sm">
+                        <button onclick="navigator.clipboard.writeText('${data.sshUsername.replace(/'/g, "\\'")}')">" class="px-4 py-2 bg-brand text-gray-900 font-bold rounded hover:bg-cyan-500 transition-colors text-xs">Copy</button>
                     </div>
                 </div>
                 
                 <div>
                     <p class="text-xs text-gray-400 uppercase font-bold mb-2">Password</p>
                     <div class="flex gap-2">
-                        <input type="text" value="${data.sshPassword}" readonly class="flex-1 px-3 py-2 bg-black bg-opacity-30 border border-gray-700 rounded text-white font-mono text-sm">
-                        <button onclick="navigator.clipboard.writeText('${data.sshPassword}')" class="px-4 py-2 bg-brand text-gray-900 font-bold rounded hover:bg-cyan-500 transition-colors text-xs">Copy</button>
+                        <input type="text" value="${escapeHtml(data.sshPassword)}" readonly class="flex-1 px-3 py-2 bg-black bg-opacity-30 border border-gray-700 rounded text-white font-mono text-sm">
+                        <button onclick="navigator.clipboard.writeText('${data.sshPassword.replace(/'/g, "\\'")}')" class="px-4 py-2 bg-brand text-gray-900 font-bold rounded hover:bg-cyan-500 transition-colors text-xs">Copy</button>
                     </div>
                 </div>
                 
                 <div>
                     <p class="text-xs text-gray-400 uppercase font-bold mb-2">Connection Command</p>
                     <div class="flex gap-2">
-                        <input type="text" value="ssh ${data.sshUsername}@${data.ipAddress}" readonly class="flex-1 px-3 py-2 bg-black bg-opacity-30 border border-gray-700 rounded text-white font-mono text-sm">
-                        <button onclick="navigator.clipboard.writeText('ssh ${data.sshUsername}@${data.ipAddress}')" class="px-4 py-2 bg-brand text-gray-900 font-bold rounded hover:bg-cyan-500 transition-colors text-xs">Copy</button>
+                        <input type="text" value="ssh ${escapeHtml(data.sshUsername)}@${escapeHtml(data.ipAddress)}" readonly class="flex-1 px-3 py-2 bg-black bg-opacity-30 border border-gray-700 rounded text-white font-mono text-sm">
+                        <button onclick="navigator.clipboard.writeText('ssh ${data.sshUsername.replace(/'/g, "\\'")}@${data.ipAddress.replace(/'/g, "\\'")}')" class="px-4 py-2 bg-brand text-gray-900 font-bold rounded hover:bg-cyan-500 transition-colors text-xs">Copy</button>
                     </div>
                 </div>
             </div>
@@ -441,9 +441,9 @@ const buildDashboardTemplate = (data) => {
                     </thead>
                     <tbody>
                         ${data.deployments.slice(0, 5).map((dep, i) => `
-                        <tr class="border-b border-gray-700" data-deployment-id="${dep.id}" data-deployment-status="${dep.status}">
+                        <tr class="border-b border-gray-700" data-deployment-id="${dep.id}" data-deployment-status="${escapeHtml(dep.status)}">
                             <td class="px-6 py-4 font-mono text-xs text-white">#DEP-${1000 + i}</td>
-                            <td class="px-6 py-4 text-xs text-gray-400">${dep.git_url.split('/').pop() || 'repo'}</td>
+                            <td class="px-6 py-4 text-xs text-gray-400">${escapeHtml(dep.git_url.split('/').pop() || 'repo')}</td>
                             <td class="px-6 py-4 text-xs text-gray-400 font-mono">${new Date(dep.deployed_at).toLocaleDateString()} ${new Date(dep.deployed_at).toLocaleTimeString()}</td>
                             <td class="px-6 py-4">
                                 <span class="deployment-status-badge px-2 py-1 text-xs font-bold uppercase rounded ${
@@ -451,10 +451,10 @@ const buildDashboardTemplate = (data) => {
                                     dep.status === 'failed' ? 'bg-red-900 text-red-300' : 
                                     dep.status === 'deploying' ? 'bg-yellow-900 text-yellow-300' :
                                     'bg-blue-900 text-blue-300'
-                                }">${dep.status}</span>
+                                }">${escapeHtml(dep.status)}</span>
                                 ${dep.status === 'success' && data.serverIp ? `
                                 <div class="mt-2">
-                                    <a href="http://${data.serverIp}" target="_blank" class="text-brand hover:text-cyan-400 text-xs">View Live Site →</a>
+                                    <a href="http://${escapeHtml(data.serverIp)}" target="_blank" class="text-brand hover:text-cyan-400 text-xs">View Live Site →</a>
                                 </div>
                                 ` : ''}
                             </td>
@@ -477,7 +477,7 @@ const buildDashboardTemplate = (data) => {
                                     <span class="text-xs font-bold uppercase text-gray-500">Deployment Output</span>
                                     <button onclick="toggleDeploymentLog(${dep.id})" class="text-gray-500 hover:text-white text-xs">Close</button>
                                 </div>
-                                <pre class="deployment-output bg-gray-900 p-4 rounded border border-gray-700 text-xs text-green-400 font-mono overflow-x-auto max-h-96 overflow-y-auto">${dep.output || 'Waiting for deployment to start...'}</pre>
+                                <pre class="deployment-output bg-gray-900 p-4 rounded border border-gray-700 text-xs text-green-400 font-mono overflow-x-auto max-h-96 overflow-y-auto">${escapeHtml(dep.output || 'Waiting for deployment to start...')}</pre>
                             </td>
                         </tr>
                         `).join('')}
@@ -566,7 +566,7 @@ const buildDashboardTemplate = (data) => {
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     ${data.domains.map(dom => `
                     <div class="bg-black bg-opacity-30 border border-gray-700 rounded-lg p-3">
-                        <p class="text-sm text-white font-medium mb-1.5">${dom.domain}</p>
+                        <p class="text-sm text-white font-medium mb-1.5">${escapeHtml(dom.domain)}</p>
                         <p class="text-xs text-gray-500 mb-2">Added ${new Date(dom.created_at).toLocaleDateString()}</p>
                         ${dom.ssl_enabled ? '<span class="px-2 py-1 text-xs font-bold uppercase rounded bg-green-900 text-green-300">SSL Active</span>' : '<span class="px-2 py-1 text-xs font-bold uppercase rounded bg-yellow-900 text-yellow-300">No SSL</span>'}
                     </div>
@@ -588,12 +588,12 @@ const buildDashboardTemplate = (data) => {
                         <div class="flex justify-between items-center mb-2">
                             <p class="text-xs text-gray-400">Ticket #${ticket.id}</p>
                             <span class="px-2 py-1 text-xs font-bold uppercase rounded ${ticket.status === 'resolved' ? 'bg-green-900 text-green-300' : 'bg-blue-900 text-blue-300'}">
-                                ${ticket.status}
+                                ${escapeHtml(ticket.status)}
                             </span>
                         </div>
-                        <p class="text-xs text-white font-medium mb-2">${ticket.subject}</p>
+                        <p class="text-xs text-white font-medium mb-2">${escapeHtml(ticket.subject)}</p>
                         <span class="px-2 py-1 text-xs font-bold uppercase rounded ${ticket.priority === 'urgent' ? 'bg-red-900 text-red-300' : ticket.priority === 'high' ? 'bg-yellow-900 text-yellow-300' : 'bg-gray-700 text-gray-300'}">
-                            ${ticket.priority}
+                            ${escapeHtml(ticket.priority)}
                         </span>
                     </div>
                     `).join('')}
@@ -628,12 +628,12 @@ const buildDashboardTemplate = (data) => {
                         <tbody>
                             ${data.envVars.map(env => `
                                 <tr class="border-b border-gray-700 hover:bg-gray-700 hover:bg-opacity-30 transition-colors">
-                                    <td class="py-3 px-4 font-mono text-brand">${env.key}</td>
+                                    <td class="py-3 px-4 font-mono text-brand">${escapeHtml(env.key)}</td>
                                     <td class="py-3 px-4 font-mono text-white truncate max-w-xs">
-                                        <span class="inline-block max-w-full overflow-hidden text-ellipsis">${env.value.length > 50 ? env.value.substring(0, 50) + '...' : env.value}</span>
+                                        <span class="inline-block max-w-full overflow-hidden text-ellipsis">${escapeHtml(env.value.length > 50 ? env.value.substring(0, 50) + '...' : env.value)}</span>
                                     </td>
                                     <td class="py-3 px-4">
-                                        <form action="/delete-env-var" method="POST" class="inline" onsubmit="return confirm('Delete ${env.key}?')">
+                                        <form action="/delete-env-var" method="POST" class="inline" onsubmit="return confirm('Delete ${escapeHtml(env.key).replace(/'/g, "\\'")}?')">
                                             <input type="hidden" name="_csrf" value="${data.csrfToken}">
                                             <input type="hidden" name="id" value="${env.id}">
                                             <button type="submit" class="text-red-500 hover:text-red-400 text-xs font-bold">Delete</button>
