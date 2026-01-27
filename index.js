@@ -19,9 +19,6 @@ if (process.env.SENTRY_DSN) {
 }
 
 const express = require('express');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const axios = require('axios');
-const { Client } = require('ssh2');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const { body, validationResult } = require('express-validator');
@@ -30,7 +27,6 @@ const csrf = require('csurf');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const pool = require('./db');
-const bcrypt = require('bcrypt');
 const { getHTMLHead, getDashboardHead, getScripts, getFooter, getAuthLinks, getResponsiveNav } = require('./helpers');
 const { createRealServer: createRealServerService, syncDigitalOceanDroplets: syncDigitalOceanDropletsService } = require('./services/digitalocean');
 const { requireAuth, requireAdmin } = require('./middleware/auth');
@@ -45,7 +41,6 @@ const adminController = require('./controllers/adminController');
 const domainController = require('./controllers/domainController');
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./middleware/logger');
-const { sendServerRequestEmail } = require('./services/email');
 const { runMigrations } = require('./migrations/run-migrations');
 
 const app = express();

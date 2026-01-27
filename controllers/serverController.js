@@ -2,6 +2,8 @@ const axios = require('axios');
 const { Client } = require('ssh2');
 const pool = require('../db');
 const { escapeHtml } = require('../helpers');
+const { getUserServer, verifyServerOwnership, updateServerStatus, appendDeploymentOutput, updateDeploymentStatus } = require('../utils/db-helpers');
+const { SERVER_STATUS, DEPLOYMENT_STATUS, TIMEOUTS, PORTS } = require('../constants');
 
 // Strict DNS-compliant domain validation
 function isValidDomain(domain) {
@@ -27,17 +29,12 @@ exports.serverAction = async (req, res) => {
     const action = req.body.action;
     const userId = req.session.userId;
 
-    // Get user's server
-    const serverResult = await pool.query(
-      'SELECT * FROM servers WHERE user_id = $1',
-      [userId]
-    );
+    // Get user's server (using helper)
+    const server = await getUserServer(userId);
 
-    if (serverResult.rows.length === 0) {
+    if (!server) {
       return res.redirect('/dashboard?error=No server found');
     }
-
-    const server = serverResult.rows[0];
 
     // Map actions to DigitalOcean API endpoints
     let doAction;
@@ -46,15 +43,15 @@ exports.serverAction = async (req, res) => {
     
     if (action === 'start') {
       doAction = 'power_on';
-      newStatus = 'running';
+      newStatus = SERVER_STATUS.RUNNING;
       successMessage = 'Server started successfully';
     } else if (action === 'restart') {
       doAction = 'reboot';
-      newStatus = 'running';
+      newStatus = SERVER_STATUS.RUNNING;
       successMessage = 'Server restarted successfully';
     } else if (action === 'stop') {
       doAction = 'power_off';
-      newStatus = 'stopped';
+      newStatus = SERVER_STATUS.STOPPED;
       successMessage = 'Server stopped successfully';
     } else {
       return res.redirect('/dashboard?error=Invalid action');
@@ -954,54 +951,6 @@ async function updateDeploymentOutput(deploymentId, output, status) {
   } catch (err) {
     console.error('[DEPLOY] Failed to update deployment output:', err);
   }
-}
-
-// Helper function to execute SSH command
-function executeSSHCommand(host, username, password, command) {
-  return new Promise((resolve, reject) => {
-    const conn = new Client();
-    
-    conn.on('ready', () => {
-      conn.exec(command, (err, stream) => {
-        if (err) {
-          conn.end();
-          return reject(err);
-        }
-        
-        let output = '';
-        let errorOutput = '';
-        
-        stream.on('close', (code) => {
-          conn.end();
-          if (code === 0) {
-            resolve(output);
-          } else {
-            reject(new Error(`Command failed with code ${code}: ${errorOutput}`));
-          }
-        });
-        
-        stream.on('data', (data) => {
-          output += data.toString();
-        });
-        
-        stream.stderr.on('data', (data) => {
-          errorOutput += data.toString();
-        });
-      });
-    });
-    
-    conn.on('error', (err) => {
-      reject(err);
-    });
-    
-    conn.connect({
-      host,
-      port: 22,
-      username,
-      password,
-      readyTimeout: 30000
-    });
-  });
 }
 
 // POST /add-domain
