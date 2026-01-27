@@ -31,9 +31,14 @@ systemctl restart sshd
 # Update system
 apt-get update
 
-# Install Node.js 20.x
+# Install Node.js 20.x (default)
 curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt-get install -y nodejs
+
+# Install nvm (Node Version Manager) for root user
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+export NVM_DIR="/root/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh"
 
 # Install Git, Nginx, Certbot, wget, and Python pip
 apt-get install -y git nginx certbot python3-certbot-nginx wget python3-pip
