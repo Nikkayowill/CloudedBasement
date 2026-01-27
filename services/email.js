@@ -174,12 +174,6 @@ async function verifyConnection() {
   }
 }
 
-module.exports = {
-  sendConfirmationEmail,
-  sendEmail,
-  verifyConnection
-};
-
 // Send server request confirmation email
 async function sendServerRequestEmail(userEmail, region, serverName) {
   const subject = 'Server Request Received - Clouded Basement';

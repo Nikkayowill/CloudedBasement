@@ -1,5 +1,7 @@
 const pool = require('../db');
 const { getDashboardHead, getFooter, getScripts, getResponsiveNav, escapeHtml } = require('../helpers');
+const { getUserServer, hasSuccessfulPayment } = require('../utils/db-helpers');
+const { PAYMENT_STATUS, SERVER_STATUS } = require('../constants');
 
 // GET /dashboard
 exports.showDashboard = async (req, res) => {
@@ -14,19 +16,11 @@ exports.showDashboard = async (req, res) => {
         const flashError = escapeHtml(req.query.error || '');
         const emailConfirmed = !!req.session.emailConfirmed;
 
-        // Check if user has paid (not currently used in template but kept for logic)
-        const paymentCheck = await pool.query(
-            'SELECT 1 FROM payments WHERE user_id = $1 AND status = $2 ORDER BY created_at DESC LIMIT 1',
-            [userId, 'succeeded']
-        );
-        const hasPaid = paymentCheck.rows.length > 0;
+        // Check if user has paid
+        const hasPaid = await hasSuccessfulPayment(userId);
 
-        // Get user's server info
-        const serverResult = await pool.query(
-            'SELECT * FROM servers WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1',
-            [userId]
-        );
-        const server = serverResult.rows[0] || null;
+        // Get user's server info (using helper)
+        const server = await getUserServer(userId);
         const hasServer = !!server;
         // Explicit boolean check - if column doesn't exist, treats as false (safe default)
         const postgresInstalled = server?.postgres_installed === true;
@@ -35,7 +29,7 @@ exports.showDashboard = async (req, res) => {
         // Get payment details to determine plan
         const paymentResult = hasPaid ? await pool.query(
             'SELECT plan FROM payments WHERE user_id = $1 AND status = $2 ORDER BY created_at DESC LIMIT 1',
-            [userId, 'succeeded']
+            [userId, PAYMENT_STATUS.SUCCEEDED]
         ) : { rows: [] };
         const paidPlan = paymentResult.rows[0]?.plan || 'basic';
 

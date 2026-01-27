@@ -15,12 +15,9 @@ exports.showCheckout = (req, res) => {
   }
   
   const plan = req.query.plan || 'basic';
-  const planConfig = {
-    basic: { name: 'Basic Plan', price: 0.50, was: 25, description: '1GB RAM, 1 CPU, 25GB SSD' },
-    priority: { name: 'Priority Plan', price: 0.50, was: 60, description: '2GB RAM, 2 CPUs, 50GB SSD' },
-    premium: { name: 'Premium Plan', price: 0.50, was: 120, description: '4GB RAM, 2 CPUs, 80GB SSD' }
-  };
-  const selectedPlan = planConfig[plan] || planConfig.basic;
+  const selectedPlan = PRICING_PLANS[plan] || PRICING_PLANS.basic;
+  // Convert to cents for display (0.50 test pricing vs 25.00 production)
+  const displayPrice = process.env.NODE_ENV === 'production' ? selectedPlan.displayPrice : '$0.50';
   
   res.send(`
 ${getHTMLHead('Checkout - Clouded  Basement')}
