@@ -345,20 +345,20 @@ async function performDeployment(server, gitUrl, repoName, deploymentId) {
       
       if (isReactOrVue) {
         output += `✓ Detected: Static site (React/Vue)\n`;
-        output = await deployStaticSite(conn, repoName, output, deploymentId);
+        output = await deployStaticSite(conn, repoName, output, deploymentId, server.id);
       } else {
         output += `✓ Detected: Node.js backend\n`;
-        output = await deployNodeBackend(conn, repoName, output, deploymentId);
+        output = await deployNodeBackend(conn, repoName, output, deploymentId, server.id);
       }
     } else if (hasCargoToml) {
       output += `✓ Detected: Rust application\n`;
-      output = await deployRustApp(conn, repoName, output, deploymentId);
+      output = await deployRustApp(conn, repoName, output, deploymentId, server.id);
     } else if (hasGoMod) {
       output += `✓ Detected: Go application\n`;
-      output = await deployGoApp(conn, repoName, output, deploymentId);
+      output = await deployGoApp(conn, repoName, output, deploymentId, server.id);
     } else if (hasRequirementsTxt) {
       output += `✓ Detected: Python application\n`;
-      output = await deployPythonApp(conn, repoName, output, deploymentId);
+      output = await deployPythonApp(conn, repoName, output, deploymentId, server.id);
     } else if (hasIndexHtml) {
       output += `✓ Detected: Static HTML site\n`;
       output = await deployStaticHTML(conn, repoName, output, deploymentId);
@@ -420,11 +420,52 @@ function withNvm(command) {
   return `source /root/.nvm/nvm.sh 2>/dev/null || true; ${command}`;
 }
 
+// Helper: Inject environment variables into .env file
+async function injectEnvVars(conn, repoName, output, deploymentId, serverId) {
+  try {
+    if (!serverId) return output;
+    
+    // Fetch env vars from database
+    const envResult = await pool.query(
+      'SELECT key, value FROM environment_variables WHERE server_id = $1',
+      [serverId]
+    );
+    
+    if (envResult.rows.length === 0) {
+      output += `No environment variables configured\n`;
+      return output;
+    }
+    
+    output += `Injecting ${envResult.rows.length} environment variable(s)...\n`;
+    
+    // Create .env file content
+    const envContent = envResult.rows
+      .map(row => `${row.key}=${row.value}`)
+      .join('\\n');
+    
+    // Write .env file (escape quotes and newlines for shell)
+    const escapedContent = envContent.replace(/'/g, "'\\''");
+    await execSSH(conn, `echo '${escapedContent}' > /root/${repoName}/.env`);
+    
+    output += `✓ Environment variables injected\n`;
+    await updateDeploymentOutput(deploymentId, output, 'in-progress');
+    
+    return output;
+  } catch (error) {
+    console.error('Env injection error:', error);
+    output += `⚠️ Failed to inject environment variables: ${error.message}\n`;
+    return output;
+  }
+}
+
 // Deploy static site (React/Vue/Vite)
-async function deployStaticSite(conn, repoName, output, deploymentId) {
+async function deployStaticSite(conn, repoName, output, deploymentId, serverId) {
   // Detect and switch Node version if specified
   output += `\n[3/5] Installing dependencies...\n`;
   await setupNodeVersion(conn, repoName, output, deploymentId);
+  
+  // Inject environment variables
+  output = await injectEnvVars(conn, repoName, output, deploymentId, serverId);
   
   // Try npm install with progressively more aggressive flags
   let installSuccess = false;
@@ -511,8 +552,11 @@ async function deployStaticHTML(conn, repoName, output, deploymentId) {
 }
 
 // Deploy Node.js backend
-async function deployNodeBackend(conn, repoName, output, deploymentId) {
+async function deployNodeBackend(conn, repoName, output, deploymentId, serverId) {
   output += `\n[3/5] Installing dependencies...\n`;
+  
+  // Inject environment variables
+  output = await injectEnvVars(conn, repoName, output, deploymentId, serverId);
   
   // Try npm install with progressively more aggressive flags
   let installSuccess = false;
@@ -571,8 +615,12 @@ WantedBy=multi-user.target`;
 }
 
 // Deploy Python app
-async function deployPythonApp(conn, repoName, output, deploymentId) {
+async function deployPythonApp(conn, repoName, output, deploymentId, serverId) {
   output += `\n[3/5] Installing dependencies...\n`;
+  
+  // Inject environment variables
+  output = await injectEnvVars(conn, repoName, output, deploymentId, serverId);
+  
   await execSSH(conn, `cd /root/${repoName} && pip3 install -r requirements.txt`);
   output += `✓ Dependencies installed\n`;
   await updateDeploymentOutput(deploymentId, output, 'in-progress');
@@ -606,9 +654,12 @@ WantedBy=multi-user.target`;
 }
 
 // Deploy Rust app
-async function deployRustApp(conn, repoName, output, deploymentId) {
+async function deployRustApp(conn, repoName, output, deploymentId, serverId) {
   output += `\n[3/5] Building Rust application...\n`;
   output += `This may take several minutes...\n`;
+  
+  // Inject environment variables
+  output = await injectEnvVars(conn, repoName, output, deploymentId, serverId);
   
   try {
     // Source cargo environment and build
@@ -670,8 +721,11 @@ WantedBy=multi-user.target`;
 }
 
 // Deploy Go app
-async function deployGoApp(conn, repoName, output, deploymentId) {
+async function deployGoApp(conn, repoName, output, deploymentId, serverId) {
   output += `\n[3/5] Building Go application...\n`;
+  
+  // Inject environment variables
+  output = await injectEnvVars(conn, repoName, output, deploymentId, serverId);
   
   try {
     // Build the Go binary
@@ -1150,6 +1204,76 @@ exports.deleteDeployment = async (req, res) => {
   }
 };
 
+// POST /add-env-var
+exports.addEnvVar = async (req, res) => {
+  try {
+    const { key, value } = req.body;
+    const userId = req.session.userId;
+    
+    if (!key || !value) {
+      return res.redirect('/dashboard?error=Key and value are required');
+    }
+    
+    // Validate key format (alphanumeric + underscore only)
+    if (!/^[A-Z_][A-Z0-9_]*$/.test(key)) {
+      return res.redirect('/dashboard?error=Invalid key format. Use uppercase letters, numbers, and underscores only (e.g., DATABASE_URL)');
+    }
+    
+    // Get user's server
+    const serverResult = await pool.query(
+      'SELECT id FROM servers WHERE user_id = $1',
+      [userId]
+    );
+    
+    if (serverResult.rows.length === 0) {
+      return res.redirect('/dashboard?error=No server found');
+    }
+    
+    const serverId = serverResult.rows[0].id;
+    
+    // Insert or update env var
+    await pool.query(
+      `INSERT INTO environment_variables (server_id, key, value, updated_at) 
+       VALUES ($1, $2, $3, NOW()) 
+       ON CONFLICT (server_id, key) 
+       DO UPDATE SET value = $3, updated_at = NOW()`,
+      [serverId, key, value]
+    );
+    
+    res.redirect('/dashboard?success=Environment variable added');
+  } catch (error) {
+    console.error('Add env var error:', error);
+    res.redirect('/dashboard?error=Failed to add environment variable');
+  }
+};
+
+// POST /delete-env-var
+exports.deleteEnvVar = async (req, res) => {
+  try {
+    const { id } = req.body;
+    const userId = req.session.userId;
+    
+    // Verify env var belongs to user's server
+    const check = await pool.query(
+      `SELECT ev.id FROM environment_variables ev
+       JOIN servers s ON ev.server_id = s.id
+       WHERE ev.id = $1 AND s.user_id = $2`,
+      [id, userId]
+    );
+    
+    if (check.rows.length === 0) {
+      return res.redirect('/dashboard?error=Environment variable not found');
+    }
+    
+    await pool.query('DELETE FROM environment_variables WHERE id = $1', [id]);
+    
+    res.redirect('/dashboard?success=Environment variable deleted');
+  } catch (error) {
+    console.error('Delete env var error:', error);
+    res.redirect('/dashboard?error=Failed to delete environment variable');
+  }
+};
+
 module.exports = {
   serverAction: exports.serverAction,
   deleteServer: exports.deleteServer,
@@ -1157,5 +1281,7 @@ module.exports = {
   addDomain: exports.addDomain,
   enableSSL: exports.enableSSL,
   setupDatabase: exports.setupDatabase,
-  deleteDeployment: exports.deleteDeployment
+  deleteDeployment: exports.deleteDeployment,
+  addEnvVar: exports.addEnvVar,
+  deleteEnvVar: exports.deleteEnvVar
 };

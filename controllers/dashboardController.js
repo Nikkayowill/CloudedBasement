@@ -50,6 +50,12 @@ exports.showDashboard = async (req, res) => {
             'SELECT * FROM domains WHERE user_id = $1 ORDER BY created_at DESC',
             [userId]
         );
+        
+        // Get environment variables
+        const envVarsResult = hasServer ? await pool.query(
+            'SELECT * FROM environment_variables WHERE server_id = $1 ORDER BY key ASC',
+            [server.id]
+        ) : { rows: [] };
 
         // Get support tickets
         const ticketsResult = await pool.query(
@@ -73,6 +79,7 @@ exports.showDashboard = async (req, res) => {
             csrfToken,
             deployments: deploymentsResult.rows || [],
             domains: domainsResult.rows || [],
+            envVars: envVarsResult.rows || [],
             tickets: ticketsResult.rows || [],
             userEmail: req.session.userEmail,
             userRole: req.session.userRole,
@@ -592,6 +599,52 @@ const buildDashboardTemplate = (data) => {
                     `).join('')}
                 </div>
             ` : '<p class="text-gray-500 text-xs italic">No support tickets. Click "New" to create one.</p>'}
+        </div>
+
+        <!-- Environment Variables -->
+        <div class="bg-gray-800 rounded-lg p-6">
+            <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-6">Environment Variables</h4>
+            <p class="text-gray-400 text-xs mb-4">Set environment variables for your deployments (e.g., DATABASE_URL, API_KEY)</p>
+            
+            <form action="/add-env-var" method="POST" class="mb-6">
+                <input type="hidden" name="_csrf" value="${data.csrfToken}">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <input type="text" name="key" placeholder="KEY_NAME" required pattern="[A-Z_][A-Z0-9_]*" title="Uppercase letters, numbers, and underscores only" class="px-4 py-3 bg-gray-900 rounded-lg text-white focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none text-sm">
+                    <input type="text" name="value" placeholder="value" required class="px-4 py-3 bg-gray-900 rounded-lg text-white focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none text-sm">
+                    <button type="submit" class="px-6 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors text-sm">Add Variable</button>
+                </div>
+            </form>
+            
+            ${data.envVars && data.envVars.length > 0 ? `
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr class="border-b border-gray-700">
+                                <th class="py-3 px-4 text-gray-400 font-bold uppercase">Key</th>
+                                <th class="py-3 px-4 text-gray-400 font-bold uppercase">Value</th>
+                                <th class="py-3 px-4 text-gray-400 font-bold uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.envVars.map(env => `
+                                <tr class="border-b border-gray-700 hover:bg-gray-700 hover:bg-opacity-30 transition-colors">
+                                    <td class="py-3 px-4 font-mono text-brand">${env.key}</td>
+                                    <td class="py-3 px-4 font-mono text-white truncate max-w-xs">
+                                        <span class="inline-block max-w-full overflow-hidden text-ellipsis">${env.value.length > 50 ? env.value.substring(0, 50) + '...' : env.value}</span>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <form action="/delete-env-var" method="POST" class="inline" onsubmit="return confirm('Delete ${env.key}?')">
+                                            <input type="hidden" name="_csrf" value="${data.csrfToken}">
+                                            <input type="hidden" name="id" value="${env.id}">
+                                            <button type="submit" class="text-red-500 hover:text-red-400 text-xs font-bold">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            ` : '<p class="text-gray-500 text-xs italic">No environment variables set.</p>'}
         </div>
 
         <!-- Account Settings -->
