@@ -44,7 +44,7 @@ export DB_HOST=localhost
 export DB_PORT=5432
 export DB_NAME=webserver_db
 export DB_USER=basement_app
-export DB_PASSWORD='KExFqHy/QmvpiSW1d9Z9gkMcZaK4GFUvvJdOUbKZvO0='
+export DB_PASSWORD='<your_secure_password_here>'
 
 # Run setup scripts
 node setup-db.js
