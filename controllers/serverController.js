@@ -1,6 +1,7 @@
 const axios = require('axios');
 const { Client } = require('ssh2');
 const pool = require('../db');
+const { escapeHtml } = require('../helpers');
 
 // Strict DNS-compliant domain validation
 function isValidDomain(domain) {
