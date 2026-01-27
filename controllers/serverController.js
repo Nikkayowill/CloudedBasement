@@ -161,9 +161,30 @@ exports.deploy = async (req, res) => {
     const gitUrl = req.body.git_url;
     const userId = req.session.userId;
 
-    // Validate Git URL format
-    if (!gitUrl || (!gitUrl.includes('github.com') && !gitUrl.includes('gitlab.com') && !gitUrl.includes('bitbucket.org'))) {
-      return res.redirect('/dashboard?error=Invalid Git URL. Must be from GitHub, GitLab, or Bitbucket.');
+    // Validate Git URL - only allow trusted platforms
+    if (!gitUrl) {
+      return res.redirect('/dashboard?error=Git URL is required');
+    }
+    
+    // Whitelist trusted Git hosting platforms
+    const trustedHosts = [
+      'github.com',
+      'gitlab.com',
+      'bitbucket.org',
+      'codeberg.org',
+      'sr.ht' // SourceHut
+    ];
+    
+    const isValidGitUrl = trustedHosts.some(host => gitUrl.includes(host));
+    
+    if (!isValidGitUrl) {
+      return res.redirect('/dashboard?error=Invalid Git URL. Only GitHub, GitLab, Bitbucket, Codeberg, and SourceHut are supported.');
+    }
+    
+    // Prevent SSRF attacks - block private IPs
+    const privateIpPattern = /(localhost|127\.0\.0\.1|192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)/i;
+    if (privateIpPattern.test(gitUrl)) {
+      return res.redirect('/dashboard?error=Cannot deploy from private IP addresses');
     }
 
     // Get user's server
