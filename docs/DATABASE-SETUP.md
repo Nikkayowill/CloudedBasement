@@ -20,7 +20,7 @@ sudo -u postgres psql
 CREATE DATABASE webserver_db;
 
 -- Create user with strong password (use the generated one from .env.production.template)
-CREATE USER basement_app WITH ENCRYPTED PASSWORD 'KExFqHy/QmvpiSW1d9Z9gkMcZaK4GFUvvJdOUbKZvO0=';
+CREATE USER basement_app WITH ENCRYPTED PASSWORD '<your_secure_password_here>';
 
 -- Grant privileges
 GRANT ALL PRIVILEGES ON DATABASE webserver_db TO basement_app;
@@ -81,7 +81,7 @@ sudo systemctl restart postgresql
 ```bash
 # Test connection with new user
 psql -h localhost -U basement_app -d webserver_db
-# Enter password when prompted: KExFqHy/QmvpiSW1d9Z9gkMcZaK4GFUvvJdOUbKZvO0=
+# Enter password when prompted (from your .env file)
 ```
 
 ## Backup and Restore
