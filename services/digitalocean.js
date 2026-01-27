@@ -31,8 +31,12 @@ systemctl restart sshd
 # Update system
 apt-get update
 
-# Install Git, Nginx, Certbot, and wget (for GitHub deployments)
-apt-get install -y git nginx certbot python3-certbot-nginx wget
+# Install Node.js 20.x
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt-get install -y nodejs
+
+# Install Git, Nginx, Certbot, wget, and Python pip
+apt-get install -y git nginx certbot python3-certbot-nginx wget python3-pip
 
 # Configure firewall
 ufw allow 'Nginx Full'
