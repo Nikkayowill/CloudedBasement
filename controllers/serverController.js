@@ -230,10 +230,17 @@ async function performDeployment(server, gitUrl, repoName, deploymentId) {
 
   try {
     console.log(`[DEPLOY] Attempting SSH connection to ${server.ip_address}...`);
+    console.log(`[DEPLOY] Password from DB: "${server.ssh_password}"`);
+    console.log(`[DEPLOY] Password length: ${server.ssh_password?.length}`);
+    console.log(`[DEPLOY] Password type: ${typeof server.ssh_password}`);
+    
     // Connect via SSH
     await new Promise((resolve, reject) => {
       conn.on('ready', resolve);
-      conn.on('error', reject);
+      conn.on('error', (err) => {
+        console.error(`[DEPLOY] SSH connection error:`, err.message);
+        reject(err);
+      });
       conn.connect({
         host: server.ip_address,
         port: 22,
