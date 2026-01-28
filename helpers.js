@@ -91,6 +91,9 @@ function getFooter() {
             </div>
         </div>
         <div class="text-center mt-10 pt-6 border-t border-blue-500/30 max-w-6xl mx-auto px-8">
+            <p class="mb-3">
+                <a href="/is-this-safe" class="text-brand text-base font-medium hover:text-cyan-400 transition-colors duration-300 underline">Is Clouded Basement safe?</a>
+            </p>
             <p class="text-gray-500 text-xs">&copy; ${new Date().getFullYear()} Basement. All rights reserved.</p>
         </div>
     </footer>
