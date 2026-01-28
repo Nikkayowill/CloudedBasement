@@ -3,6 +3,22 @@
    Only brand colors and custom overrides
    ============================================ */
 
+/* Most Popular Badge - explicit styles for Tailwind v4 */
+.popular-badge {
+    position: absolute;
+    top: -1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.25rem 1rem;
+    background: linear-gradient(to right, #93c5fd, #60a5fa);
+    color: #000;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 0.25rem;
+    text-transform: uppercase;
+    box-shadow: 0 0 25px rgba(135, 206, 250, 0.5);
+}
+
 /* Supercharge 3D Font */
 @font-face {
     font-family: 'Supercharge3D';
