@@ -27,6 +27,7 @@ function getHTMLHead(title) {
     <link rel="stylesheet" href="/css/global.css">
 </head>
 <body>
+<div class="spotlight"></div>
 `;
 }
 
@@ -48,6 +49,7 @@ function getDashboardHead(title) {
     <link rel="stylesheet" href="/css/global.css">
 </head>
 <body>
+<div class="spotlight"></div>
 `;
 }
 
@@ -57,6 +59,7 @@ function getScripts(...scripts) {
   return `
     <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
     <script src="/js/cookie-consent.js"></script>
+    <script src="/js/spotlight.js"></script>
     ${scriptTags}
 </body>
 </html>
