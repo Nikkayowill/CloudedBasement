@@ -206,64 +206,92 @@ async function sendServerRequestEmail(userEmail, region, serverName) {
 }
 
 // Send server ready email with credentials
-async function sendServerReadyEmail(userEmail, serverIp, serverPassword, serverName) {
-  const subject = '🎉 Your Server is Ready! - Clouded Basement';
-  const text = `Your server is ready!\n\nServer IP: ${serverIp}\nUsername: root\nPassword: ${serverPassword}\n\nConnect via SSH:\nssh root@${serverIp}\n\nNext Steps:\n1. Visit your dashboard: https://cloudedbasement.ca/dashboard\n2. Deploy your code using the Git deployment form\n3. Add a custom domain and enable free SSL\n4. Optional: Install PostgreSQL or MongoDB database\n\nView your dashboard: https://cloudedbasement.ca/dashboard\n\n- Clouded Basement Team`;
+async function sendServerReadyEmail(userEmail, serverIp, serverName) {
+  const subject = 'Your Server is Ready! - Clouded Basement';
+  const text = `Your server is ready!
+
+Server IP: ${serverIp}
+Username: root
+Password: (Login to dashboard to view)
+
+For security, your SSH password is only shown in your secure dashboard.
+Login at: https://cloudedbasement.ca/dashboard
+
+Connect via SSH:
+ssh root@${serverIp}
+
+What's Next? (3 Easy Steps)
+
+1. Deploy Your Code
+   Go to your dashboard, find "Deploy from GitHub" section, paste your Git repository URL, and click "Deploy Now". Automatic setup for React, Node.js, Python, and static sites.
+
+2. Add Your Domain (Optional)
+   Dashboard → "Custom Domains" section → enter your domain → follow DNS instructions → click "Enable SSL" for free HTTPS certificate.
+
+3. Install Database (Optional)
+   Dashboard → "Add Database" section → choose PostgreSQL or MongoDB → one-click install (takes 2-3 minutes).
+
+Pre-installed software:
+- Node.js & npm (latest LTS)
+- Python 3 & pip
+- Git
+- Nginx web server
+- Firewall configured (ports 22, 80, 443)
+- Automatic security updates
+
+View your dashboard: https://cloudedbasement.ca/dashboard
+
+Need help? Check our docs at https://cloudedbasement.ca/docs or reply to this email.
+
+- Clouded Basement Team`;
   const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #020814; color: #e0e6f0; padding: 40px 20px;">
-      <h1 style="color: #2DA7DF; margin-bottom: 24px;">🎉 Your Server is Ready!</h1>
-      <p style="color: #a0a8b8; line-height: 1.6; margin-bottom: 24px;">Welcome to Clouded Basement! Your server <strong>${serverName || 'cloudedbasement-server'}</strong> has been provisioned and is ready to use.</p>
-      
-      <div style="background: rgba(45, 167, 223, 0.1); border: 2px solid #2DA7DF; padding: 20px; margin: 24px 0; border-radius: 8px;">
-        <h2 style="color: #2DA7DF; margin-top: 0; font-size: 18px;">SSH Credentials</h2>
-        <p style="margin: 8px 0; color: #e0e6f0; font-family: monospace;"><strong>IP Address:</strong> ${serverIp}</p>
-        <p style="margin: 8px 0; color: #e0e6f0; font-family: monospace;"><strong>Username:</strong> root</p>
-        <p style="margin: 8px 0; color: #e0e6f0; font-family: monospace;"><strong>Password:</strong> ${serverPassword}</p>
-      </div>
-      
-      <div style="background: rgba(0, 0, 0, 0.3); padding: 16px; margin: 24px 0; border-radius: 4px; border-left: 3px solid #2DA7DF;">
-        <p style="margin: 0 0 8px 0; color: #e0e6f0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Connect via SSH:</p>
-        <code style="color: #2DA7DF; font-size: 14px;">ssh root@${serverIp}</code>
-      </div>
-
-      <h2 style="color: #2DA7DF; font-size: 20px; margin: 32px 0 16px 0;">What's Next? (3 Easy Steps)</h2>
-      
-      <div style="background: rgba(45, 167, 223, 0.05); border-left: 4px solid #2DA7DF; padding: 16px; margin: 16px 0;">
-        <p style="margin: 0 0 8px 0; color: #2DA7DF; font-weight: 600;">1️⃣ Deploy Your Code</p>
-        <p style="margin: 0; color: #a0a8b8; font-size: 14px;">Go to your dashboard → "Deploy from GitHub" section → paste your Git repository URL → click "Deploy Now". Automatic setup for React, Node.js, Python, and static sites.</p>
-      </div>
-
-      <div style="background: rgba(45, 167, 223, 0.05); border-left: 4px solid #2DA7DF; padding: 16px; margin: 16px 0;">
-        <p style="margin: 0 0 8px 0; color: #2DA7DF; font-weight: 600;">2️⃣ Add Your Domain (Optional)</p>
-        <p style="margin: 0; color: #a0a8b8; font-size: 14px;">Dashboard → "Custom Domains" section → enter your domain → follow DNS instructions → click "Enable SSL" for free HTTPS certificate.</p>
-      </div>
-
-      <div style="background: rgba(45, 167, 223, 0.05); border-left: 4px solid #2DA7DF; padding: 16px; margin: 16px 0;">
-        <p style="margin: 0 0 8px 0; color: #2DA7DF; font-weight: 600;">3️⃣ Install Database (Optional)</p>
-        <p style="margin: 0; color: #a0a8b8; font-size: 14px;">Dashboard → "Add Database" section → choose PostgreSQL or MongoDB → one-click install (takes 2-3 minutes).</p>
-      </div>
-      
-      <p style="color: #a0a8b8; line-height: 1.6; margin: 24px 0 16px 0;"><strong>Pre-installed software:</strong></p>
-      <ul style="color: #a0a8b8; line-height: 1.8; margin: 0 0 24px 20px;">
-        <li>Node.js & npm (latest LTS)</li>
-        <li>Python 3 & pip</li>
-        <li>Git</li>
-        <li>Nginx web server</li>
-        <li>Firewall configured (ports 22, 80, 443)</li>
-        <li>Automatic security updates</li>
-      </ul>
-      
-      <div style="text-align: center; margin: 32px 0;">
-        <a href="https://cloudedbasement.ca/dashboard" style="display: inline-block; background: #2DA7DF; color: #000; padding: 16px 40px; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 16px;">Open Dashboard →</a>
-      </div>
-      
-      <p style="color: #a0a8b8; line-height: 1.6; margin-top: 32px; font-size: 14px;">Need help? Check our <a href="https://cloudedbasement.ca/docs" style="color: #2DA7DF; text-decoration: none;">documentation</a> or reply to this email.</p>
-      
-      <p style="color: #8892a0; font-size: 14px; margin-top: 32px; padding-top: 16px; border-top: 1px solid rgba(45, 167, 223, 0.2);">- Clouded Basement Team</p>
-    </div>
+    <h1>Your Server is Ready!</h1>
+    <p>Thank you for choosing Clouded Basement! Your payment has been processed and your server <strong>${serverName || 'cloudedbasement-server'}</strong> is now live.</p>
+    <p style="color: #28a745;"><strong>Your dedicated server is ready to deploy on!</strong></p>
+    
+    <br>
+    <h2>Access Your Server</h2>
+    <p><strong>IP Address:</strong> ${serverIp}</p>
+    <p><strong>Username:</strong> root</p>
+    <p><strong>Password:</strong> <a href="https://cloudedbasement.ca/dashboard" style="color: #2DA7DF; font-weight: 600; text-decoration: none;">🔒 Click to view in secure dashboard →</a></p>
+    <p style="font-size: 12px; color: #666; margin-top: 8px;">For your security, SSH passwords are never sent via email. Login to your dashboard to reveal your credentials with one click.</p>
+    
+    <br>
+    <h2>What's Next? (3 Easy Steps)</h2>
+    
+    <br>
+    <p><strong>1. Deploy Your Code</strong></p>
+    <p>Go to your dashboard → "Deploy from GitHub" section → paste your Git repository URL → click "Deploy Now". Automatic setup for React, Node.js, Python, and static sites.</p>
+    
+    <br>
+    <p><strong>2. Add Your Domain (Optional)</strong></p>
+    <p>Dashboard → "Custom Domains" section → enter your domain → follow DNS instructions → click "Enable SSL" for free HTTPS certificate.</p>
+    
+    <br>
+    <p><strong>3. Install Database (Optional)</strong></p>
+    <p>Dashboard → "Add Database" section → choose PostgreSQL or MongoDB → one-click install (takes 2-3 minutes).</p>
+    
+    <br>
+    <h3>Pre-installed software:</h3>
+    <ul>
+      <li>Node.js & npm (latest LTS)</li>
+      <li>Python 3 & pip</li>
+      <li>Git</li>
+      <li>Nginx web server</li>
+      <li>Firewall configured (ports 22, 80, 443)</li>
+      <li>Automatic security updates</li>
+    </ul>
+    
+    <br>
+    <p><a href="https://cloudedbasement.ca/dashboard" style="background-color: #2DA7DF; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">Open Dashboard →</a></p>
+    
+    <br>
+    <p>Need help? Check our <a href="https://cloudedbasement.ca/docs">documentation</a> or reply to this email.</p>
+    
+    <p>- Clouded Basement Team</p>
   `;
   
-  return sendEmail(userEmail, subject, text, html);
+  return sendEmail(userEmail, subject, html, text);
 }
 
 module.exports = {
