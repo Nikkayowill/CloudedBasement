@@ -94,6 +94,7 @@ body {
     pointer-events: none;
     z-index: 0;
     overflow: hidden;
+    background: #000000;
 }
 
 .spotlight::before {
