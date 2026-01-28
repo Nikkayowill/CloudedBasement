@@ -879,22 +879,22 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
     <section class="bg-black pt-32 pb-16">
       <div class="max-w-screen-xl px-8 md:px-12 lg:px-16 mx-auto text-center lg:px-12">
         <img src="/Architype Van Der Leck.svg" alt="Clouded Basement Logo" class="mx-auto mb-6 h-32 md:h-40 lg:h-48 w-auto">
-        <h1 class="hero-heading mb-4 text-4xl font-extrabold tracking-tight text-white md:text-5xl lg:text-6xl">Clouded Basement</h1>
-        <p class="mb-8 text-lg font-normal text-gray-400 lg:text-xl sm:px-16 xl:px-48">Fast, simple cloud hosting without the corporate noise. Spin up real servers, deploy your apps, stay in control.</p>
+        <h1 class="hero-heading mb-4 text-4xl font-extrabold tracking-tight text-white md:text-5xl lg:text-6xl">Your own VPS. Deployed in minutes. No DevOps headaches.</h1>
+        <p class="mb-8 text-lg font-normal text-gray-400 lg:text-xl sm:px-16 xl:px-48">Clouded Basement provisions a production-ready Linux server with SSL, Git deployments, and full root access — so you can ship without babysitting infrastructure.</p>
         <div class="flex flex-col mb-4 space-y-4 sm:flex-row sm:justify-center sm:space-y-0 sm:space-x-4">
           <a href="/pricing" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all duration-300">
-            View Plans
+            Deploy your server
             <svg class="ml-2 w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
             </svg>
           </a>
           <a href="/docs" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-gray-300 border border-gray-700 rounded-lg hover:border-blue-500 hover:bg-blue-500/10 hover:text-white transition-all duration-300">
-            Documentation
+            See how it works
           </a>
         </div>
         <p class="text-sm text-gray-500 mt-6">
-          Full root access. No vendor lock-in. Runs on DigitalOcean infrastructure. 
-          <a href="/is-this-safe" class="text-brand hover:text-cyan-400 underline ml-1">Is this safe?</a>
+          Runs on DigitalOcean infrastructure · Full root access · Cancel anytime
+          <a href="/is-this-safe" class="text-brand hover:text-cyan-400 underline ml-2">Is this safe? →</a>
         </p>
       </div>
     </section>
