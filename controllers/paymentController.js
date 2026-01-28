@@ -7,6 +7,13 @@ const pool = require('../db');
 const { createRealServer } = require('../services/digitalocean');
 const { getHTMLHead, getScripts, getFooter, getResponsiveNav, escapeHtml } = require('../helpers');
 
+// Pricing plans configuration
+const PRICING_PLANS = {
+  basic: { name: 'Basic', price: 10, priceId: process.env.STRIPE_PRICE_BASIC, features: ['1GB RAM', '1 CPU', '25GB Storage'] },
+  priority: { name: 'Priority', price: 30, priceId: process.env.STRIPE_PRICE_PRIORITY, features: ['2GB RAM', '2 CPUs', '50GB Storage'] },
+  premium: { name: 'Premium', price: 60, priceId: process.env.STRIPE_PRICE_PREMIUM, features: ['4GB RAM', '2 CPUs', '80GB Storage'] }
+};
+
 // GET /pay
 exports.showCheckout = (req, res) => {
   // Require email confirmation before payment

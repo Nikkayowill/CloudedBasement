@@ -1,5 +1,5 @@
 const pool = require('../db');
-const { getHTMLHead, getFooter, getScripts, getResponsiveNav } = require('../helpers');
+const { getHTMLHead, getFooter, getScripts, getResponsiveNav, escapeHtml } = require('../helpers');
 
 // GET /admin - Simple scrollable admin dashboard
 const listUsers = async (req, res) => {
