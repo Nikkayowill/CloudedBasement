@@ -880,9 +880,9 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
         <img src="/Architype Van Der Leck.svg" alt="Clouded Basement Logo" class="mx-auto mb-6 h-32 md:h-40 lg:h-48 w-auto">
         <h1 class="hero-heading mb-4 text-4xl font-extrabold tracking-tight text-white md:text-5xl lg:text-6xl">Clouded Basement</h1>
         <p class="mb-8 text-lg font-normal text-gray-400 lg:text-xl sm:px-16 xl:px-48">Fast, simple cloud hosting without the corporate noise. Spin up real servers, deploy your apps, stay in control.</p>
-        <div class="flex flex-col mb-8 space-y-4 sm:flex-row sm:justify-center sm:space-y-0 sm:space-x-4">
-          <a href="/register" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all duration-300">
-            Sign up
+        <div class="flex flex-col mb-4 space-y-4 sm:flex-row sm:justify-center sm:space-y-0 sm:space-x-4">
+          <a href="/pricing" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all duration-300">
+            View Plans
             <svg class="ml-2 w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
             </svg>
@@ -891,6 +891,36 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
             Documentation
           </a>
         </div>
+        <p class="text-sm text-gray-500 mt-6">
+          Full root access. No vendor lock-in. Runs on DigitalOcean infrastructure. 
+          <a href="/is-this-safe" class="text-brand hover:text-cyan-400 underline ml-1">Is this safe?</a>
+        </p>
+      </div>
+    </section>
+
+    <!-- Micro-Trust Block -->
+    <section class="py-8 px-8 md:px-12 lg:px-16 bg-black border-t border-blue-500/20">
+      <div class="max-w-3xl mx-auto">
+        <ul class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center md:text-left">
+          <li class="flex flex-col md:flex-row items-center md:items-start gap-2">
+            <svg class="w-5 h-5 text-brand flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-sm text-gray-300">Your own VPS (not a shared platform)</span>
+          </li>
+          <li class="flex flex-col md:flex-row items-center md:items-start gap-2">
+            <svg class="w-5 h-5 text-brand flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-sm text-gray-300">Cancel anytime + 30-day money-back guarantee</span>
+          </li>
+          <li class="flex flex-col md:flex-row items-center md:items-start gap-2">
+            <svg class="w-5 h-5 text-brand flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-sm text-gray-300">Direct support from the founder</span>
+          </li>
+        </ul>
       </div>
     </section>
 
