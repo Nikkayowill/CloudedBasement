@@ -129,6 +129,7 @@ body::after {
 main, nav, footer, section {
     position: relative;
     z-index: 1;
+    background: transparent !important;
 }
 
 /* Brand color utilities */
