@@ -878,7 +878,7 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
     <!-- Hero Section -->
     <section class="bg-black pt-32 pb-16">
       <div class="max-w-screen-xl px-8 md:px-12 lg:px-16 mx-auto text-center lg:px-12">
-        <img src="/Architype Van Der Leck.svg" alt="Clouded Basement Logo" class="mx-auto mb-6 h-24 md:h-28 lg:h-32 w-auto">
+        <img src="/Architype Van Der Leck.svg" alt="Clouded Basement Logo" class="mx-auto mb-6 h-28 md:h-36 lg:h-40 w-auto">
         <h1 class="mb-4 text-4xl font-extrabold tracking-tight text-white md:text-5xl lg:text-6xl">Your own VPS. Deployed in minutes. No DevOps headaches.</h1>
         <p class="mb-8 text-lg font-normal text-gray-400 lg:text-xl sm:px-16 xl:px-48">Clouded Basement provisions a production-ready Linux server with SSL, Git deployments, and full root access — so you can ship without babysitting infrastructure.</p>
         <div class="flex flex-col mb-4 space-y-4 sm:flex-row sm:justify-center sm:space-y-0 sm:space-x-4">
@@ -900,7 +900,7 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
     </section>
 
     <!-- Micro-Trust Block -->
-    <section class="py-8 px-8 md:px-12 lg:px-16 bg-black border-t border-blue-500/20">
+    <section class="py-8 px-8 md:px-12 lg:px-16 bg-black">
       <div class="max-w-3xl mx-auto">
         <ul class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center md:text-left">
           <li class="flex flex-col md:flex-row items-center md:items-start gap-2">
@@ -1016,7 +1016,7 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
     </section>
 
     <!-- Final CTA Section -->
-    <section class="bg-black border-t border-blue-500/30 py-16">
+    <section class="bg-black py-16">
       <div class="max-w-screen-sm px-8 md:px-12 lg:px-16 mx-auto text-center sm:px-6 lg:px-8">
         <h2 class="mb-4 text-3xl md:text-4xl font-extrabold text-white">Ready to get started?</h2>
         <p class="mb-8 text-lg text-gray-300">Join the founding customers and lock in lifetime pricing.</p>
