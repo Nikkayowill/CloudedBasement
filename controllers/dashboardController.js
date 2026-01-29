@@ -550,6 +550,10 @@ const buildDashboardTemplate = (data) => {
                     
                     ${data.postgresInstalled && data.postgresCredentials ? `
                     <!-- PostgreSQL Credentials -->
+                    <div class="bg-blue-900 bg-opacity-20 border border-blue-600 rounded p-3 mb-3">
+                        <p class="text-blue-300 text-xs font-bold mb-1">✅ PostgreSQL Ready</p>
+                        <p class="text-gray-400 text-xs leading-relaxed">Copy the connection string below and paste it into your app's <code class="text-white bg-black bg-opacity-50 px-1 py-0.5 rounded">.env</code> file or use it directly in your code. Your database is running on this server at localhost.</p>
+                    </div>
                     <div class="space-y-3 mt-4">
                         <div>
                             <p class="text-xs text-gray-500 mb-1">Connection String:</p>
@@ -630,6 +634,10 @@ conn = psycopg2.connect(
                     
                     ${data.mongodbInstalled && data.mongodbCredentials ? `
                     <!-- MongoDB Credentials -->
+                    <div class="bg-green-900 bg-opacity-20 border border-green-600 rounded p-3 mb-3">
+                        <p class="text-green-300 text-xs font-bold mb-1">✅ MongoDB Ready</p>
+                        <p class="text-gray-400 text-xs leading-relaxed">Copy the connection string below and paste it into your app's <code class="text-white bg-black bg-opacity-50 px-1 py-0.5 rounded">.env</code> file or use it directly in your code. Your database is running on this server at localhost.</p>
+                    </div>
                     <div class="space-y-3 mt-4">
                         <div>
                             <p class="text-xs text-gray-500 mb-1">Connection String:</p>
