@@ -576,74 +576,60 @@ ${getHTMLHead('FAQ - Basement')}
           
           <div class="faq-item mb-4 bg-gray-800/30 border border-blue-500/10 rounded-lg overflow-hidden">
             <div class="p-6 cursor-pointer hover:bg-gray-800/50 transition-all flex justify-between items-center" onclick="toggleFaq(this)">
-              <h3 class="text-lg font-medium text-white">How does it work?</h3>
+              <h3 class="text-lg font-medium text-white">Why wouldn't I just use DigitalOcean directly?</h3>
               <span class="text-2xl text-blue-400 transform transition-transform duration-300">+</span>
             </div>
             <div class="faq-answer overflow-hidden transition-all duration-300 max-h-0">
               <div class="px-6 pb-6">
-                <p class="text-gray-400">Sign up, choose a plan, complete payment. Your VPS server is automatically provisioned in 2-5 minutes with Ubuntu 22.04, Nginx, and SSL tools pre-installed. You get full SSH root access and can deploy immediately.</p>
+                <p class="text-gray-400">DigitalOcean gives you raw infrastructure (Droplets) or a managed app platform. Droplets require you to install and maintain everything yourself — Ubuntu, Nginx, SSL, runtimes, and deployments. The App Platform automates deployments but does not give full server control. Clouded Basement automates provisioning and deployment while giving you full root access to your own server, saving you setup time without losing control.</p>
               </div>
             </div>
           </div>
           
           <div class="faq-item mb-4 bg-gray-800/30 border border-blue-500/10 rounded-lg overflow-hidden">
             <div class="p-6 cursor-pointer hover:bg-gray-800/50 transition-all flex justify-between items-center" onclick="toggleFaq(this)">
-              <h3 class="text-lg font-medium text-white">What are the plans?</h3>
+              <h3 class="text-lg font-medium text-white">Do I actually own my server?</h3>
               <span class="text-2xl text-blue-400 transform transition-transform duration-300">+</span>
             </div>
             <div class="faq-answer overflow-hidden transition-all duration-300 max-h-0">
               <div class="px-6 pb-6">
-                <p class="text-gray-400 mb-3"><strong class="text-white">Basic ($25/mo):</strong> 1 GB RAM, 1 CPU, 25 GB storage. Perfect for static sites and small apps.</p>
-                <p class="text-gray-400 mb-3"><strong class="text-white">Priority ($60/mo):</strong> 2 GB RAM, 2 CPUs, 50 GB storage. Priority support, ideal for production apps.</p>
-                <p class="text-gray-400"><strong class="text-white">Premium ($120/mo):</strong> 4 GB RAM, 2 CPUs, 80 GB storage. Fastest support, best for high-traffic sites.</p>
+                <p class="text-gray-400">Yes. Every VPS is fully yours, with root access and a dedicated IP. You can install anything, modify the configuration, or migrate it elsewhere at any time. Clouded Basement just handles the initial setup and deployment automation.</p>
               </div>
             </div>
           </div>
           
           <div class="faq-item mb-4 bg-gray-800/30 border border-blue-500/10 rounded-lg overflow-hidden">
             <div class="p-6 cursor-pointer hover:bg-gray-800/50 transition-all flex justify-between items-center" onclick="toggleFaq(this)">
-              <h3 class="text-lg font-medium text-white">How do I deploy my code?</h3>
+              <h3 class="text-lg font-medium text-white">Can I upgrade or downgrade my plan later?</h3>
               <span class="text-2xl text-blue-400 transform transition-transform duration-300">+</span>
             </div>
             <div class="faq-answer overflow-hidden transition-all duration-300 max-h-0">
               <div class="px-6 pb-6">
-                <p class="text-gray-400">Yes! Paste your Git URL in the dashboard and we'll automatically detect if it's React, Vue, Node.js, Python, or static HTML, then build and deploy it to Nginx. Track deployment history and logs in real-time.</p>
+                <p class="text-gray-400">Yes. You can switch plans at any time. Your server stays intact — only resources and performance adjust.</p>
               </div>
             </div>
           </div>
           
           <div class="faq-item mb-4 bg-gray-800/30 border border-blue-500/10 rounded-lg overflow-hidden">
             <div class="p-6 cursor-pointer hover:bg-gray-800/50 transition-all flex justify-between items-center" onclick="toggleFaq(this)">
-              <h3 class="text-lg font-medium text-white">Can I use my own domain?</h3>
+              <h3 class="text-lg font-medium text-white">What happens if I cancel?</h3>
               <span class="text-2xl text-blue-400 transform transition-transform duration-300">+</span>
             </div>
             <div class="faq-answer overflow-hidden transition-all duration-300 max-h-0">
               <div class="px-6 pb-6">
-                <p class="text-gray-400">Absolutely. Add unlimited custom domains in your dashboard. Point your DNS to your server IP, then click "Enable SSL" for free automatic Let's Encrypt certificates. HTTPS configured in seconds.</p>
+                <p class="text-gray-400">You can cancel anytime. Your subscription stops, but your server and data remain accessible via SSH. You can back up, migrate, or keep it running independently.</p>
               </div>
             </div>
           </div>
           
           <div class="faq-item mb-4 bg-gray-800/30 border border-blue-500/10 rounded-lg overflow-hidden">
             <div class="p-6 cursor-pointer hover:bg-gray-800/50 transition-all flex justify-between items-center" onclick="toggleFaq(this)">
-              <h3 class="text-lg font-medium text-white">What if I need help?</h3>
+              <h3 class="text-lg font-medium text-white">How is Clouded Basement different from Heroku or Vercel?</h3>
               <span class="text-2xl text-blue-400 transform transition-transform duration-300">+</span>
             </div>
             <div class="faq-answer overflow-hidden transition-all duration-300 max-h-0">
               <div class="px-6 pb-6">
-                <p class="text-gray-400">Submit support tickets from your dashboard. Basic: 24-48hr response. Priority: 12hr response. Premium: Priority queue with fastest turnaround. All plans get help with server issues, deployments, and configuration.</p>
-              </div>
-            </div>
-          </div>
-          
-          <div class="faq-item mb-4 bg-gray-800/30 border border-blue-500/10 rounded-lg overflow-hidden">
-            <div class="p-6 cursor-pointer hover:bg-gray-800/50 transition-all flex justify-between items-center" onclick="toggleFaq(this)">
-              <h3 class="text-lg font-medium text-white mb-2">Can I cancel anytime?</h3>
-              <span class="text-2xl text-blue-400 transform transition-transform duration-300">+</span>
-            </div>
-            <div class="faq-answer overflow-hidden transition-all duration-300 max-h-0">
-              <div class="px-6 pb-6">
-                <p class="text-gray-400">Yes. Contact support to cancel. Your server stays active until the end of your billing period. No long-term contracts or cancellation fees.</p>
+                <p class="text-gray-400">Unlike PaaS platforms, Clouded Basement gives you full server control with automated setup and deployment. You avoid vendor lock-in while still enjoying one-click provisioning, SSL, and GitHub deployments.</p>
               </div>
             </div>
           </div>
@@ -1075,6 +1061,17 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
         <p class="text-center text-gray-500 text-sm mt-8">
           All plans include 30-day money-back guarantee. 
           <a href="/pricing" class="text-brand hover:text-cyan-400 underline">Full pricing details →</a>
+        </p>
+      </div>
+    </section>
+
+    <!-- Micro FAQ Section -->
+    <section class="bg-black py-8">
+      <div class="max-w-2xl px-8 md:px-12 lg:px-16 mx-auto text-center">
+        <p class="text-gray-400 text-sm">
+          <span class="text-gray-500">Got questions about server ownership or setup?</span>
+          Every VPS is yours with full root access, automated provisioning, and one-click deployments.
+          <a href="/faq" class="text-brand hover:text-cyan-400 underline ml-1">See the full FAQ →</a>
         </p>
       </div>
     </section>
