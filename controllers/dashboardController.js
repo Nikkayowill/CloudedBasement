@@ -382,7 +382,8 @@ const buildDashboardTemplate = (data) => {
                 <div>
                     <p class="text-xs text-gray-400 uppercase font-bold mb-2">Username</p>
                     <div class="flex gap-2">
-                        <input type="text" value="${escapeHtml(data.sshUsername)}" readonly class="flex-1 px-3 py-2 bg-black bg-opacity-30 border border-gray-700 rounded text-white font-mono text-sm">
+                        <input type="password" id="sshUsername" value="${escapeHtml(data.sshUsername)}" readonly class="flex-1 px-3 py-2 bg-black bg-opacity-30 border border-gray-700 rounded text-white font-mono text-sm">
+                        <button onclick="togglePassword('sshUsername', this)" class="px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors text-xs">Show</button>
                         <button onclick="navigator.clipboard.writeText('${data.sshUsername.replace(/'/g, "\\'")}')" class="px-4 py-2 bg-brand text-gray-900 font-bold rounded hover:bg-cyan-500 transition-colors text-xs">Copy</button>
                     </div>
                 </div>
@@ -391,12 +392,7 @@ const buildDashboardTemplate = (data) => {
                     <p class="text-xs text-gray-400 uppercase font-bold mb-2">Password</p>
                     <div class="flex gap-2">
                         <input type="password" id="sshPassword" value="${escapeHtml(data.sshPassword)}" readonly class="flex-1 px-3 py-2 bg-black bg-opacity-30 border border-gray-700 rounded text-white font-mono text-sm">
-                        <button onclick="togglePasswordVisibility()" class="px-3 py-2 bg-gray-700 text-gray-300 rounded hover:bg-gray-600 transition-colors text-xs" title="Show/Hide Password">
-                            <svg id="eyeIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                            </svg>
-                        </button>
+                        <button onclick="togglePassword('sshPassword', this)" class="px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors text-xs">Show</button>
                         <button onclick="navigator.clipboard.writeText('${data.sshPassword.replace(/'/g, "\\'")}')" class="px-4 py-2 bg-brand text-gray-900 font-bold rounded hover:bg-cyan-500 transition-colors text-xs">Copy</button>
                     </div>
                 </div>
@@ -404,7 +400,8 @@ const buildDashboardTemplate = (data) => {
                 <div>
                     <p class="text-xs text-gray-400 uppercase font-bold mb-2">Connection Command</p>
                     <div class="flex gap-2">
-                        <input type="text" value="ssh ${escapeHtml(data.sshUsername)}@${escapeHtml(data.ipAddress)}" readonly class="flex-1 px-3 py-2 bg-black bg-opacity-30 border border-gray-700 rounded text-white font-mono text-sm">
+                        <input type="password" id="sshCommand" value="ssh ${escapeHtml(data.sshUsername)}@${escapeHtml(data.ipAddress)}" readonly class="flex-1 px-3 py-2 bg-black bg-opacity-30 border border-gray-700 rounded text-white font-mono text-sm">
+                        <button onclick="togglePassword('sshCommand', this)" class="px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors text-xs">Show</button>
                         <button onclick="navigator.clipboard.writeText('ssh ${data.sshUsername.replace(/'/g, "\\'")}@${data.ipAddress.replace(/'/g, "\\'")}')" class="px-4 py-2 bg-brand text-gray-900 font-bold rounded hover:bg-cyan-500 transition-colors text-xs">Copy</button>
                     </div>
                 </div>
@@ -505,7 +502,8 @@ const buildDashboardTemplate = (data) => {
         </div>
         ` : ''}
 
-        <!-- Database Setup -->
+        <!-- Database Setup (hidden if both installed) -->
+        ${!data.postgresInstalled || !data.mongodbInstalled ? `
         <div class="bg-gray-800 rounded-lg p-6">
             <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-6">Add Database</h4>
             ${data.hasServer ? `
@@ -514,14 +512,14 @@ const buildDashboardTemplate = (data) => {
                     <input type="hidden" name="_csrf" value="${data.csrfToken}">
                     <input type="hidden" name="database_type" value="postgres">
                     <button type="submit" ${data.postgresInstalled ? 'disabled' : ''} class="flex-1 px-6 py-3 ${data.postgresInstalled ? 'bg-gray-600 cursor-not-allowed opacity-50' : 'bg-blue-600 hover:bg-blue-700'} text-white font-bold text-sm transition-colors">
-                        ${data.postgresInstalled ? '✓ PostgreSQL Installed' : '📦 Add PostgreSQL'}
+                        ${data.postgresInstalled ? 'PostgreSQL Installed' : 'Add PostgreSQL'}
                     </button>
                 </form>
                 <form action="/setup-database" method="POST" class="flex gap-3">
                     <input type="hidden" name="_csrf" value="${data.csrfToken}">
                     <input type="hidden" name="database_type" value="mongodb">
                     <button type="submit" ${data.mongodbInstalled ? 'disabled' : ''} class="flex-1 px-6 py-3 ${data.mongodbInstalled ? 'bg-gray-600 cursor-not-allowed opacity-50' : 'bg-blue-600 hover:bg-blue-700'} text-white font-bold text-sm transition-colors">
-                        ${data.mongodbInstalled ? '✓ MongoDB Installed' : '🍃 Add MongoDB'}
+                        ${data.mongodbInstalled ? 'MongoDB Installed' : 'Add MongoDB'}
                     </button>
                 </form>
             </div>
@@ -533,6 +531,7 @@ const buildDashboardTemplate = (data) => {
             </div>
             `}
         </div>
+        ` : ''}
 
         <!-- Database Status -->
         <div class="bg-gray-800 rounded-lg p-6">
@@ -551,8 +550,8 @@ const buildDashboardTemplate = (data) => {
                     ${data.postgresInstalled && data.postgresCredentials ? `
                     <!-- PostgreSQL Credentials -->
                     <div class="bg-blue-900 bg-opacity-20 border border-blue-600 rounded p-3 mb-3">
-                        <p class="text-blue-300 text-xs font-bold mb-1">✅ PostgreSQL Ready</p>
-                        <p class="text-gray-400 text-xs leading-relaxed">Copy the connection string below and paste it into your app's <code class="text-white bg-black bg-opacity-50 px-1 py-0.5 rounded">.env</code> file or use it directly in your code. Your database is running on this server at localhost.</p>
+                        <p class="text-blue-300 text-xs font-bold mb-1">PostgreSQL Ready</p>
+                        <p class="text-gray-400 text-xs leading-relaxed">Copy the connection string below and add it to your app's <code class="text-white bg-black bg-opacity-50 px-1 py-0.5 rounded">.env</code> file. <strong class="text-red-400">Never hardcode database passwords in your source code or commit them to Git.</strong></p>
                     </div>
                     <div class="space-y-3 mt-4">
                         <div>
@@ -567,7 +566,7 @@ const buildDashboardTemplate = (data) => {
                                 <p class="text-xs text-gray-500 mb-1">Host:</p>
                                 <div class="flex gap-1">
                                     <input type="text" readonly value="${data.postgresCredentials.host}" class="flex-1 bg-black bg-opacity-50 border border-gray-700 text-white text-xs px-2 py-1 rounded font-mono" id="postgres-host">
-                                    <button onclick="copyToClipboard('postgres-host', this)" class="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded">📋</button>
+                                    <button onclick="copyToClipboard('postgres-host', this)" class="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded transition-colors">Copy</button>
                                 </div>
                             </div>
                             <div>
@@ -579,26 +578,26 @@ const buildDashboardTemplate = (data) => {
                             <p class="text-xs text-gray-500 mb-1">Database:</p>
                             <div class="flex gap-1">
                                 <input type="text" readonly value="${data.postgresCredentials.dbName}" class="flex-1 bg-black bg-opacity-50 border border-gray-700 text-white text-xs px-2 py-1 rounded font-mono" id="postgres-dbname">
-                                <button onclick="copyToClipboard('postgres-dbname', this)" class="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded">📋</button>
+                                <button onclick="copyToClipboard('postgres-dbname', this)" class="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded transition-colors">Copy</button>
                             </div>
                         </div>
                         <div>
                             <p class="text-xs text-gray-500 mb-1">Username:</p>
                             <div class="flex gap-1">
                                 <input type="text" readonly value="${data.postgresCredentials.dbUser}" class="flex-1 bg-black bg-opacity-50 border border-gray-700 text-white text-xs px-2 py-1 rounded font-mono" id="postgres-user">
-                                <button onclick="copyToClipboard('postgres-user', this)" class="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded">📋</button>
+                                <button onclick="copyToClipboard('postgres-user', this)" class="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded transition-colors">Copy</button>
                             </div>
                         </div>
                         <div>
                             <p class="text-xs text-gray-500 mb-1">Password:</p>
                             <div class="flex gap-1">
                                 <input type="password" readonly value="${data.postgresCredentials.dbPassword}" class="flex-1 bg-black bg-opacity-50 border border-gray-700 text-white text-xs px-2 py-1 rounded font-mono" id="postgres-password">
-                                <button onclick="togglePassword('postgres-password', this)" class="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded">👁️</button>
-                                <button onclick="copyToClipboard('postgres-password', this)" class="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded">📋</button>
+                                <button onclick="togglePassword('postgres-password', this)" class="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded transition-colors">Show</button>
+                                <button onclick="copyToClipboard('postgres-password', this)" class="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded transition-colors">Copy</button>
                             </div>
                         </div>
                         <details class="mt-3">
-                            <summary class="text-xs text-blue-400 cursor-pointer hover:text-blue-300">📘 How to Connect</summary>
+                            <summary class="text-xs text-blue-400 cursor-pointer hover:text-blue-300 transition-colors">How to Connect</summary>
                             <div class="mt-2 bg-black bg-opacity-50 rounded p-3 border border-gray-700">
                                 <p class="text-xs text-gray-400 mb-2"><strong>Node.js (pg):</strong></p>
                                 <pre class="text-xs text-gray-300 bg-gray-900 p-2 rounded overflow-x-auto mb-3"><code>const { Pool } = require('pg');
@@ -635,8 +634,8 @@ conn = psycopg2.connect(
                     ${data.mongodbInstalled && data.mongodbCredentials ? `
                     <!-- MongoDB Credentials -->
                     <div class="bg-green-900 bg-opacity-20 border border-green-600 rounded p-3 mb-3">
-                        <p class="text-green-300 text-xs font-bold mb-1">✅ MongoDB Ready</p>
-                        <p class="text-gray-400 text-xs leading-relaxed">Copy the connection string below and paste it into your app's <code class="text-white bg-black bg-opacity-50 px-1 py-0.5 rounded">.env</code> file or use it directly in your code. Your database is running on this server at localhost.</p>
+                        <p class="text-green-300 text-xs font-bold mb-1">MongoDB Ready</p>
+                        <p class="text-gray-400 text-xs leading-relaxed">Copy the connection string below and add it to your app's <code class="text-white bg-black bg-opacity-50 px-1 py-0.5 rounded">.env</code> file. <strong class="text-red-400">Never hardcode database passwords in your source code or commit them to Git.</strong></p>
                     </div>
                     <div class="space-y-3 mt-4">
                         <div>
@@ -651,7 +650,7 @@ conn = psycopg2.connect(
                                 <p class="text-xs text-gray-500 mb-1">Host:</p>
                                 <div class="flex gap-1">
                                     <input type="text" readonly value="${data.mongodbCredentials.host}" class="flex-1 bg-black bg-opacity-50 border border-gray-700 text-white text-xs px-2 py-1 rounded font-mono" id="mongodb-host">
-                                    <button onclick="copyToClipboard('mongodb-host', this)" class="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded">📋</button>
+                                    <button onclick="copyToClipboard('mongodb-host', this)" class="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded transition-colors">Copy</button>
                                 </div>
                             </div>
                             <div>
@@ -663,11 +662,11 @@ conn = psycopg2.connect(
                             <p class="text-xs text-gray-500 mb-1">Database:</p>
                             <div class="flex gap-1">
                                 <input type="text" readonly value="${data.mongodbCredentials.dbName}" class="flex-1 bg-black bg-opacity-50 border border-gray-700 text-white text-xs px-2 py-1 rounded font-mono" id="mongodb-dbname">
-                                <button onclick="copyToClipboard('mongodb-dbname', this)" class="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded">📋</button>
+                                <button onclick="copyToClipboard('mongodb-dbname', this)" class="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded transition-colors">Copy</button>
                             </div>
                         </div>
                         <details class="mt-3">
-                            <summary class="text-xs text-blue-400 cursor-pointer hover:text-blue-300">📘 How to Connect</summary>
+                            <summary class="text-xs text-blue-400 cursor-pointer hover:text-blue-300 transition-colors">How to Connect</summary>
                             <div class="mt-2 bg-black bg-opacity-50 rounded p-3 border border-gray-700">
                                 <p class="text-xs text-gray-400 mb-2"><strong>Node.js (mongodb):</strong></p>
                                 <pre class="text-xs text-gray-300 bg-gray-900 p-2 rounded overflow-x-auto mb-3"><code>const { MongoClient } = require('mongodb');

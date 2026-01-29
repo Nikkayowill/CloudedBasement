@@ -37,10 +37,10 @@ function togglePassword(elementId, buttonElement) {
     
     if (element.type === 'password') {
         element.type = 'text';
-        if (buttonElement) buttonElement.textContent = '🙈';
+        if (buttonElement) buttonElement.textContent = 'Hide';
     } else {
         element.type = 'password';
-        if (buttonElement) buttonElement.textContent = '👁️';
+        if (buttonElement) buttonElement.textContent = 'Show';
     }
 }
 
