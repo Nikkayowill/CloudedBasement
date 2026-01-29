@@ -513,19 +513,19 @@ const buildDashboardTemplate = (data) => {
                 <form action="/setup-database" method="POST" class="flex gap-3">
                     <input type="hidden" name="_csrf" value="${data.csrfToken}">
                     <input type="hidden" name="database_type" value="postgres">
-                    <button type="submit" class="flex-1 px-6 py-3 bg-blue-600 text-white font-bold text-sm">
-                        📦 Add PostgreSQL
+                    <button type="submit" ${data.postgresInstalled ? 'disabled' : ''} class="flex-1 px-6 py-3 ${data.postgresInstalled ? 'bg-gray-600 cursor-not-allowed opacity-50' : 'bg-blue-600 hover:bg-blue-700'} text-white font-bold text-sm transition-colors">
+                        ${data.postgresInstalled ? '✓ PostgreSQL Installed' : '📦 Add PostgreSQL'}
                     </button>
                 </form>
                 <form action="/setup-database" method="POST" class="flex gap-3">
                     <input type="hidden" name="_csrf" value="${data.csrfToken}">
                     <input type="hidden" name="database_type" value="mongodb">
-                    <button type="submit" class="flex-1 px-6 py-3 bg-blue-600 text-white font-bold text-sm">
-                        🍃 Add MongoDB
+                    <button type="submit" ${data.mongodbInstalled ? 'disabled' : ''} class="flex-1 px-6 py-3 ${data.mongodbInstalled ? 'bg-gray-600 cursor-not-allowed opacity-50' : 'bg-blue-600 hover:bg-blue-700'} text-white font-bold text-sm transition-colors">
+                        ${data.mongodbInstalled ? '✓ MongoDB Installed' : '🍃 Add MongoDB'}
                     </button>
                 </form>
             </div>
-            <p class="text-xs text-gray-500">One-click setup installs and configures the database. Takes 2-3 minutes. SSH to /root/.database_config for credentials.</p>
+            <p class="text-xs text-gray-500">One-click setup installs and configures your database. Takes 2-3 minutes. View credentials below after installation completes.</p>
             ` : `
             <div class="bg-red-900 bg-opacity-20 border-2 border-red-600 rounded-lg p-4">
                 <p class="text-red-400 text-sm font-medium">⚠️ No active server detected</p>
