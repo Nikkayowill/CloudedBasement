@@ -37,8 +37,13 @@ exports.showDashboard = async (req, res) => {
         
         const mongodbCredentials = mongodbInstalled ? {
             dbName: server?.mongodb_db_name || 'app_db',
+            dbUser: server?.mongodb_db_user || 'basement_user',
+            dbPassword: server?.mongodb_db_password || '',
             host: server?.ip_address || 'localhost',
-            port: '27017'
+            port: '27017',
+            // URL-encoded versions for connection strings
+            dbUserEncoded: encodeURIComponent(server?.mongodb_db_user || 'basement_user'),
+            dbPasswordEncoded: encodeURIComponent(server?.mongodb_db_password || '')
         } : null;
 
         // Get payment details to determine plan
@@ -647,7 +652,7 @@ conn = psycopg2.connect(
                         <div>
                             <p class="text-xs text-gray-500 mb-1">Connection String:</p>
                             <div class="flex gap-2">
-                                <input type="text" readonly value="mongodb://${data.mongodbCredentials.host}:${data.mongodbCredentials.port}/${data.mongodbCredentials.dbName}" class="flex-1 bg-black bg-opacity-50 border border-gray-700 text-white text-xs px-2 py-1 rounded font-mono" id="mongodb-connection-string">
+                                <input type="text" readonly value="mongodb://${data.mongodbCredentials.dbUserEncoded}:${data.mongodbCredentials.dbPasswordEncoded}@${data.mongodbCredentials.host}:${data.mongodbCredentials.port}/${data.mongodbCredentials.dbName}" class="flex-1 bg-black bg-opacity-50 border border-gray-700 text-white text-xs px-2 py-1 rounded font-mono" id="mongodb-connection-string">
                                 <button onclick="copyToClipboard('mongodb-connection-string', this)" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded">Copy</button>
                             </div>
                         </div>
@@ -671,6 +676,21 @@ conn = psycopg2.connect(
                                 <button onclick="copyToClipboard('mongodb-dbname', this)" class="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded transition-colors">Copy</button>
                             </div>
                         </div>
+                        <div>
+                            <p class="text-xs text-gray-500 mb-1">Username:</p>
+                            <div class="flex gap-1">
+                                <input type="text" readonly value="${data.mongodbCredentials.dbUser}" class="flex-1 bg-black bg-opacity-50 border border-gray-700 text-white text-xs px-2 py-1 rounded font-mono" id="mongodb-user">
+                                <button onclick="copyToClipboard('mongodb-user', this)" class="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded transition-colors">Copy</button>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 mb-1">Password:</p>
+                            <div class="flex gap-1">
+                                <input type="password" readonly value="${data.mongodbCredentials.dbPassword}" class="flex-1 bg-black bg-opacity-50 border border-gray-700 text-white text-xs px-2 py-1 rounded font-mono" id="mongodb-password">
+                                <button onclick="togglePassword('mongodb-password', this)" class="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded transition-colors" id="mongodb-password-toggle">Show</button>
+                                <button onclick="copyToClipboard('mongodb-password', this)" class="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded transition-colors">Copy</button>
+                            </div>
+                        </div>
                         <details class="mt-3">
                             <summary class="text-xs text-blue-400 cursor-pointer hover:text-blue-300 transition-colors">Show Code Examples</summary>
                             <div class="mt-2 bg-black bg-opacity-50 rounded p-3 border border-gray-700">
@@ -682,12 +702,12 @@ conn = psycopg2.connect(
                                 </ol>
                                 <p class="text-xs text-gray-400 mb-2"><strong>Node.js:</strong> <code class="text-xs text-gray-500">npm install mongodb</code> <span class="text-gray-600">(run locally)</span></p>
                                 <pre class="text-xs text-gray-300 bg-gray-900 p-2 rounded overflow-x-auto mb-3"><code>const { MongoClient } = require('mongodb');
-const client = new MongoClient('mongodb://${data.mongodbCredentials.host}:${data.mongodbCredentials.port}/${data.mongodbCredentials.dbName}');
+const client = new MongoClient('mongodb://${data.mongodbCredentials.dbUserEncoded}:${data.mongodbCredentials.dbPasswordEncoded}@${data.mongodbCredentials.host}:${data.mongodbCredentials.port}/${data.mongodbCredentials.dbName}');
 await client.connect();
 const db = client.db('${data.mongodbCredentials.dbName}');</code></pre>
                                 <p class="text-xs text-gray-400 mb-2"><strong>Python:</strong> <code class="text-xs text-gray-500">pip install pymongo</code> <span class="text-gray-600">(run locally)</span></p>
                                 <pre class="text-xs text-gray-300 bg-gray-900 p-2 rounded overflow-x-auto"><code>from pymongo import MongoClient
-client = MongoClient('mongodb://${data.mongodbCredentials.host}:${data.mongodbCredentials.port}/')
+client = MongoClient('mongodb://${data.mongodbCredentials.dbUserEncoded}:${data.mongodbCredentials.dbPasswordEncoded}@${data.mongodbCredentials.host}:${data.mongodbCredentials.port}/')
 db = client['${data.mongodbCredentials.dbName}']</code></pre>
                             </div>
                         </details>
