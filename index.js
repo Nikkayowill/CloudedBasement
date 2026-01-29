@@ -271,9 +271,9 @@ app.post('/admin/destroy-droplet/:id', requireAuth, requireAdmin, csrfProtection
 
 // Admin - domain management (API endpoints only - UI is in /admin/users)
 app.get('/admin/domains/list', requireAuth, requireAdmin, domainController.listDomains);
-app.post('/admin/domains', requireAuth, requireAdmin, domainController.addDomain);
-app.put('/admin/domains/:id', requireAuth, requireAdmin, domainController.updateDomain);
-app.delete('/admin/domains/:id', requireAuth, requireAdmin, domainController.deleteDomain);
+app.post('/admin/domains', requireAuth, requireAdmin, csrfProtection, domainController.addDomain);
+app.put('/admin/domains/:id', requireAuth, requireAdmin, csrfProtection, domainController.updateDomain);
+app.delete('/admin/domains/:id', requireAuth, requireAdmin, csrfProtection, domainController.deleteDomain);
 
 // Pricing page
 app.get('/pricing', pagesController.showPricing);
@@ -292,7 +292,7 @@ app.get('/docs', pagesController.showDocs);
 app.get('/getting-started', requireAuth, gettingStartedController.showGettingStarted);
 
 // Server Request Handler
-app.post('/request-server', requireAuth, async (req, res) => {
+app.post('/request-server', requireAuth, deploymentLimiter, csrfProtection, async (req, res) => {
   try {
     const { region, server_name, use_case } = req.body;
     

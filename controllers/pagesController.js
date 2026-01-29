@@ -600,18 +600,6 @@ ${getHTMLHead('FAQ - Basement')}
           
           <div class="faq-item mb-4 bg-gray-800/30 border border-blue-500/10 rounded-lg overflow-hidden">
             <div class="p-6 cursor-pointer hover:bg-gray-800/50 transition-all flex justify-between items-center" onclick="toggleFaq(this)">
-              <h3 class="text-lg font-medium text-white">Can I upgrade or downgrade my plan later?</h3>
-              <span class="text-2xl text-blue-400 transform transition-transform duration-300">+</span>
-            </div>
-            <div class="faq-answer overflow-hidden transition-all duration-300 max-h-0">
-              <div class="px-6 pb-6">
-                <p class="text-gray-400">Yes. You can switch plans at any time. Your server stays intact — only resources and performance adjust.</p>
-              </div>
-            </div>
-          </div>
-          
-          <div class="faq-item mb-4 bg-gray-800/30 border border-blue-500/10 rounded-lg overflow-hidden">
-            <div class="p-6 cursor-pointer hover:bg-gray-800/50 transition-all flex justify-between items-center" onclick="toggleFaq(this)">
               <h3 class="text-lg font-medium text-white">What happens if I cancel?</h3>
               <span class="text-2xl text-blue-400 transform transition-transform duration-300">+</span>
             </div>
@@ -780,7 +768,7 @@ ${getHTMLHead('Documentation - Basement')}
         
         <div class="bg-gray-900 border-2 border-blue-400/40 rounded-xl p-8 text-center my-12">
             <h2 class="text-3xl font-bold text-white mb-4">Ready to Get Started?</h2>
-            <p class="text-gray-300 mb-6">All plans include a 14-day money-back guarantee.</p>
+            <p class="text-gray-300 mb-6">No long-term contracts. Cancel anytime.</p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="/register" class="inline-block px-8 py-3 bg-blue-600 text-white font-bold rounded hover:bg-blue-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(135,206,250,0.6)] transition-all duration-300 uppercase tracking-wider text-sm">Sign up</a>
                 <a href="/contact" class="inline-block px-8 py-3 border-2 border-blue-400 text-white bg-gray-800 font-bold rounded hover:bg-gray-700 transition-all duration-300 uppercase tracking-wider text-sm">Contact Us</a>
@@ -899,7 +887,7 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
             <svg class="w-5 h-5 text-brand flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
             </svg>
-            <span class="text-sm text-gray-300">Cancel anytime + 30-day money-back guarantee</span>
+            <span class="text-sm text-gray-300">Cancel anytime — no contracts</span>
           </li>
           <li class="flex flex-col md:flex-row items-center md:items-start gap-2">
             <svg class="w-5 h-5 text-brand flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -1059,7 +1047,7 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
         </div>
         
         <p class="text-center text-gray-500 text-sm mt-8">
-          All plans include 30-day money-back guarantee. 
+          No contracts. Cancel anytime. 
           <a href="/pricing" class="text-brand hover:text-cyan-400 underline">Full pricing details →</a>
         </p>
       </div>
@@ -1080,7 +1068,7 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
     <section class="bg-black py-16">
       <div class="max-w-screen-sm px-8 md:px-12 lg:px-16 mx-auto text-center">
         <h2 class="mb-4 text-3xl md:text-4xl font-extrabold text-white">Ready to get started?</h2>
-        <p class="mb-8 text-lg text-gray-300">Join the founding customers and lock in lifetime pricing.</p>
+        <p class="mb-8 text-lg text-gray-300">Deploy your server in minutes. No credit card required to explore.</p>
         <a href="/register" class="inline-flex justify-center items-center py-3 px-8 text-base font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all duration-300">
           Sign up
           <svg class="ml-2 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -1169,9 +1157,9 @@ ${getHTMLHead('Is Clouded Basement safe to use? - Basement')}
           <p class="text-gray-300 text-lg leading-relaxed mb-4">If Clouded Basement doesn't work for you:</p>
           
           <ul class="list-none space-y-2 mb-6">
-            <li class="text-gray-300 text-lg leading-relaxed pl-6 relative before:content-['•'] before:absolute before:left-0 before:text-brand">Cancel anytime</li>
-            <li class="text-gray-300 text-lg leading-relaxed pl-6 relative before:content-['•'] before:absolute before:left-0 before:text-brand">30-day money-back guarantee</li>
-            <li class="text-gray-300 text-lg leading-relaxed pl-6 relative before:content-['•'] before:absolute before:left-0 before:text-brand">No questions asked</li>
+            <li class="text-gray-300 text-lg leading-relaxed pl-6 relative before:content-['•'] before:absolute before:left-0 before:text-brand">Cancel anytime — no contracts</li>
+            <li class="text-gray-300 text-lg leading-relaxed pl-6 relative before:content-['•'] before:absolute before:left-0 before:text-brand">Full root access — it's your server</li>
+            <li class="text-gray-300 text-lg leading-relaxed pl-6 relative before:content-['•'] before:absolute before:left-0 before:text-brand">Direct support from the founder</li>
           </ul>
           
           <p class="text-gray-300 text-lg leading-relaxed">Early users are also eligible for free migration help from their existing host.</p>
