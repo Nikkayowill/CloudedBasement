@@ -1,8 +1,47 @@
-// Copy to clipboard functionality
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        alert('Copied to clipboard!');
+// Copy to clipboard functionality - accepts element ID or direct text
+function copyToClipboard(elementIdOrText, buttonElement) {
+    let textToCopy;
+    
+    // Check if it's an element ID
+    const element = document.getElementById(elementIdOrText);
+    if (element) {
+        textToCopy = element.value || element.textContent;
+    } else {
+        // It's direct text
+        textToCopy = elementIdOrText;
+    }
+    
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        // Visual feedback on button
+        if (buttonElement) {
+            const originalText = buttonElement.textContent;
+            buttonElement.textContent = '✓';
+            buttonElement.classList.add('bg-green-600');
+            setTimeout(() => {
+                buttonElement.textContent = originalText;
+                buttonElement.classList.remove('bg-green-600');
+            }, 1500);
+        } else {
+            alert('Copied to clipboard!');
+        }
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+        alert('Failed to copy to clipboard');
     });
+}
+
+// Toggle password visibility
+function togglePassword(elementId, buttonElement) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    if (element.type === 'password') {
+        element.type = 'text';
+        if (buttonElement) buttonElement.textContent = '🙈';
+    } else {
+        element.type = 'password';
+        if (buttonElement) buttonElement.textContent = '👁️';
+    }
 }
 
 // Refresh dashboard manually

@@ -25,6 +25,21 @@ exports.showDashboard = async (req, res) => {
         // Explicit boolean check - if column doesn't exist, treats as false (safe default)
         const postgresInstalled = server?.postgres_installed === true;
         const mongodbInstalled = server?.mongodb_installed === true;
+        
+        // Extract database credentials if they exist
+        const postgresCredentials = postgresInstalled ? {
+            dbName: server?.postgres_db_name || 'app_db',
+            dbUser: server?.postgres_db_user || 'basement_user',
+            dbPassword: server?.postgres_db_password || '',
+            host: server?.ip_address || 'localhost',
+            port: '5432'
+        } : null;
+        
+        const mongodbCredentials = mongodbInstalled ? {
+            dbName: server?.mongodb_db_name || 'app_db',
+            host: server?.ip_address || 'localhost',
+            port: '27017'
+        } : null;
 
         // Get payment details to determine plan
         const paymentResult = hasPaid ? await pool.query(
@@ -81,7 +96,9 @@ exports.showDashboard = async (req, res) => {
             hasServer,
             dismissedNextSteps: req.session.dismissedNextSteps || false,
             postgresInstalled,
-            mongodbInstalled
+            mongodbInstalled,
+            postgresCredentials,
+            mongodbCredentials
         });
 
         res.send(`
@@ -522,6 +539,7 @@ const buildDashboardTemplate = (data) => {
             <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-6">Database Status</h4>
             ${data.hasServer ? `
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <!-- PostgreSQL -->
                 <div class="bg-black bg-opacity-30 border border-gray-700 rounded-lg p-3">
                     <div class="flex items-center justify-between mb-2">
                         <p class="text-xs text-gray-400 uppercase font-bold">PostgreSQL</p>
@@ -529,12 +547,79 @@ const buildDashboardTemplate = (data) => {
                           '<span class="px-2 py-1 text-xs font-bold uppercase rounded bg-green-900 text-green-300 flex items-center gap-1"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg> Installed</span>' : 
                           '<span class="px-2 py-1 text-xs font-bold uppercase rounded bg-yellow-900 text-yellow-300">Not Installed</span>'}
                     </div>
-                    <p class="text-xs text-gray-500 mb-3">After install, SSH and run <span class="text-white">cat /root/.database_config</span> to view credentials.</p>
-                    <div class="bg-black bg-opacity-50 rounded p-2 border border-gray-700">
-                        <p class="text-xs text-gray-400 mb-1">Quick SSH:</p>
-                        <code class="text-xs text-brand">ssh ${data.sshUsername}@${data.ipAddress}</code>
+                    
+                    ${data.postgresInstalled && data.postgresCredentials ? `
+                    <!-- PostgreSQL Credentials -->
+                    <div class="space-y-3 mt-4">
+                        <div>
+                            <p class="text-xs text-gray-500 mb-1">Connection String:</p>
+                            <div class="flex gap-2">
+                                <input type="text" readonly value="postgresql://${data.postgresCredentials.dbUser}:${data.postgresCredentials.dbPassword}@${data.postgresCredentials.host}:${data.postgresCredentials.port}/${data.postgresCredentials.dbName}" class="flex-1 bg-black bg-opacity-50 border border-gray-700 text-white text-xs px-2 py-1 rounded font-mono" id="postgres-connection-string">
+                                <button onclick="copyToClipboard('postgres-connection-string', this)" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded">Copy</button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Host:</p>
+                                <div class="flex gap-1">
+                                    <input type="text" readonly value="${data.postgresCredentials.host}" class="flex-1 bg-black bg-opacity-50 border border-gray-700 text-white text-xs px-2 py-1 rounded font-mono" id="postgres-host">
+                                    <button onclick="copyToClipboard('postgres-host', this)" class="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded">📋</button>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Port:</p>
+                                <input type="text" readonly value="${data.postgresCredentials.port}" class="bg-black bg-opacity-50 border border-gray-700 text-white text-xs px-2 py-1 rounded font-mono">
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 mb-1">Database:</p>
+                            <div class="flex gap-1">
+                                <input type="text" readonly value="${data.postgresCredentials.dbName}" class="flex-1 bg-black bg-opacity-50 border border-gray-700 text-white text-xs px-2 py-1 rounded font-mono" id="postgres-dbname">
+                                <button onclick="copyToClipboard('postgres-dbname', this)" class="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded">📋</button>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 mb-1">Username:</p>
+                            <div class="flex gap-1">
+                                <input type="text" readonly value="${data.postgresCredentials.dbUser}" class="flex-1 bg-black bg-opacity-50 border border-gray-700 text-white text-xs px-2 py-1 rounded font-mono" id="postgres-user">
+                                <button onclick="copyToClipboard('postgres-user', this)" class="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded">📋</button>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 mb-1">Password:</p>
+                            <div class="flex gap-1">
+                                <input type="password" readonly value="${data.postgresCredentials.dbPassword}" class="flex-1 bg-black bg-opacity-50 border border-gray-700 text-white text-xs px-2 py-1 rounded font-mono" id="postgres-password">
+                                <button onclick="togglePassword('postgres-password', this)" class="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded">👁️</button>
+                                <button onclick="copyToClipboard('postgres-password', this)" class="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded">📋</button>
+                            </div>
+                        </div>
+                        <details class="mt-3">
+                            <summary class="text-xs text-blue-400 cursor-pointer hover:text-blue-300">📘 How to Connect</summary>
+                            <div class="mt-2 bg-black bg-opacity-50 rounded p-3 border border-gray-700">
+                                <p class="text-xs text-gray-400 mb-2"><strong>Node.js (pg):</strong></p>
+                                <pre class="text-xs text-gray-300 bg-gray-900 p-2 rounded overflow-x-auto mb-3"><code>const { Pool } = require('pg');
+const pool = new Pool({
+  connectionString: 'postgresql://${data.postgresCredentials.dbUser}:${data.postgresCredentials.dbPassword}@${data.postgresCredentials.host}:${data.postgresCredentials.port}/${data.postgresCredentials.dbName}'
+});
+const result = await pool.query('SELECT NOW()');</code></pre>
+                                <p class="text-xs text-gray-400 mb-2"><strong>Python (psycopg2):</strong></p>
+                                <pre class="text-xs text-gray-300 bg-gray-900 p-2 rounded overflow-x-auto"><code>import psycopg2
+conn = psycopg2.connect(
+  host='${data.postgresCredentials.host}',
+  port=${data.postgresCredentials.port},
+  database='${data.postgresCredentials.dbName}',
+  user='${data.postgresCredentials.dbUser}',
+  password='${data.postgresCredentials.dbPassword}'
+)</code></pre>
+                            </div>
+                        </details>
                     </div>
+                    ` : `
+                    <p class="text-xs text-gray-500 mt-3">Install PostgreSQL to view credentials and connection details.</p>
+                    `}
                 </div>
+                
+                <!-- MongoDB -->
                 <div class="bg-black bg-opacity-30 border border-gray-700 rounded-lg p-3">
                     <div class="flex items-center justify-between mb-2">
                         <p class="text-xs text-gray-400 uppercase font-bold">MongoDB</p>
@@ -542,11 +627,55 @@ const buildDashboardTemplate = (data) => {
                           '<span class="px-2 py-1 text-xs font-bold uppercase rounded bg-green-900 text-green-300 flex items-center gap-1"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg> Installed</span>' : 
                           '<span class="px-2 py-1 text-xs font-bold uppercase rounded bg-yellow-900 text-yellow-300">Not Installed</span>'}
                     </div>
-                    <p class="text-xs text-gray-500 mb-3">After install, SSH and run <span class="text-white">cat /root/.database_config</span> to view connection string.</p>
-                    <div class="bg-black bg-opacity-50 rounded p-2 border border-gray-700">
-                        <p class="text-xs text-gray-400 mb-1">Quick SSH:</p>
-                        <code class="text-xs text-brand">ssh ${data.sshUsername}@${data.ipAddress}</code>
+                    
+                    ${data.mongodbInstalled && data.mongodbCredentials ? `
+                    <!-- MongoDB Credentials -->
+                    <div class="space-y-3 mt-4">
+                        <div>
+                            <p class="text-xs text-gray-500 mb-1">Connection String:</p>
+                            <div class="flex gap-2">
+                                <input type="text" readonly value="mongodb://${data.mongodbCredentials.host}:${data.mongodbCredentials.port}/${data.mongodbCredentials.dbName}" class="flex-1 bg-black bg-opacity-50 border border-gray-700 text-white text-xs px-2 py-1 rounded font-mono" id="mongodb-connection-string">
+                                <button onclick="copyToClipboard('mongodb-connection-string', this)" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded">Copy</button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Host:</p>
+                                <div class="flex gap-1">
+                                    <input type="text" readonly value="${data.mongodbCredentials.host}" class="flex-1 bg-black bg-opacity-50 border border-gray-700 text-white text-xs px-2 py-1 rounded font-mono" id="mongodb-host">
+                                    <button onclick="copyToClipboard('mongodb-host', this)" class="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded">📋</button>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Port:</p>
+                                <input type="text" readonly value="${data.mongodbCredentials.port}" class="bg-black bg-opacity-50 border border-gray-700 text-white text-xs px-2 py-1 rounded font-mono">
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 mb-1">Database:</p>
+                            <div class="flex gap-1">
+                                <input type="text" readonly value="${data.mongodbCredentials.dbName}" class="flex-1 bg-black bg-opacity-50 border border-gray-700 text-white text-xs px-2 py-1 rounded font-mono" id="mongodb-dbname">
+                                <button onclick="copyToClipboard('mongodb-dbname', this)" class="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded">📋</button>
+                            </div>
+                        </div>
+                        <details class="mt-3">
+                            <summary class="text-xs text-blue-400 cursor-pointer hover:text-blue-300">📘 How to Connect</summary>
+                            <div class="mt-2 bg-black bg-opacity-50 rounded p-3 border border-gray-700">
+                                <p class="text-xs text-gray-400 mb-2"><strong>Node.js (mongodb):</strong></p>
+                                <pre class="text-xs text-gray-300 bg-gray-900 p-2 rounded overflow-x-auto mb-3"><code>const { MongoClient } = require('mongodb');
+const client = new MongoClient('mongodb://${data.mongodbCredentials.host}:${data.mongodbCredentials.port}/${data.mongodbCredentials.dbName}');
+await client.connect();
+const db = client.db('${data.mongodbCredentials.dbName}');</code></pre>
+                                <p class="text-xs text-gray-400 mb-2"><strong>Python (pymongo):</strong></p>
+                                <pre class="text-xs text-gray-300 bg-gray-900 p-2 rounded overflow-x-auto"><code>from pymongo import MongoClient
+client = MongoClient('mongodb://${data.mongodbCredentials.host}:${data.mongodbCredentials.port}/')
+db = client['${data.mongodbCredentials.dbName}']</code></pre>
+                            </div>
+                        </details>
                     </div>
+                    ` : `
+                    <p class="text-xs text-gray-500 mt-3">Install MongoDB to view credentials and connection details.</p>
+                    `}
                 </div>
             </div>
             ` : '<p class="text-gray-500 text-xs italic">Provision a server to enable databases.</p>'}
