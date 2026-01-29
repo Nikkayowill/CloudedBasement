@@ -599,14 +599,19 @@ const buildDashboardTemplate = (data) => {
                         <details class="mt-3">
                             <summary class="text-xs text-blue-400 cursor-pointer hover:text-blue-300 transition-colors">Show Code Examples</summary>
                             <div class="mt-2 bg-black bg-opacity-50 rounded p-3 border border-gray-700">
-                                <p class="text-xs text-gray-300 mb-3">Copy-paste these examples into your app's database file (e.g., <code class="text-white bg-black bg-opacity-50 px-1 rounded">config/database.js</code>):</p>
-                                <p class="text-xs text-gray-400 mb-2"><strong>Node.js:</strong> <code class="text-xs text-gray-500">npm install pg</code></p>
+                                <p class="text-xs text-gray-300 mb-3"><strong>Quick Start (3 steps):</strong></p>
+                                <ol class="text-xs text-gray-400 space-y-2 mb-4 pl-4 list-decimal">
+                                    <li>On <strong>your local machine</strong>, add this code to your app (e.g., <code class="text-white bg-black bg-opacity-50 px-1 rounded">config/database.js</code>)</li>
+                                    <li>Run the install command below <strong>locally</strong> to add the driver to your <code class="text-white bg-black bg-opacity-50 px-1 rounded">package.json</code></li>
+                                    <li>Push to Git and deploy via dashboard - we'll install dependencies automatically</li>
+                                </ol>
+                                <p class="text-xs text-gray-400 mb-2"><strong>Node.js:</strong> <code class="text-xs text-gray-500">npm install pg</code> <span class="text-gray-600">(run locally)</span></p>
                                 <pre class="text-xs text-gray-300 bg-gray-900 p-2 rounded overflow-x-auto mb-3"><code>const { Pool } = require('pg');
 const pool = new Pool({
   connectionString: 'postgresql://${data.postgresCredentials.dbUser}:${data.postgresCredentials.dbPassword}@${data.postgresCredentials.host}:${data.postgresCredentials.port}/${data.postgresCredentials.dbName}'
 });
 const result = await pool.query('SELECT NOW()');</code></pre>
-                                <p class="text-xs text-gray-400 mb-2"><strong>Python:</strong> <code class="text-xs text-gray-500">pip install psycopg2-binary</code></p>
+                                <p class="text-xs text-gray-400 mb-2"><strong>Python:</strong> <code class="text-xs text-gray-500">pip install psycopg2-binary</code> <span class="text-gray-600">(run locally)</span></p>
                                 <pre class="text-xs text-gray-300 bg-gray-900 p-2 rounded overflow-x-auto"><code>import psycopg2
 conn = psycopg2.connect(
   host='${data.postgresCredentials.host}',
@@ -669,13 +674,18 @@ conn = psycopg2.connect(
                         <details class="mt-3">
                             <summary class="text-xs text-blue-400 cursor-pointer hover:text-blue-300 transition-colors">Show Code Examples</summary>
                             <div class="mt-2 bg-black bg-opacity-50 rounded p-3 border border-gray-700">
-                                <p class="text-xs text-gray-300 mb-3">Copy-paste these examples into your app's database file (e.g., <code class="text-white bg-black bg-opacity-50 px-1 rounded">config/database.js</code>):</p>
-                                <p class="text-xs text-gray-400 mb-2"><strong>Node.js:</strong> <code class="text-xs text-gray-500">npm install mongodb</code></p>
+                                <p class="text-xs text-gray-300 mb-3"><strong>Quick Start (3 steps):</strong></p>
+                                <ol class="text-xs text-gray-400 space-y-2 mb-4 pl-4 list-decimal">
+                                    <li>On <strong>your local machine</strong>, add this code to your app (e.g., <code class="text-white bg-black bg-opacity-50 px-1 rounded">config/database.js</code>)</li>
+                                    <li>Run the install command below <strong>locally</strong> to add the driver to your <code class="text-white bg-black bg-opacity-50 px-1 rounded">package.json</code></li>
+                                    <li>Push to Git and deploy via dashboard - we'll install dependencies automatically</li>
+                                </ol>
+                                <p class="text-xs text-gray-400 mb-2"><strong>Node.js:</strong> <code class="text-xs text-gray-500">npm install mongodb</code> <span class="text-gray-600">(run locally)</span></p>
                                 <pre class="text-xs text-gray-300 bg-gray-900 p-2 rounded overflow-x-auto mb-3"><code>const { MongoClient } = require('mongodb');
 const client = new MongoClient('mongodb://${data.mongodbCredentials.host}:${data.mongodbCredentials.port}/${data.mongodbCredentials.dbName}');
 await client.connect();
 const db = client.db('${data.mongodbCredentials.dbName}');</code></pre>
-                                <p class="text-xs text-gray-400 mb-2"><strong>Python:</strong> <code class="text-xs text-gray-500">pip install pymongo</code></p>
+                                <p class="text-xs text-gray-400 mb-2"><strong>Python:</strong> <code class="text-xs text-gray-500">pip install pymongo</code> <span class="text-gray-600">(run locally)</span></p>
                                 <pre class="text-xs text-gray-300 bg-gray-900 p-2 rounded overflow-x-auto"><code>from pymongo import MongoClient
 client = MongoClient('mongodb://${data.mongodbCredentials.host}:${data.mongodbCredentials.port}/')
 db = client['${data.mongodbCredentials.dbName}']</code></pre>
