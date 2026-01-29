@@ -366,7 +366,7 @@ const buildDashboardTemplate = (data) => {
                     <p class="text-xs text-gray-400 uppercase font-bold mb-2">Username</p>
                     <div class="flex gap-2">
                         <input type="text" value="${escapeHtml(data.sshUsername)}" readonly class="flex-1 px-3 py-2 bg-black bg-opacity-30 border border-gray-700 rounded text-white font-mono text-sm">
-                        <button onclick="navigator.clipboard.writeText('${data.sshUsername.replace(/'/g, "\\'")}')">" class="px-4 py-2 bg-brand text-gray-900 font-bold rounded hover:bg-cyan-500 transition-colors text-xs">Copy</button>
+                        <button onclick="navigator.clipboard.writeText('${data.sshUsername.replace(/'/g, "\\'")}')" class="px-4 py-2 bg-brand text-gray-900 font-bold rounded hover:bg-cyan-500 transition-colors text-xs">Copy</button>
                     </div>
                 </div>
                 
