@@ -1032,6 +1032,53 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
       </div>
     </section>
 
+    <!-- Pricing Dose Section -->
+    <section class="bg-black py-12 md:py-20">
+      <div class="max-w-4xl px-8 md:px-12 lg:px-16 mx-auto">
+        <h2 class="mb-4 text-3xl md:text-4xl font-extrabold text-center text-white">Pricing</h2>
+        <p class="text-center text-gray-400 text-base mb-12">Simple monthly pricing. No usage surprises. Cancel anytime.</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          <!-- Basic -->
+          <div class="bg-gray-900 border border-blue-500/20 rounded-lg p-6">
+            <h3 class="text-lg font-bold text-white mb-1">Basic</h3>
+            <p class="text-2xl font-extrabold text-white mb-3">$25<span class="text-sm font-normal text-gray-400">/mo</span></p>
+            <p class="text-gray-400 text-sm mb-4">1 GB RAM · 1 vCPU · 25 GB SSD</p>
+            <a href="/pay?plan=basic" class="block w-full px-4 py-2 bg-transparent border border-blue-500 text-blue-400 text-center text-sm font-medium rounded hover:bg-blue-600 hover:text-white transition-all">Deploy Basic</a>
+          </div>
+          
+          <!-- Priority -->
+          <div class="bg-gray-900 border border-blue-500/20 rounded-lg p-6">
+            <h3 class="text-lg font-bold text-white mb-1">Priority</h3>
+            <p class="text-2xl font-extrabold text-white mb-3">$60<span class="text-sm font-normal text-gray-400">/mo</span></p>
+            <p class="text-gray-400 text-sm mb-4">2 GB RAM · 2 vCPUs · 50 GB SSD</p>
+            <a href="/pay?plan=priority" class="block w-full px-4 py-2 bg-blue-600 text-white text-center text-sm font-medium rounded hover:bg-blue-500 transition-all">Deploy Priority</a>
+          </div>
+          
+          <!-- Premium -->
+          <div class="bg-gray-900 border border-blue-500/20 rounded-lg p-6">
+            <h3 class="text-lg font-bold text-white mb-1">Premium</h3>
+            <p class="text-2xl font-extrabold text-white mb-3">$120<span class="text-sm font-normal text-gray-400">/mo</span></p>
+            <p class="text-gray-400 text-sm mb-4">4 GB RAM · 2 vCPUs · 80 GB SSD</p>
+            <a href="/pay?plan=premium" class="block w-full px-4 py-2 bg-transparent border border-blue-500 text-blue-400 text-center text-sm font-medium rounded hover:bg-blue-600 hover:text-white transition-all">Deploy Premium</a>
+          </div>
+        </div>
+        
+        <!-- Founder offer -->
+        <div class="bg-gray-900/50 border border-brand/30 rounded-lg p-6 text-center max-w-xl mx-auto">
+          <p class="text-brand font-medium mb-2">Early Operator Program</p>
+          <p class="text-white text-lg font-bold mb-2">$10/mo — locked in for life</p>
+          <p class="text-gray-400 text-sm mb-4">Limited availability for early users who want to help shape the platform.</p>
+          <a href="/contact" class="inline-block px-5 py-2 bg-brand text-black text-sm font-medium rounded hover:bg-cyan-400 transition-all">Apply for founder access</a>
+        </div>
+        
+        <p class="text-center text-gray-500 text-sm mt-8">
+          All plans include 30-day money-back guarantee. 
+          <a href="/pricing" class="text-brand hover:text-cyan-400 underline">Full pricing details →</a>
+        </p>
+      </div>
+    </section>
+
     <!-- Final CTA Section -->
     <section class="bg-black py-16">
       <div class="max-w-screen-sm px-8 md:px-12 lg:px-16 mx-auto text-center sm:px-6 lg:px-8">
