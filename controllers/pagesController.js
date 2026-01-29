@@ -617,7 +617,7 @@ ${getHTMLHead('FAQ - Basement')}
             </div>
             <div class="faq-answer overflow-hidden transition-all duration-300 max-h-0">
               <div class="px-6 pb-6">
-                <p class="text-gray-400">You can cancel anytime. Your subscription stops, but your server and data remain accessible via SSH. You can back up, migrate, or keep it running independently.</p>
+                <p class="text-gray-400">You can cancel anytime. Your server stays active until the end of your billing period so you can back up your data or migrate. After that, the server is shut down. No contracts, no cancellation fees.</p>
               </div>
             </div>
           </div>
