@@ -366,16 +366,6 @@ app.post('/create-payment-intent', requireAuth, paymentLimiter, paymentControlle
 
 app.post('/create-checkout-session', requireAuth, paymentLimiter, csrfProtection, paymentController.createCheckoutSession);
 
-// Logout route
-app.get('/logout', (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      console.error('Logout error:', err);
-    }
-    res.redirect('/?message=Logged out successfully');
-  });
-});
-
 // 404 error page - must be last route
 app.use((req, res) => {
   res.status(404).send(`

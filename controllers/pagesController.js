@@ -440,6 +440,7 @@ ${getHTMLHead('Privacy Policy - Basement')}
         <p class="text-gray-400 mb-4"><strong class="text-white">3.1 Service Providers</strong></p>
         <ul class="list-disc list-inside text-gray-400 mb-6 space-y-2">
             <li><strong class="text-white">Stripe, Inc.:</strong> We use Stripe to process payments. Your payment information is transmitted directly to Stripe and is subject to <a href="https://stripe.com/privacy" target="_blank" class="text-blue-400 hover:text-blue-500 underline">Stripe's Privacy Policy</a>. We never store complete payment card information on our servers.</li>
+            <li><strong class="text-white">DigitalOcean, LLC:</strong> Your servers are hosted on DigitalOcean infrastructure. Server IP addresses and usage data may be processed by DigitalOcean in accordance with <a href="https://www.digitalocean.com/legal/privacy-policy" target="_blank" class="text-blue-400 hover:text-blue-500 underline">DigitalOcean's Privacy Policy</a>.</li>
         </ul>
         
         <p class="text-gray-400 mb-4"><strong class="text-white">3.2 Legal Requirements</strong></p>
