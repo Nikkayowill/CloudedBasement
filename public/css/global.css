@@ -84,7 +84,7 @@ body {
     overflow-x: hidden;
 }
 
-/* Aurora / Southern Lights effect */
+/* Single spotlight from top center */
 .spotlight {
     position: fixed;
     top: 0;
@@ -93,51 +93,7 @@ body {
     height: 100%;
     pointer-events: none;
     z-index: 0;
-    overflow: hidden;
-    background: #000000;
-}
-
-.spotlight::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: 
-        radial-gradient(ellipse 80% 50% at 20% 40%, rgba(135, 206, 250, 0.12) 0%, transparent 50%),
-        radial-gradient(ellipse 60% 40% at 70% 20%, rgba(0, 102, 255, 0.08) 0%, transparent 50%),
-        radial-gradient(ellipse 70% 60% at 80% 60%, rgba(45, 167, 223, 0.1) 0%, transparent 50%),
-        radial-gradient(ellipse 50% 30% at 30% 80%, rgba(135, 206, 250, 0.08) 0%, transparent 50%);
-    animation: aurora 20s ease-in-out infinite;
-}
-
-.spotlight::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: 
-        radial-gradient(ellipse 60% 40% at 60% 30%, rgba(0, 102, 255, 0.1) 0%, transparent 50%),
-        radial-gradient(ellipse 80% 50% at 40% 70%, rgba(135, 206, 250, 0.08) 0%, transparent 50%);
-    animation: aurora 25s ease-in-out infinite reverse;
-}
-
-@keyframes aurora {
-    0%, 100% {
-        transform: translate(0, 0) rotate(0deg) scale(1);
-    }
-    25% {
-        transform: translate(5%, -5%) rotate(3deg) scale(1.05);
-    }
-    50% {
-        transform: translate(-5%, 5%) rotate(-2deg) scale(0.95);
-    }
-    75% {
-        transform: translate(3%, 3%) rotate(1deg) scale(1.02);
-    }
+    background: radial-gradient(ellipse 800px 600px at 50% 0%, rgba(135, 206, 250, 0.2) 0%, transparent 70%);
 }
 
 /* Ensure content stays above spotlight effects */
