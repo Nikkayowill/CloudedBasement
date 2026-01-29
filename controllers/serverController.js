@@ -1237,8 +1237,44 @@ async function setupDatabaseAsync(server, databaseType, userId) {
       await execSSH(conn, `apt install -y mongodb-org`);
       await execSSH(conn, `systemctl start mongod && systemctl enable mongod`);
       
+      // Generate secure credentials
+      const mongoUsername = 'basement_user';
+      const mongoPassword = crypto.randomBytes(16).toString('hex');
+      const mongoDbName = 'app_db';
+      
+      // Create MongoDB admin user with authentication
+      const createUserScript = `
+db = db.getSiblingDB('${mongoDbName}');
+db.createUser({
+  user: '${mongoUsername}',
+  pwd: '${mongoPassword}',
+  roles: [{ role: 'readWrite', db: '${mongoDbName}' }]
+});
+`;
+      
+      // Save script to file and execute via mongosh
+      const scriptBase64 = Buffer.from(createUserScript).toString('base64');
+      await execSSH(conn, `echo '${scriptBase64}' | base64 -d > /tmp/create_mongo_user.js`);
+      
+      // Verify user creation succeeded before enabling auth
+      const createResult = await execSSH(conn, `mongosh < /tmp/create_mongo_user.js 2>&1`);
+      await execSSH(conn, `rm /tmp/create_mongo_user.js`);
+      
+      if (!createResult.includes('Successfully added user') && !createResult.includes('"ok"') && !createResult.includes('ok: 1')) {
+        throw new Error(`MongoDB user creation failed: ${createResult}`);
+      }
+      
+      // Enable authentication in MongoDB config (use proper YAML newline)
+      await execSSH(conn, `sed -i 's/#security:/security:/' /etc/mongod.conf`);
+      await execSSH(conn, `sed -i '/^security:/a\\  authorization: enabled' /etc/mongod.conf`);
+      await execSSH(conn, `systemctl restart mongod`);
+      
+      // Wait for MongoDB to restart
+      await execSSH(conn, `sleep 3`);
+      
       // Store credentials file using base64 encoding (prevents shell injection)
-      const credsContent = `MongoDB Credentials\n\nHost: localhost\nPort: 27017\nDatabase: app_db\n\nConnection String:\nmongodb://localhost:27017/app_db`;
+      const connectionString = `mongodb://${mongoUsername}:${mongoPassword}@localhost:27017/${mongoDbName}`;
+      const credsContent = `MongoDB Credentials\n\nHost: localhost\nPort: 27017\nDatabase: ${mongoDbName}\nUsername: ${mongoUsername}\nPassword: ${mongoPassword}\n\nConnection String:\n${connectionString}`;
       const credsBase64 = Buffer.from(credsContent).toString('base64');
       await execSSH(conn, `echo '${credsBase64}' | base64 -d > /root/.database_config`);
       
@@ -1248,9 +1284,11 @@ async function setupDatabaseAsync(server, databaseType, userId) {
       await pool.query(
         `UPDATE servers SET 
           mongodb_installed = true,
-          mongodb_db_name = $1
-         WHERE id = $2`,
-        ['app_db', server.id]
+          mongodb_db_name = $1,
+          mongodb_db_user = $2,
+          mongodb_db_password = $3
+         WHERE id = $4`,
+        [mongoDbName, mongoUsername, mongoPassword, server.id]
       );
     }
   } catch (error) {
