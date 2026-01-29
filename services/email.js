@@ -80,6 +80,16 @@ function getTransportConfig() {
 const { provider, options } = getTransportConfig();
 const fromAddress = process.env.FROM_EMAIL || process.env.SMTP_FROM || process.env.GMAIL_EMAIL || 'noreply@basement.local';
 
+// CAN-SPAM compliant footer (physical address required)
+const emailFooterHtml = `
+  <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #333; font-size: 12px; color: #666;">
+    <p style="margin: 0;">Clouded Basement</p>
+    <p style="margin: 4px 0;">Toronto, Ontario, Canada</p>
+    <p style="margin: 4px 0;"><a href="https://cloudedbasement.ca" style="color: #2DA7DF;">cloudedbasement.ca</a></p>
+  </div>
+`;
+const emailFooterText = `\n\n---\nClouded Basement\nToronto, Ontario, Canada\nhttps://cloudedbasement.ca`;
+
 if (provider === 'sendgrid') {
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 }
@@ -102,8 +112,9 @@ async function sendConfirmationEmail(email, code) {
       <p>Enter this code on the confirmation page to activate your account.</p>
       <p style="color: #666; font-size: 12px;">This code expires in 15 minutes.</p>
       <p style="color: #666; font-size: 12px;">If you didn't sign up for this account, you can ignore this email.</p>
+      ${emailFooterHtml}
     `,
-    text: `Your confirmation code is: ${code}\n\nEnter this code to confirm your email. This code expires in 15 minutes.`
+    text: `Your confirmation code is: ${code}\n\nEnter this code to confirm your email. This code expires in 15 minutes.${emailFooterText}`
   };
 
   try {
@@ -199,10 +210,12 @@ async function sendServerRequestEmail(userEmail, region, serverName) {
       <p style="color: #a0a8b8; line-height: 1.6; margin-top: 24px;">You can check your status anytime at <a href="https://cloudedbasement.ca/dashboard" style="color: #2DA7DF;">your dashboard</a></p>
       
       <p style="color: #8892a0; font-size: 14px; margin-top: 32px; padding-top: 16px; border-top: 1px solid rgba(45, 167, 223, 0.2);">- Clouded Basement Team</p>
+      ${emailFooterHtml}
     </div>
   `;
+  const textWithFooter = text + emailFooterText;
   
-  return sendEmail(userEmail, subject, html, text);
+  return sendEmail(userEmail, subject, html, textWithFooter);
 }
 
 // Send server ready email with credentials
@@ -289,9 +302,11 @@ Need help? Check our docs at https://cloudedbasement.ca/docs or reply to this em
     <p>Need help? Check our <a href="https://cloudedbasement.ca/docs">documentation</a> or reply to this email.</p>
     
     <p>- Clouded Basement Team</p>
+    ${emailFooterHtml}
   `;
+  const textWithFooter = text + emailFooterText;
   
-  return sendEmail(userEmail, subject, html, text);
+  return sendEmail(userEmail, subject, html, textWithFooter);
 }
 
 module.exports = {
