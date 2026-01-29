@@ -877,7 +877,7 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
     
     <!-- Hero Section -->
     <section class="bg-black pt-32 pb-16">
-      <div class="max-w-screen-xl px-8 md:px-12 lg:px-16 mx-auto text-center lg:px-12">
+      <div class="max-w-screen-xl px-8 md:px-12 lg:px-16 mx-auto text-center">
         <img src="/Architype Van Der Leck.svg" alt="Clouded Basement Logo" class="mx-auto mb-6 h-28 md:h-36 lg:h-40 w-auto">
         <h1 class="mb-4 text-4xl font-extrabold tracking-tight text-white md:text-5xl lg:text-6xl">Your own VPS. Deployed in minutes. No DevOps headaches.</h1>
         <p class="mb-8 text-lg font-normal text-gray-400 lg:text-xl sm:px-16 xl:px-48">Clouded Basement provisions a production-ready Linux server with SSL, Git deployments, and full root access — so you can ship without babysitting infrastructure.</p>
@@ -1036,7 +1036,7 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
     <section class="bg-black py-12 md:py-20">
       <div class="max-w-4xl px-8 md:px-12 lg:px-16 mx-auto">
         <h2 class="mb-4 text-3xl md:text-4xl font-extrabold text-center text-white">Pricing</h2>
-        <p class="text-center text-gray-400 text-base mb-12">Simple monthly pricing. No usage surprises. Cancel anytime.</p>
+        <p class="text-center text-gray-400 text-base mb-12">Simple monthly pricing · No usage surprises · Cancel anytime</p>
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           <!-- Basic -->
@@ -1044,7 +1044,7 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
             <h3 class="text-lg font-bold text-white mb-1">Basic</h3>
             <p class="text-2xl font-extrabold text-white mb-3">$25<span class="text-sm font-normal text-gray-400">/mo</span></p>
             <p class="text-gray-400 text-sm mb-4">1 GB RAM · 1 vCPU · 25 GB SSD</p>
-            <a href="/pay?plan=basic" class="block w-full px-4 py-2 bg-transparent border border-blue-500 text-blue-400 text-center text-sm font-medium rounded hover:bg-blue-600 hover:text-white transition-all">Deploy Basic</a>
+            <a href="/pay?plan=basic" class="block w-full px-4 py-2 bg-transparent border border-blue-500 text-blue-400 text-center text-sm font-medium rounded hover:bg-blue-600 hover:text-white hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all duration-300">Deploy Basic</a>
           </div>
           
           <!-- Priority -->
@@ -1052,7 +1052,7 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
             <h3 class="text-lg font-bold text-white mb-1">Priority</h3>
             <p class="text-2xl font-extrabold text-white mb-3">$60<span class="text-sm font-normal text-gray-400">/mo</span></p>
             <p class="text-gray-400 text-sm mb-4">2 GB RAM · 2 vCPUs · 50 GB SSD</p>
-            <a href="/pay?plan=priority" class="block w-full px-4 py-2 bg-blue-600 text-white text-center text-sm font-medium rounded hover:bg-blue-500 transition-all">Deploy Priority</a>
+            <a href="/pay?plan=priority" class="block w-full px-4 py-2 bg-blue-600 text-white text-center text-sm font-medium rounded hover:bg-blue-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all duration-300">Deploy Priority</a>
           </div>
           
           <!-- Premium -->
@@ -1060,16 +1060,16 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
             <h3 class="text-lg font-bold text-white mb-1">Premium</h3>
             <p class="text-2xl font-extrabold text-white mb-3">$120<span class="text-sm font-normal text-gray-400">/mo</span></p>
             <p class="text-gray-400 text-sm mb-4">4 GB RAM · 2 vCPUs · 80 GB SSD</p>
-            <a href="/pay?plan=premium" class="block w-full px-4 py-2 bg-transparent border border-blue-500 text-blue-400 text-center text-sm font-medium rounded hover:bg-blue-600 hover:text-white transition-all">Deploy Premium</a>
+            <a href="/pay?plan=premium" class="block w-full px-4 py-2 bg-transparent border border-blue-500 text-blue-400 text-center text-sm font-medium rounded hover:bg-blue-600 hover:text-white hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all duration-300">Deploy Premium</a>
           </div>
         </div>
         
         <!-- Founder offer -->
         <div class="bg-gray-900/50 border border-brand/30 rounded-lg p-6 text-center max-w-xl mx-auto">
           <p class="text-brand font-medium mb-2">Early Operator Program</p>
-          <p class="text-white text-lg font-bold mb-2">$10/mo — locked in for life</p>
+          <p class="text-white text-lg font-bold mb-2">$10/mo for the first 6 months</p>
           <p class="text-gray-400 text-sm mb-4">Limited availability for early users who want to help shape the platform.</p>
-          <a href="/contact" class="inline-block px-5 py-2 bg-brand text-black text-sm font-medium rounded hover:bg-cyan-400 transition-all">Apply for founder access</a>
+          <a href="/contact" class="inline-block px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all duration-300">Apply for founder access</a>
         </div>
         
         <p class="text-center text-gray-500 text-sm mt-8">
@@ -1081,7 +1081,7 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
 
     <!-- Final CTA Section -->
     <section class="bg-black py-16">
-      <div class="max-w-screen-sm px-8 md:px-12 lg:px-16 mx-auto text-center sm:px-6 lg:px-8">
+      <div class="max-w-screen-sm px-8 md:px-12 lg:px-16 mx-auto text-center">
         <h2 class="mb-4 text-3xl md:text-4xl font-extrabold text-white">Ready to get started?</h2>
         <p class="mb-8 text-lg text-gray-300">Join the founding customers and lock in lifetime pricing.</p>
         <a href="/register" class="inline-flex justify-center items-center py-3 px-8 text-base font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all duration-300">
