@@ -926,26 +926,26 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
     </section>
 
     <!-- Why Choose Section -->
-    <section class="py-12 md:py-20 bg-black">
+    <section class="py-20 md:py-28 bg-black">
       <div class="max-w-6xl mx-auto px-8 md:px-12 lg:px-16">
-        <h2 class="mb-4 text-3xl md:text-4xl font-extrabold text-center text-white">Why Choose Clouded Basement?</h2>
-        <p class="mb-12 text-center text-gray-400 text-sm">Because you want control and convenience — not one or the other.</p>
-        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <h2 class="mb-6 text-3xl md:text-4xl font-extrabold text-center text-white">Why Choose Clouded Basement?</h2>
+        <p class="mb-16 text-center text-gray-400 text-base max-w-2xl mx-auto">Because you want control and convenience — not one or the other.</p>
+        <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div class="p-6 bg-gray-900 border border-blue-500/20 rounded-lg hover:border-blue-400/50 hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(135,206,250,0.3)] transition-all duration-300">
-            <h3 class="mb-2 text-xl font-bold text-white">Your server, not a black box</h3>
-            <p class="text-gray-300">Every project runs on its own VPS with full root access. No abstractions, no vendor lock-in, no hidden limits.</p>
+            <h3 class="mb-3 text-xl font-bold text-white">Your server, not a black box</h3>
+            <p class="text-gray-300 text-sm leading-relaxed">Every project runs on its own VPS with full root access. No abstractions, no vendor lock-in, no hidden limits.</p>
           </div>
           <div class="p-6 bg-gray-900 border border-blue-500/20 rounded-lg hover:border-blue-400/50 hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(135,206,250,0.3)] transition-all duration-300">
-            <h3 class="mb-2 text-xl font-bold text-white">Zero-setup infrastructure</h3>
-            <p class="text-gray-300">Servers are provisioned with SSL, Nginx, Node.js, Python, and Git deployments automatically — ready in minutes.</p>
+            <h3 class="mb-3 text-xl font-bold text-white">Zero-setup infrastructure</h3>
+            <p class="text-gray-300 text-sm leading-relaxed">Servers are provisioned with SSL, Nginx, Node.js, Python, and Git deployments automatically — ready in minutes.</p>
           </div>
           <div class="p-6 bg-gray-900 border border-blue-500/20 rounded-lg hover:border-blue-400/50 hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(135,206,250,0.3)] transition-all duration-300">
-            <h3 class="mb-2 text-xl font-bold text-white">Talk to the builder</h3>
-            <p class="text-gray-300">When something breaks or you have a question, you're talking directly to the person who built the system — not a ticket queue.</p>
+            <h3 class="mb-3 text-xl font-bold text-white">Talk to the builder</h3>
+            <p class="text-gray-300 text-sm leading-relaxed">When something breaks or you have a question, you're talking directly to the person who built the system — not a ticket queue.</p>
           </div>
           <div class="p-6 bg-gray-900 border border-blue-500/20 rounded-lg hover:border-blue-400/50 hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(135,206,250,0.3)] transition-all duration-300">
-            <h3 class="mb-2 text-xl font-bold text-white">Simple, predictable pricing</h3>
-            <p class="text-gray-300">Flat monthly pricing. Cancel anytime. No usage surprises or complicated tiers.</p>
+            <h3 class="mb-3 text-xl font-bold text-white">Simple, predictable pricing</h3>
+            <p class="text-gray-300 text-sm leading-relaxed">Flat monthly pricing. Cancel anytime. No usage surprises or complicated tiers.</p>
           </div>
         </div>
       </div>
