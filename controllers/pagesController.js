@@ -951,39 +951,6 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
       </div>
     </section>
 
-    <!-- Features List -->
-    <section class="bg-black py-12 md:py-20">
-      <div class="max-w-3xl px-8 md:px-12 lg:px-16 mx-auto sm:px-6 lg:px-8">
-        <h2 class="mb-12 text-3xl md:text-4xl font-extrabold text-center text-white">What You Get</h2>
-        <ul class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <li class="flex items-center gap-3 p-4 bg-gray-900 border border-blue-500/20 rounded-lg hover:border-blue-400/50 hover:shadow-[0_0_15px_rgba(135,206,250,0.25)] transition-all duration-300">
-            <span class="text-blue-300 text-xl font-bold">✓</span>
-            <span class="text-gray-200">Full hosting environment</span>
-          </li>
-          <li class="flex items-center gap-3 p-4 bg-gray-900 border border-blue-500/20 rounded-lg hover:border-blue-400/50 hover:shadow-[0_0_15px_rgba(135,206,250,0.25)] transition-all duration-300">
-            <span class="text-blue-300 text-xl font-bold">✓</span>
-            <span class="text-gray-200">SSD storage</span>
-          </li>
-          <li class="flex items-center gap-3 p-4 bg-gray-900 border border-blue-500/20 rounded-lg hover:border-blue-400/50 hover:shadow-[0_0_15px_rgba(135,206,250,0.25)] transition-all duration-300">
-            <span class="text-blue-300 text-xl font-bold">✓</span>
-            <span class="text-gray-200">Secure isolation</span>
-          </li>
-          <li class="flex items-center gap-3 p-4 bg-gray-900 border border-blue-500/20 rounded-lg hover:border-blue-400/50 hover:shadow-[0_0_15px_rgba(135,206,250,0.25)] transition-all duration-300">
-            <span class="text-blue-300 text-xl font-bold">✓</span>
-            <span class="text-gray-200">Free setup</span>
-          </li>
-          <li class="flex items-center gap-3 p-4 bg-gray-900 border border-blue-500/20 rounded-lg hover:border-blue-400/50 hover:shadow-[0_0_15px_rgba(135,206,250,0.25)] transition-all duration-300">
-            <span class="text-blue-300 text-xl font-bold">✓</span>
-            <span class="text-gray-200">Modern dashboard</span>
-          </li>
-          <li class="flex items-center gap-3 p-4 bg-gray-900 border border-blue-500/20 rounded-lg hover:border-blue-400/50 hover:shadow-[0_0_15px_rgba(135,206,250,0.25)] transition-all duration-300">
-            <span class="text-blue-300 text-xl font-bold">✓</span>
-            <span class="text-gray-200">All future features included</span>
-          </li>
-        </ul>
-      </div>
-    </section>
-
     <!-- How It Works -->
     <section class="bg-black py-12 md:py-20">
       <div class="max-w-6xl mx-auto px-8 md:px-12 lg:px-16">
@@ -1010,6 +977,58 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
           </li>
         </ol>
         <p class="text-center text-gray-500 text-sm mt-12">That's it. Your server is live and fully yours.</p>
+      </div>
+    </section>
+
+    <!-- What You Get -->
+    <section class="bg-black py-12 md:py-20">
+      <div class="max-w-3xl px-8 md:px-12 lg:px-16 mx-auto">
+        <h2 class="mb-4 text-3xl md:text-4xl font-extrabold text-center text-white">What you get</h2>
+        <p class="text-center text-gray-400 text-base mb-12">Everything you need to run a production app — without managing infrastructure from scratch.</p>
+        <p class="text-gray-500 text-sm mb-6">Included with every server:</p>
+        <ul class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <li class="flex items-center gap-3 p-4 bg-gray-900 border border-blue-500/20 rounded-lg">
+            <span class="text-blue-300 text-lg">✓</span>
+            <span class="text-gray-200 text-sm">Dedicated VPS (not shared hosting)</span>
+          </li>
+          <li class="flex items-center gap-3 p-4 bg-gray-900 border border-blue-500/20 rounded-lg">
+            <span class="text-blue-300 text-lg">✓</span>
+            <span class="text-gray-200 text-sm">Ubuntu 22.04 LTS</span>
+          </li>
+          <li class="flex items-center gap-3 p-4 bg-gray-900 border border-blue-500/20 rounded-lg">
+            <span class="text-blue-300 text-lg">✓</span>
+            <span class="text-gray-200 text-sm">Full root SSH access</span>
+          </li>
+          <li class="flex items-center gap-3 p-4 bg-gray-900 border border-blue-500/20 rounded-lg">
+            <span class="text-blue-300 text-lg">✓</span>
+            <span class="text-gray-200 text-sm">Nginx preconfigured</span>
+          </li>
+          <li class="flex items-center gap-3 p-4 bg-gray-900 border border-blue-500/20 rounded-lg">
+            <span class="text-blue-300 text-lg">✓</span>
+            <span class="text-gray-200 text-sm">Node.js & Python environments</span>
+          </li>
+          <li class="flex items-center gap-3 p-4 bg-gray-900 border border-blue-500/20 rounded-lg">
+            <span class="text-blue-300 text-lg">✓</span>
+            <span class="text-gray-200 text-sm">One-click GitHub deployments</span>
+          </li>
+          <li class="flex items-center gap-3 p-4 bg-gray-900 border border-blue-500/20 rounded-lg">
+            <span class="text-blue-300 text-lg">✓</span>
+            <span class="text-gray-200 text-sm">Custom domains supported</span>
+          </li>
+          <li class="flex items-center gap-3 p-4 bg-gray-900 border border-blue-500/20 rounded-lg">
+            <span class="text-blue-300 text-lg">✓</span>
+            <span class="text-gray-200 text-sm">Free SSL certificates (Let's Encrypt)</span>
+          </li>
+          <li class="flex items-center gap-3 p-4 bg-gray-900 border border-blue-500/20 rounded-lg">
+            <span class="text-blue-300 text-lg">✓</span>
+            <span class="text-gray-200 text-sm">Secure-by-default configuration</span>
+          </li>
+          <li class="flex items-center gap-3 p-4 bg-gray-900 border border-blue-500/20 rounded-lg">
+            <span class="text-blue-300 text-lg">✓</span>
+            <span class="text-gray-200 text-sm">Cancel anytime</span>
+          </li>
+        </ul>
+        <p class="text-center text-gray-500 text-sm mt-8">You can install anything else you need — it's your server.</p>
       </div>
     </section>
 
