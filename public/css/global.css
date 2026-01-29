@@ -84,23 +84,10 @@ body {
     overflow-x: hidden;
 }
 
-/* Single spotlight from top center */
-.spotlight {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 0;
-    background: radial-gradient(ellipse 800px 600px at 50% 0%, rgba(135, 206, 250, 0.2) 0%, transparent 70%);
-}
-
-/* Ensure content stays above spotlight effects */
+/* Ensure content stays above any effects */
 main, nav, footer, section {
     position: relative;
     z-index: 1;
-    background: transparent !important;
 }
 
 /* Brand color utilities */
