@@ -234,9 +234,9 @@ button, a, input, textarea, select {
     left: 0;
     right: 0;
     z-index: 50;
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(20px) saturate(180%);
-    border-bottom: 1px solid rgba(0, 102, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.4s ease, box-shadow 0.4s ease;
     height: 60px;
     transform: translateY(0);
@@ -246,7 +246,7 @@ button, a, input, textarea, select {
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(12px) saturate(150%);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    border-bottom: 1px solid rgba(0, 102, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .main-nav.hidden {
