@@ -978,82 +978,82 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
     <section class="gradient-peak-light py-20 md:py-28">
       <div class="max-w-4xl px-8 md:px-12 lg:px-16 mx-auto">
         <h2 class="mb-6 text-3xl md:text-4xl font-extrabold text-center text-white">What you get</h2>
-        <p class="text-center text-gray-400 text-base" style="margin-bottom: 5rem;">Everything you need to run a production app — without managing infrastructure from scratch.</p>
+        <p class="text-center text-white text-base" style="margin-bottom: 5rem;">Everything you need to run a production app — without managing infrastructure from scratch.</p>
         
         <ul class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
           <li class="flex items-start gap-3 p-6 bg-gray-900/50 border border-blue-500/20">
             <span class="text-brand text-xl flex-shrink-0 mt-1">✓</span>
             <div>
               <h3 class="text-white font-semibold mb-1">Dedicated VPS (not shared hosting)</h3>
-              <p class="text-gray-400 text-sm">Your own isolated server environment</p>
+              <p class="text-white text-sm">Your own isolated server environment</p>
             </div>
           </li>
           <li class="flex items-start gap-3 p-6 bg-gray-900/50 border border-blue-500/20">
             <span class="text-brand text-xl flex-shrink-0 mt-1">✓</span>
             <div>
               <h3 class="text-white font-semibold mb-1">Ubuntu 22.04 LTS</h3>
-              <p class="text-gray-400 text-sm">Latest stable long-term support release</p>
+              <p class="text-white text-sm">Latest stable long-term support release</p>
             </div>
           </li>
           <li class="flex items-start gap-3 p-6 bg-gray-900/50 border border-blue-500/20">
             <span class="text-brand text-xl flex-shrink-0 mt-1">✓</span>
             <div>
               <h3 class="text-white font-semibold mb-1">Full root SSH access</h3>
-              <p class="text-gray-400 text-sm">Complete control over your server</p>
+              <p class="text-white text-sm">Complete control over your server</p>
             </div>
           </li>
           <li class="flex items-start gap-3 p-6 bg-gray-900/50 border border-blue-500/20">
             <span class="text-brand text-xl flex-shrink-0 mt-1">✓</span>
             <div>
               <h3 class="text-white font-semibold mb-1">Nginx preconfigured</h3>
-              <p class="text-gray-400 text-sm">Web server ready to serve your apps</p>
+              <p class="text-white text-sm">Web server ready to serve your apps</p>
             </div>
           </li>
           <li class="flex items-start gap-3 p-6 bg-gray-900/50 border border-blue-500/20">
             <span class="text-brand text-xl flex-shrink-0 mt-1">✓</span>
             <div>
               <h3 class="text-white font-semibold mb-1">Node.js & Python environments</h3>
-              <p class="text-gray-400 text-sm">Modern runtime environments pre-installed</p>
+              <p class="text-white text-sm">Modern runtime environments pre-installed</p>
             </div>
           </li>
           <li class="flex items-start gap-3 p-6 bg-gray-900/50 border border-blue-500/20">
             <span class="text-brand text-xl flex-shrink-0 mt-1">✓</span>
             <div>
               <h3 class="text-white font-semibold mb-1">One-click GitHub deployments</h3>
-              <p class="text-gray-400 text-sm">Deploy directly from your repository</p>
+              <p class="text-white text-sm">Deploy directly from your repository</p>
             </div>
           </li>
           <li class="flex items-start gap-3 p-6 bg-gray-900/50 border border-blue-500/20">
             <span class="text-brand text-xl flex-shrink-0 mt-1">✓</span>
             <div>
               <h3 class="text-white font-semibold mb-1">Custom domains supported</h3>
-              <p class="text-gray-400 text-sm">Point any domain to your server</p>
+              <p class="text-white text-sm">Point any domain to your server</p>
             </div>
           </li>
           <li class="flex items-start gap-3 p-6 bg-gray-900/50 border border-blue-500/20">
             <span class="text-brand text-xl flex-shrink-0 mt-1">✓</span>
             <div>
               <h3 class="text-white font-semibold mb-1">Free SSL certificates (Let's Encrypt)</h3>
-              <p class="text-gray-400 text-sm">HTTPS encryption included</p>
+              <p class="text-white text-sm">HTTPS encryption included</p>
             </div>
           </li>
           <li class="flex items-start gap-3 p-6 bg-gray-900/50 border border-blue-500/20">
             <span class="text-brand text-xl flex-shrink-0 mt-1">✓</span>
             <div>
               <h3 class="text-white font-semibold mb-1">Secure-by-default configuration</h3>
-              <p class="text-gray-400 text-sm">Hardened security settings out of the box</p>
+              <p class="text-white text-sm">Hardened security settings out of the box</p>
             </div>
           </li>
           <li class="flex items-start gap-3 p-6 bg-gray-900/50 border border-blue-500/20">
             <span class="text-brand text-xl flex-shrink-0 mt-1">✓</span>
             <div>
               <h3 class="text-white font-semibold mb-1">Cancel anytime</h3>
-              <p class="text-gray-400 text-sm">No long-term contracts or commitments</p>
+              <p class="text-white text-sm">No long-term contracts or commitments</p>
             </div>
           </li>
         </ul>
         
-        <p class="text-center text-gray-500 text-sm" style="margin-top: 5rem;">You can install anything else you need — it's your server.</p>
+        <p class="text-center text-white text-sm" style="margin-top: 5rem;">You can install anything else you need — it's your server.</p>
       </div>
     </section>
 
@@ -1089,12 +1089,12 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
           </div>
         </div>
         
-        <!-- Founder offer -->
+        <!-- Free Trial Offer -->
         <div class="bg-gray-900/50 border border-brand/30 rounded-lg p-6 text-center max-w-xl mx-auto">
-          <p class="text-brand font-medium mb-2">Early Operator Program</p>
-          <p class="text-white text-lg font-bold mb-2">$10/mo for the first 6 months</p>
-          <p class="text-gray-400 text-sm mb-4">Limited availability for early users who want to help shape the platform.</p>
-          <a href="/contact" class="inline-block px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all duration-300">Apply for founder access</a>
+          <p class="text-brand font-medium mb-2">3-Day Free Trial</p>
+          <p class="text-white text-lg font-bold mb-2">Test everything risk-free</p>
+          <p class="text-gray-400 text-sm mb-4">Full server access for 3 days. No credit card required. Cancel anytime from your dashboard—no hoops, no emails.</p>
+          <a href="/register" class="inline-block px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all duration-300">Start free trial</a>
         </div>
         
         <p class="text-center text-gray-500 text-sm mt-8">
