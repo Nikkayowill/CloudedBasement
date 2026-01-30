@@ -29,6 +29,7 @@ const pgSession = require('connect-pg-simple')(session);
 const pool = require('./db');
 const { getHTMLHead, getDashboardHead, getScripts, getFooter, getAuthLinks, getResponsiveNav } = require('./helpers');
 const { createRealServer: createRealServerService, syncDigitalOceanDroplets: syncDigitalOceanDropletsService } = require('./services/digitalocean');
+const { monitorSubscriptions } = require('./services/subscriptionMonitor');
 const { sendServerRequestEmail } = require('./services/email');
 const { requireAuth, requireAdmin } = require('./middleware/auth');
 const { generalLimiter, contactLimiter, paymentLimiter, emailVerifyLimiter, deploymentLimiter } = require('./middleware/rateLimiter');
@@ -401,6 +402,12 @@ setInterval(syncDigitalOceanDropletsService, 3600000);
 
 // Run sync on startup (after 30 seconds to let server initialize)
 setTimeout(syncDigitalOceanDropletsService, 30000);
+
+// Monitor subscriptions every 6 hours (check for expired trials and failed payments)
+setInterval(monitorSubscriptions, 6 * 60 * 60 * 1000);
+
+// Run subscription monitor on startup (after 60 seconds)
+setTimeout(monitorSubscriptions, 60000);
 
 // Global error handler (must be last)
 app.use(errorHandler);
