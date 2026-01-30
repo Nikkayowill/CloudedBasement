@@ -886,7 +886,7 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
     </section>
 
     <!-- Micro-Trust Block -->
-    <section class="py-8 px-8 md:px-12 lg:px-16 bg-black">
+    <section class="py-8 px-8 md:px-12 lg:px-16 md:mb-7 bg-black">
       <div class="max-w-3xl mx-auto">
         <ul class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center md:text-left">
           <li class="flex flex-col md:flex-row items-center md:items-start gap-2">
