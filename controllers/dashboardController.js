@@ -359,7 +359,7 @@ const buildDashboardTemplate = (data) => {
                     </form>
                     <form action="/delete-server" method="POST" class="flex-1" onsubmit="return confirm('⚠️ WARNING: This will PERMANENTLY DESTROY your server and ALL DATA on it.\\n\\nThere are NO backups. There is NO undo.\\n\\nAre you sure?') && confirm('FINAL CONFIRMATION:\\n\\nType your understanding:\\n\\nThis will delete EVERYTHING including:\\n- All files and code\\n- All databases\\n- All configurations\\n\\nThis action is IRREVERSIBLE.\\n\\nClick OK to proceed with destruction.');">
                         <input type="hidden" name="_csrf" value="${data.csrfToken}">
-                        <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition-colors">Terminate</button>
+                        <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 hover:shadow-[0_0_20px_rgba(220,38,38,0.6)] transition-all duration-300">Terminate</button>
                     </form>
                 </div>
             </div>
