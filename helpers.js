@@ -69,7 +69,7 @@ function getScripts(...scripts) {
 // Footer
 function getFooter() {
   return `
-    <footer class="bg-black border-t border-blue-500/30 py-12 mt-20">
+    <footer class="py-12 mt-20">
         <div class="max-w-6xl mx-auto px-8 md:px-12 lg:px-16 grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
                 <h3 class="text-blue-400 text-base font-bold mb-4">Basement</h3>
@@ -93,7 +93,7 @@ function getFooter() {
                 </ul>
             </div>
         </div>
-        <div class="text-center mt-10 pt-6 border-t border-blue-500/30 max-w-6xl mx-auto px-8">
+        <div class="text-center mt-10 pt-6 max-w-6xl mx-auto px-8">
             <p class="mb-3">
                 <a href="/is-this-safe" class="text-brand text-base font-medium hover:text-cyan-400 transition-colors duration-300 underline">Is Clouded Basement safe?</a>
             </p>
