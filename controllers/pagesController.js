@@ -851,21 +851,30 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
     ` : ''}
     
     <!-- Hero Section -->
-    <section class="bg-black pt-32 pb-16 relative overflow-hidden">
-      <div class="max-w-screen-xl px-8 md:px-12 lg:px-16 mx-auto text-center relative z-10">
-        <img src="/Architype Van Der Leck.svg" alt="Clouded Basement Logo" class="mx-auto mb-8 h-28 md:h-36 lg:h-40 w-auto">
+    <section class="bg-black pt-32 pb-16 relative overflow-visible">
+      <!-- Animated floating clouds with lightning -->
+      <div class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div class="cloud cloud-1"></div>
+        <div class="cloud cloud-2"></div>
+        <div class="cloud cloud-3"></div>
+        <div class="lightning lightning-1"></div>
+        <div class="lightning lightning-2"></div>
+      </div>
+      
+      <div class="max-w-screen-xl px-8 md:px-12 lg:px-16 mx-auto text-center relative z-20">
+        <img src="/Architype Van Der Leck.svg" alt="Clouded Basement Logo" class="mx-auto mb-8 h-28 md:h-36 lg:h-40 w-auto relative z-30">
         
         <!-- Hero Heading with Spotlight -->
-        <div class="relative inline-block mb-6">
-          <!-- Spotlight backdrop - white moonlight glow -->
-          <div class="absolute inset-0 bg-gradient-radial from-white/40 via-white/20 to-transparent blur-3xl scale-150"></div>
+        <div class="relative inline-block mb-6 z-30">
+          <!-- Spotlight backdrop - white moonlight glow (moved behind everything) -->
+          <div class="absolute -inset-32 bg-gradient-radial from-white/50 via-white/25 to-transparent blur-[100px] scale-[2]" style="z-index: -1;"></div>
           
-          <h1 class="relative z-10 text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight text-white leading-tight transform transition-transform duration-300 hover:scale-105" style="text-shadow: 0 0 40px rgba(255, 255, 255, 0.4), 0 0 80px rgba(255, 255, 255, 0.2), 0 4px 20px rgba(0, 0, 0, 0.8);">
+          <h1 class="relative text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight text-white leading-tight transform transition-transform duration-300 hover:scale-105" style="text-shadow: 0 0 60px rgba(255, 255, 255, 0.6), 0 0 100px rgba(255, 255, 255, 0.3), 0 4px 20px rgba(0, 0, 0, 0.8);">
             Your own VPS.<br class="sm:hidden"> Deployed in minutes.<br class="sm:hidden"> <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">No DevOps headaches.</span>
           </h1>
         </div>
         
-        <p class="mb-8 text-lg font-normal text-gray-400 lg:text-xl sm:px-16 xl:px-48">Clouded Basement provisions a production-ready Linux server with SSL, Git deployments, and full root access — so you can ship without babysitting infrastructure.</p>
+        <p class="mb-8 text-lg font-normal text-gray-400 lg:text-xl sm:px-16 xl:px-48 relative z-30">Clouded Basement provisions a production-ready Linux server with SSL, Git deployments, and full root access — so you can ship without babysitting infrastructure.</p>
         <div class="flex flex-col mb-4 space-y-4 sm:flex-row sm:justify-center sm:space-y-0 sm:space-x-4">
           <a href="/pricing" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all duration-300">
             Deploy your server
