@@ -114,8 +114,9 @@ echo "Setup complete!" > /root/setup.log
     }
 
     // Create droplet via DigitalOcean API (only after confirming no existing server)
+    const dropletName = `basement-${userId}-${Date.now()}`;
     const response = await axios.post('https://api.digitalocean.com/v2/droplets', {
-      name: `basement-${userId}-${Date.now()}`,
+      name: dropletName,
       region: 'nyc3',
       size: selectedSpec.slug,
       image: 'ubuntu-22-04-x64',
@@ -138,10 +139,10 @@ echo "Setup complete!" > /root/setup.log
     // Save to database - wrapped in try-catch to handle race condition
     try {
       const result = await pool.query(
-        `INSERT INTO servers (user_id, plan, status, ip_address, ssh_username, ssh_password, specs, stripe_charge_id, droplet_id)
-         VALUES ($1, $2, 'provisioning', $3, 'root', $4, $5, $6, $7)
+        `INSERT INTO servers (user_id, plan, status, ip_address, ssh_username, ssh_password, specs, stripe_charge_id, droplet_id, droplet_name)
+         VALUES ($1, $2, 'provisioning', $3, 'root', $4, $5, $6, $7, $8)
          RETURNING *`,
-        [userId, plan, droplet.networks?.v4?.[0]?.ip_address || 'pending', password, JSON.stringify(selectedSpec), stripeChargeId, String(droplet.id)]
+        [userId, plan, droplet.networks?.v4?.[0]?.ip_address || 'pending', password, JSON.stringify(selectedSpec), stripeChargeId, String(droplet.id), dropletName]
       );
 
       // Always poll for IP - droplet might not have it immediately

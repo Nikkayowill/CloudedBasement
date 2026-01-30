@@ -90,6 +90,8 @@ exports.showDashboard = async (req, res) => {
             serverIp: server?.ip_address || '',
             sshUsername: server?.ssh_username || 'root',
             sshPassword: server?.ssh_password || '',
+            dropletName: server?.droplet_name || `basement-${userId}-unknown`,
+            userId: userId,
             csrfToken,
             deployments: deploymentsResult.rows || [],
             domains: domainsResult.rows || [],
@@ -357,9 +359,9 @@ const buildDashboardTemplate = (data) => {
                         <input type="hidden" name="action" value="restart">
                         <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors">Restart</button>
                     </form>
-                    <form action="/delete-server" method="POST" class="flex-1" onsubmit="return confirm('⚠️ WARNING: This will PERMANENTLY DESTROY your server and ALL DATA on it.\\n\\nThere are NO backups. There is NO undo.\\n\\nAre you sure?') && confirm('FINAL CONFIRMATION:\\n\\nType your understanding:\\n\\nThis will delete EVERYTHING including:\\n- All files and code\\n- All databases\\n- All configurations\\n\\nThis action is IRREVERSIBLE.\\n\\nClick OK to proceed with destruction.');">
+                    <form id="terminate-form" action="/delete-server" method="POST" class="flex-1">
                         <input type="hidden" name="_csrf" value="${data.csrfToken}">
-                        <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 hover:shadow-[0_0_20px_rgba(220,38,38,0.6)] transition-all duration-300">Terminate</button>
+                        <button type="button" onclick="openTerminateModal()" class="w-full px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 hover:shadow-[0_0_20px_rgba(220,38,38,0.6)] transition-all duration-300">Terminate</button>
                     </form>
                 </div>
             </div>
@@ -834,6 +836,28 @@ db = client['${data.mongodbCredentials.dbName}']</code></pre>
     </div>
 </main>
 
+<!-- Terminate Confirmation Modal -->
+<div id="terminate-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 z-50 flex justify-center items-center">
+    <div class="bg-gray-900 border border-red-600 rounded-lg p-8 max-w-lg w-11/12">
+        <h2 class="text-2xl font-bold text-red-500 mb-4">⚠️ Terminate Server</h2>
+        <p class="text-gray-300 mb-4">This action will <span class="text-red-500 font-bold">PERMANENTLY DESTROY</span> your server and all data. There is no undo.</p>
+        
+        <div class="bg-black bg-opacity-40 border border-gray-700 rounded-lg p-4 mb-4">
+            <p class="text-xs text-gray-400 mb-2 uppercase font-bold">To confirm, type the server name below:</p>
+            <div class="flex items-center gap-2 mb-3">
+                <code class="flex-1 px-3 py-2 bg-gray-800 border border-gray-600 rounded text-brand font-mono text-sm" id="droplet-name-display">${escapeHtml(data.dropletName)}    </code>
+                <button onclick="navigator.clipboard.writeText(dropletName)" class="px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors text-xs">Copy</button>
+            </div>
+            <input type="text" id="confirm-input" oninput="validateTermination()" placeholder="Paste and remove trailing spaces" class="w-full px-4 py-3 bg-black border border-gray-600 rounded text-white font-mono focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:outline-none">
+        </div>
+        
+        <div class="flex gap-3">
+            <button onclick="closeTerminateModal()" class="flex-1 px-4 py-3 bg-gray-700 text-white font-bold rounded-lg hover:bg-gray-600 transition-colors">Cancel</button>
+            <button id="confirm-button" onclick="confirmTermination()" disabled class="flex-1 px-4 py-3 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition-colors opacity-50 cursor-not-allowed">Confirm Termination</button>
+        </div>
+    </div>
+</div>
+
 <!-- Submit Ticket Modal -->
 <div id="submitTicketModal" class="hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center">
     <div class="bg-gray-900 rounded-lg p-8 max-w-md w-11/12 max-h-[80vh] overflow-y-auto">
@@ -938,6 +962,42 @@ function updateTime() {
 }
 setInterval(updateTime, 1000);
 updateTime();
+
+// Terminate modal logic
+const dropletName = '${escapeHtml(data.dropletName)}    '; // Note trailing spaces for paste validation
+const dropletNameTrimmed = dropletName.trim();
+
+function openTerminateModal() {
+    document.getElementById('terminate-modal').classList.remove('hidden');
+    document.getElementById('confirm-input').value = '';
+    document.getElementById('confirm-button').disabled = true;
+}
+
+function closeTerminateModal() {
+    document.getElementById('terminate-modal').classList.add('hidden');
+}
+
+function validateTermination() {
+    const input = document.getElementById('confirm-input').value;
+    const button = document.getElementById('confirm-button');
+    
+    if (input === dropletNameTrimmed) {
+        button.disabled = false;
+        button.classList.remove('opacity-50', 'cursor-not-allowed');
+    } else {
+        button.disabled = true;
+        button.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+}
+
+function confirmTermination() {
+    document.getElementById('terminate-form').submit();
+}
+
+// Close modal on escape
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeTerminateModal();
+});
 </script>
   `;
 };
