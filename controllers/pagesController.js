@@ -851,9 +851,9 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
     ` : ''}
     
     <!-- Hero Section -->
-    <section class="bg-black pt-32 pb-16 relative overflow-visible">
-      <!-- Animated floating clouds with lightning -->
-      <div class="absolute inset-0 pointer-events-none overflow-hidden">
+    <section class="bg-black pt-32 pb-16 relative">
+      <!-- Animated floating clouds with lightning (on top of black) -->
+      <div class="absolute inset-0 pointer-events-none z-10">
         <div class="cloud cloud-1"></div>
         <div class="cloud cloud-2"></div>
         <div class="cloud cloud-3"></div>
