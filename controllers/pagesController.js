@@ -978,10 +978,10 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
     <section class="gradient-peak-light py-12 md:py-20">
       <div class="max-w-4xl px-8 md:px-12 lg:px-16 mx-auto">
         <h2 class="mb-4 text-3xl md:text-4xl font-extrabold text-center text-white">What you get</h2>
-        <p class="text-center text-gray-400 text-base mb-12">Everything you need to run a production app — without managing infrastructure from scratch.</p>
+        <p class="text-center text-gray-400 text-base mb-20">Everything you need to run a production app — without managing infrastructure from scratch.</p>
         
         <ul class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
-          <li class="flex items-start gap-3 p-4 bg-gray-900/50 border border-blue-500/20 rounded-lg">
+          <li class="flex items-start gap-3 p-4 bg-gray-900/50 border border-blue-500/20">
             <span class="text-brand text-xl flex-shrink-0 mt-1">✓</span>
             <div>
               <h3 class="text-white font-semibold mb-1">Dedicated VPS (not shared hosting)</h3>
