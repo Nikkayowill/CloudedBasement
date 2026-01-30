@@ -132,6 +132,180 @@
   pointer-events: none;
 }
 
+/* ============================================
+   3D CARD STACK EFFECT - "What You Get"
+   ============================================ */
+
+.card-stack-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 600px;
+  padding: 60px 0;
+}
+
+.card-stack {
+  position: relative;
+  transform-style: preserve-3d;
+  perspective: 800px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  transition: 600ms cubic-bezier(0.4, 0, 0.2, 1);
+  list-style: none;
+}
+
+.card-stack:hover {
+  gap: 20px;
+}
+
+.card-stack-item {
+  position: relative;
+  width: 500px;
+  max-width: 90vw;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, rgba(30, 30, 50, 0.9), rgba(20, 20, 40, 0.95));
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(135, 206, 250, 0.2);
+  border-radius: 12px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 
+              0 0 20px rgba(135, 206, 250, 0.1);
+  transition: 600ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition-delay: calc(var(--i) * 40ms);
+  cursor: pointer;
+}
+
+.card-stack-item:hover {
+  border-color: rgba(135, 206, 250, 0.5);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5),
+              0 0 30px rgba(135, 206, 250, 0.3);
+}
+
+/* Initial 3D positioning - only first 5 cards visible */
+.card-stack-item:nth-child(1) {
+  transform: translateZ(-120px) translateY(25px);
+  opacity: 0.5;
+  filter: blur(4px);
+  z-index: 1;
+}
+
+.card-stack-item:nth-child(2) {
+  transform: translateZ(-60px) translateY(12px);
+  opacity: 0.7;
+  filter: blur(2px);
+  z-index: 2;
+}
+
+.card-stack-item:nth-child(3) {
+  transform: translateZ(0px);
+  opacity: 0.85;
+  filter: blur(1px);
+  z-index: 3;
+}
+
+.card-stack-item:nth-child(4) {
+  transform: translateZ(60px) translateY(-12px);
+  opacity: 0.95;
+  filter: blur(0.5px);
+  z-index: 4;
+}
+
+.card-stack-item:nth-child(5) {
+  transform: translateZ(120px) translateY(-25px);
+  opacity: 1;
+  filter: blur(0);
+  z-index: 5;
+}
+
+/* Cards 6-10 hidden behind the 5th card */
+.card-stack-item:nth-child(6),
+.card-stack-item:nth-child(7),
+.card-stack-item:nth-child(8),
+.card-stack-item:nth-child(9),
+.card-stack-item:nth-child(10) {
+  transform: translateZ(120px) translateY(-25px);
+  opacity: 0;
+  filter: blur(6px);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* On hover - all 10 cards fan out and become visible */
+.card-stack:hover .card-stack-item {
+  opacity: 1;
+  filter: blur(0);
+  transform: translateZ(0) translateY(0);
+  pointer-events: all;
+  z-index: 10;
+}
+
+.card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  background: linear-gradient(135deg, rgba(135, 206, 250, 0.2), rgba(100, 181, 246, 0.15));
+  border: 1px solid rgba(135, 206, 250, 0.3);
+  border-radius: 10px;
+  color: #87CEFA;
+  font-size: 24px;
+  font-weight: bold;
+  box-shadow: 0 0 20px rgba(135, 206, 250, 0.2);
+}
+
+.card-content {
+  flex: 1;
+}
+
+.card-content h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.card-content p {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.4;
+}
+
+/* Mobile: disable 3D effect, show normal stacked cards */
+@media (max-width: 768px) {
+  .card-stack-container {
+    min-height: auto;
+    padding: 20px 0;
+  }
+  
+  .card-stack {
+    perspective: none;
+    gap: 12px;
+  }
+  
+  .card-stack:hover {
+    gap: 12px;
+  }
+  
+  .card-stack-item {
+    transform: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+    z-index: auto !important;
+    pointer-events: all !important;
+    width: 100%;
+  }
+  
+  .card-stack:hover .card-stack-item {
+    transform: none !important;
+  }
+}
+
 /* PS5 Design System - Brand Colors & Motion */
 :root {
     --brand-blue: #87CEFA;
