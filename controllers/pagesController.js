@@ -978,7 +978,7 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
     <section class="gradient-peak-light py-20 md:py-28">
       <div class="max-w-4xl px-8 md:px-12 lg:px-16 mx-auto">
         <h2 class="mb-6 text-3xl md:text-4xl font-extrabold text-center text-white">What you get</h2>
-        <p class="text-center text-gray-400 text-base mb-20">Everything you need to run a production app — without managing infrastructure from scratch.</p>
+        <p class="text-center text-gray-400 text-base" style="margin-bottom: 5rem;">Everything you need to run a production app — without managing infrastructure from scratch.</p>
         
         <ul class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
           <li class="flex items-start gap-3 p-6 bg-gray-900/50 border border-blue-500/20">
