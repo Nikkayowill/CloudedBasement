@@ -851,10 +851,20 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
     ` : ''}
     
     <!-- Hero Section -->
-    <section class="bg-black pt-32 pb-16">
-      <div class="max-w-screen-xl px-8 md:px-12 lg:px-16 mx-auto text-center">
-        <img src="/Architype Van Der Leck.svg" alt="Clouded Basement Logo" class="mx-auto mb-6 h-28 md:h-36 lg:h-40 w-auto">
-        <h1 class="mb-4 text-4xl font-extrabold tracking-tight text-white md:text-5xl lg:text-6xl">Your own VPS. Deployed in minutes. No DevOps headaches.</h1>
+    <section class="bg-black pt-32 pb-16 relative overflow-hidden">
+      <div class="max-w-screen-xl px-8 md:px-12 lg:px-16 mx-auto text-center relative z-10">
+        <img src="/Architype Van Der Leck.svg" alt="Clouded Basement Logo" class="mx-auto mb-8 h-28 md:h-36 lg:h-40 w-auto">
+        
+        <!-- Hero Heading with Spotlight -->
+        <div class="relative inline-block mb-6">
+          <!-- Spotlight backdrop -->
+          <div class="absolute inset-0 bg-gradient-radial from-blue-500/20 via-blue-600/10 to-transparent blur-3xl scale-150 -z-10"></div>
+          
+          <h1 class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight text-white leading-tight transform transition-transform duration-300 hover:scale-105" style="text-shadow: 0 0 40px rgba(59, 130, 246, 0.5), 0 0 80px rgba(59, 130, 246, 0.3), 0 4px 20px rgba(0, 0, 0, 0.8);">
+            Your own VPS.<br class="sm:hidden"> Deployed in minutes.<br class="sm:hidden"> <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">No DevOps headaches.</span>
+          </h1>
+        </div>
+        
         <p class="mb-8 text-lg font-normal text-gray-400 lg:text-xl sm:px-16 xl:px-48">Clouded Basement provisions a production-ready Linux server with SSL, Git deployments, and full root access — so you can ship without babysitting infrastructure.</p>
         <div class="flex flex-col mb-4 space-y-4 sm:flex-row sm:justify-center sm:space-y-0 sm:space-x-4">
           <a href="/pricing" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all duration-300">
