@@ -1053,7 +1053,7 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
           </li>
         </ul>
         
-        <p class="text-center text-gray-500 text-sm mt-20">You can install anything else you need — it's your server.</p>
+        <p class="text-center text-gray-500 text-sm" style="margin-top: 5rem;">You can install anything else you need — it's your server.</p>
       </div>
     </section>
 
