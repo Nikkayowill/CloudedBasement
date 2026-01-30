@@ -33,154 +33,104 @@
     background-image: radial-gradient(circle, var(--tw-gradient-stops));
 }
 
-/* Floating clouds with lightning effects */
-.cloud {
-    position: absolute;
-    background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.35) 0%, transparent 70%);
-    border-radius: 50%;
-    filter: blur(40px);
-    pointer-events: none;
-    z-index: 15;
+/* ============================================
+   ANIMATED RAINBOW STRIPE HERO BACKGROUND
+   ============================================ */
+
+@keyframes smoothBg {
+  from {
+    background-position: 50% 50%, 50% 50%;
+  }
+  to {
+    background-position: 350% 50%, 350% 50%;
+  }
 }
 
-.cloud-1 {
-    width: 600px;
-    height: 300px;
-    top: 10%;
-    left: -10%;
-    animation: float-cloud-1 40s ease-in-out infinite;
+.hero-wrapper {
+  width: 100%;
+  position: relative;
+  background: #000;
 }
 
-.cloud-2 {
-    width: 500px;
-    height: 250px;
-    top: 30%;
-    right: -5%;
-    animation: float-cloud-2 50s ease-in-out infinite;
+.hero-stripes {
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  place-content: center;
+  place-items: center;
+  
+  --stripes: repeating-linear-gradient(
+    100deg,
+    #fff 0%,
+    #fff 7%,
+    transparent 10%,
+    transparent 12%,
+    #fff 16%
+  );
+
+  --rainbow: repeating-linear-gradient(
+    100deg,
+    #60a5fa 10%,
+    #e879f9 15%,
+    #60a5fa 20%,
+    #5eead4 25%,
+    #60a5fa 30%
+  );
+  
+  background-image: var(--stripes), var(--rainbow);
+  background-size: 300%, 200%;
+  background-position: 50% 50%, 50% 50%;
+  filter: blur(10px) invert(100%);
+  mask-image: radial-gradient(ellipse at 100% 0%, black 40%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse at 100% 0%, black 40%, transparent 70%);
 }
 
-.cloud-3 {
-    width: 700px;
-    height: 350px;
-    top: 50%;
-    left: 20%;
-    animation: float-cloud-3 45s ease-in-out infinite;
+.hero-stripes::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--stripes), var(--rainbow);
+  background-size: 200%, 100%;
+  animation: smoothBg 60s linear infinite;
+  background-attachment: fixed;
+  mix-blend-mode: difference;
 }
 
-.lightning {
-    position: absolute;
-    background: radial-gradient(circle, rgba(135, 206, 250, 0.6) 0%, transparent 50%);
-    border-radius: 50%;
-    filter: blur(60px);
-    pointer-events: none;
-    z-index: 15;
+/* Hero Content Styling */
+.hero-content {
+  mix-blend-mode: difference;
+  -webkit-mix-blend-mode: difference;
+  filter: invert(1);
 }
 
-.lightning-1 {
-    width: 400px;
-    height: 400px;
-    top: 20%;
-    left: 30%;
-    animation: lightning-pulse-1 6s ease-in-out infinite;
+/* Frosted Glass Text Effect */
+.hero-title {
+  position: relative;
+  color: white;
 }
 
-.lightning-2 {
-    width: 300px;
-    height: 300px;
-    top: 40%;
-    right: 25%;
-    animation: lightning-pulse-2 8s ease-in-out infinite 2s;
-}
-
-@keyframes float-cloud-1 {
-    0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.35; }
-    25% { transform: translate(100px, -30px) scale(1.1); opacity: 0.45; }
-    50% { transform: translate(150px, 20px) scale(1.05); opacity: 0.35; }
-    75% { transform: translate(50px, -10px) scale(1.15); opacity: 0.4; }
-}
-
-@keyframes float-cloud-2 {
-    0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.3; }
-    33% { transform: translate(-120px, 40px) scale(1.08); opacity: 0.4; }
-    66% { transform: translate(-80px, -20px) scale(1.12); opacity: 0.35; }
-}
-
-@keyframes float-cloud-3 {
-    0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.25; }
-    40% { transform: translate(-100px, -50px) scale(1.1); opacity: 0.35; }
-    80% { transform: translate(80px, 30px) scale(1.05); opacity: 0.3; }
-}
-
-@keyframes lightning-pulse-1 {
-    0%, 100% { opacity: 0; transform: scale(0.8); }
-    5% { opacity: 0.8; transform: scale(1.2); }
-    10% { opacity: 0; transform: scale(0.9); }
-    15% { opacity: 1; transform: scale(1.3); }
-    20%, 95% { opacity: 0; transform: scale(0.8); }
-}
-
-@keyframes lightning-pulse-2 {
-    0%, 100% { opacity: 0; transform: scale(0.9); }
-    8% { opacity: 0.7; transform: scale(1.1); }
-    12% { opacity: 0; transform: scale(0.8); }
-    16% { opacity: 0.9; transform: scale(1.25); }
-    22%, 94% { opacity: 0; transform: scale(0.9); }
-}
-
-/* SVG Lightning - thin strokes with many branches */
-.lightning-svg {
-    position: absolute;
-    pointer-events: none;
-    z-index: 12;
-    filter: drop-shadow(0 0 8px rgba(135, 206, 250, 0.4)) drop-shadow(0 0 16px rgba(135, 206, 250, 0.2));
-}
-
-.streak-1 {
-    width: 100px;
-    height: 300px;
-    top: -50px;
-    left: 25%;
-    animation: lightning-strike-1 10s ease-in-out infinite;
-}
-
-.streak-2 {
-    width: 100px;
-    height: 300px;
-    top: -80px;
-    right: 30%;
-    animation: lightning-strike-2 12s ease-in-out infinite 3s;
-}
-
-.streak-3 {
-    width: 100px;
-    height: 300px;
-    top: -40px;
-    left: 60%;
-    animation: lightning-strike-3 15s ease-in-out infinite 7s;
-}
-
-@keyframes lightning-strike-1 {
-    0%, 100% { opacity: 0; }
-    5% { opacity: 1; }
-    6% { opacity: 0; }
-    7% { opacity: 0.9; }
-    8%, 95% { opacity: 0; }
-}
-
-@keyframes lightning-strike-2 {
-    0%, 100% { opacity: 0; }
-    4% { opacity: 1; }
-    4.5% { opacity: 0; }
-    5% { opacity: 0.8; }
-    5.5%, 96% { opacity: 0; }
-}
-
-@keyframes lightning-strike-3 {
-    0%, 100% { opacity: 0; }
-    3% { opacity: 1; }
-    3.3% { opacity: 0; }
-    3.6% { opacity: 0.7; }
-    4%, 97% { opacity: 0; }
+.hero-title::before {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  background: white;
+  text-shadow: 0 0 1px #ffffff;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-color: white;
+  -webkit-mask: linear-gradient(#000 0 0) luminance;
+  mask: linear-gradient(#000 0 0) luminance, alpha;
+  backdrop-filter: blur(19px) brightness(12.5);
+  -webkit-backdrop-filter: blur(19px) brightness(12.5);
+  -webkit-text-stroke: 1px white;
+  display: flex;
+  margin: auto;
+  z-index: 1;
+  pointer-events: none;
 }
 
 /* PS5 Design System - Brand Colors & Motion */
