@@ -1105,8 +1105,12 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
     </section>
 
     <!-- Micro FAQ Section -->
-    <section class="gradient-return-dark py-12 md:py-16">
-      <div class="max-w-2xl px-8 md:px-12 lg:px-16 mx-auto text-center">
+    <section class="gradient-return-dark py-12 md:py-16 relative overflow-hidden">
+      <!-- Brand color gradient -->
+      <div class="absolute inset-0 pointer-events-none">
+        <div class="absolute inset-0" style="background-image: radial-gradient(circle 500px at 50% 50%, rgba(45, 167, 223, 0.12) 0%, rgba(45, 167, 223, 0.06) 50%, transparent 100%);"></div>
+      </div>
+      <div class="max-w-2xl px-8 md:px-12 lg:px-16 mx-auto text-center relative z-10">
         <p class="text-gray-400 text-sm">
           <span class="text-gray-500">Got questions about server ownership or setup?</span>
           Every VPS is yours with full root access, automated provisioning, and one-click deployments.
@@ -1117,9 +1121,9 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
 
     <!-- Final CTA Section with Footer -->
     <section class="py-20 md:py-28 relative overflow-hidden">
-      <!-- Radial gradient reflection matching hero colors -->
+      <!-- Radial gradient reflection matching hero colors (intensified) -->
       <div class="absolute inset-0 pointer-events-none">
-        <div class="absolute inset-0" style="background-image: radial-gradient(circle 600px at 50% 100%, rgba(96, 165, 250, 0.15) 0%, rgba(232, 121, 249, 0.1) 35%, rgba(94, 234, 212, 0.08) 65%, transparent 100%);"></div>
+        <div class="absolute inset-0" style="background-image: radial-gradient(circle 600px at 50% 100%, rgba(96, 165, 250, 0.25) 0%, rgba(232, 121, 249, 0.18) 35%, rgba(94, 234, 212, 0.14) 65%, transparent 100%);"></div>
       </div>
       
       <!-- CTA Content -->
