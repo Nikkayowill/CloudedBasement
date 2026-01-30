@@ -886,7 +886,7 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
     </section>
 
     <!-- Micro-Trust Block -->
-    <section class="py-6 px-8 md:px-12 lg:px-16 mb-12 bg-black">
+    <section class="py-6 px-8 md:px-12 lg:px-16 mb-12">
       <div class="max-w-3xl mx-auto mt-4">
         <ul class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center md:text-left">
           <li class="flex flex-col md:flex-row items-center md:items-start gap-2">
@@ -981,70 +981,70 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
         <p class="text-center text-white text-base" style="margin-bottom: 5rem;">Everything you need to run a production app — without managing infrastructure from scratch.</p>
         
         <ul class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
-          <li class="flex items-start gap-3 p-6 bg-gray-900/50 border border-blue-500/20">
+          <li class="flex items-start gap-3 p-6 bg-gray-900/50">
             <span class="text-brand text-xl flex-shrink-0 mt-1">✓</span>
             <div>
               <h3 class="text-white font-semibold mb-1">Dedicated VPS (not shared hosting)</h3>
               <p class="text-white text-sm">Your own isolated server environment</p>
             </div>
           </li>
-          <li class="flex items-start gap-3 p-6 bg-gray-900/50 border border-blue-500/20">
+          <li class="flex items-start gap-3 p-6 bg-gray-900/50">
             <span class="text-brand text-xl flex-shrink-0 mt-1">✓</span>
             <div>
               <h3 class="text-white font-semibold mb-1">Ubuntu 22.04 LTS</h3>
               <p class="text-white text-sm">Latest stable long-term support release</p>
             </div>
           </li>
-          <li class="flex items-start gap-3 p-6 bg-gray-900/50 border border-blue-500/20">
+          <li class="flex items-start gap-3 p-6 bg-gray-900/50">
             <span class="text-brand text-xl flex-shrink-0 mt-1">✓</span>
             <div>
               <h3 class="text-white font-semibold mb-1">Full root SSH access</h3>
               <p class="text-white text-sm">Complete control over your server</p>
             </div>
           </li>
-          <li class="flex items-start gap-3 p-6 bg-gray-900/50 border border-blue-500/20">
+          <li class="flex items-start gap-3 p-6 bg-gray-900/50">
             <span class="text-brand text-xl flex-shrink-0 mt-1">✓</span>
             <div>
               <h3 class="text-white font-semibold mb-1">Nginx preconfigured</h3>
               <p class="text-white text-sm">Web server ready to serve your apps</p>
             </div>
           </li>
-          <li class="flex items-start gap-3 p-6 bg-gray-900/50 border border-blue-500/20">
+          <li class="flex items-start gap-3 p-6 bg-gray-900/50">
             <span class="text-brand text-xl flex-shrink-0 mt-1">✓</span>
             <div>
               <h3 class="text-white font-semibold mb-1">Node.js & Python environments</h3>
               <p class="text-white text-sm">Modern runtime environments pre-installed</p>
             </div>
           </li>
-          <li class="flex items-start gap-3 p-6 bg-gray-900/50 border border-blue-500/20">
+          <li class="flex items-start gap-3 p-6 bg-gray-900/50">
             <span class="text-brand text-xl flex-shrink-0 mt-1">✓</span>
             <div>
               <h3 class="text-white font-semibold mb-1">One-click GitHub deployments</h3>
               <p class="text-white text-sm">Deploy directly from your repository</p>
             </div>
           </li>
-          <li class="flex items-start gap-3 p-6 bg-gray-900/50 border border-blue-500/20">
+          <li class="flex items-start gap-3 p-6 bg-gray-900/50">
             <span class="text-brand text-xl flex-shrink-0 mt-1">✓</span>
             <div>
               <h3 class="text-white font-semibold mb-1">Custom domains supported</h3>
               <p class="text-white text-sm">Point any domain to your server</p>
             </div>
           </li>
-          <li class="flex items-start gap-3 p-6 bg-gray-900/50 border border-blue-500/20">
+          <li class="flex items-start gap-3 p-6 bg-gray-900/50">
             <span class="text-brand text-xl flex-shrink-0 mt-1">✓</span>
             <div>
               <h3 class="text-white font-semibold mb-1">Free SSL certificates (Let's Encrypt)</h3>
               <p class="text-white text-sm">HTTPS encryption included</p>
             </div>
           </li>
-          <li class="flex items-start gap-3 p-6 bg-gray-900/50 border border-blue-500/20">
+          <li class="flex items-start gap-3 p-6 bg-gray-900/50">
             <span class="text-brand text-xl flex-shrink-0 mt-1">✓</span>
             <div>
               <h3 class="text-white font-semibold mb-1">Secure-by-default configuration</h3>
               <p class="text-white text-sm">Hardened security settings out of the box</p>
             </div>
           </li>
-          <li class="flex items-start gap-3 p-6 bg-gray-900/50 border border-blue-500/20">
+          <li class="flex items-start gap-3 p-6 bg-gray-900/50">
             <span class="text-brand text-xl flex-shrink-0 mt-1">✓</span>
             <div>
               <h3 class="text-white font-semibold mb-1">Cancel anytime</h3>
@@ -1116,7 +1116,7 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
     </section>
 
     <!-- Final CTA Section -->
-    <section class="bg-black py-20 md:py-28 relative overflow-hidden">
+    <section class="py-20 md:py-28 relative overflow-hidden">
       <!-- Radial gradient reflection matching hero colors -->
       <div class="absolute inset-0 pointer-events-none">
         <div class="absolute inset-0" style="background-image: radial-gradient(circle 600px at 50% 100%, rgba(96, 165, 250, 0.15) 0%, rgba(232, 121, 249, 0.1) 35%, rgba(94, 234, 212, 0.08) 65%, transparent 100%);"></div>
