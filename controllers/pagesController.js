@@ -850,39 +850,17 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
     </div>
     ` : ''}
     
-    <!-- Hero Section -->
-    <section class="bg-black pt-32 pb-16 relative">
-      <!-- Animated floating clouds with lightning (on top of black) -->
-      <div class="absolute inset-0 pointer-events-none z-10">
-        <div class="cloud cloud-1"></div>
-        <div class="cloud cloud-2"></div>
-        <div class="cloud cloud-3"></div>
-        <div class="lightning lightning-1"></div>
-        <div class="lightning lightning-2"></div>
-        
-        <!-- SVG Lightning streaks with many branches -->
-        <svg class="lightning-svg streak-1" viewBox="0 0 100 300" xmlns="http://www.w3.org/2000/svg">
-          <path class="lightning-bolt" d="M50,0 L48,40 L52,40 L45,80 L53,80 L47,120 L55,120 L48,160 L54,160 L46,200 L52,200 L48,240 L50,280 M52,40 L65,55 M45,80 L30,95 M53,80 L68,98 M47,120 L35,138 M55,120 L70,142 M48,160 L32,178 M54,160 L68,180 M65,58 L75,68 M30,98 L22,108 M68,100 L78,112 M35,140 L28,152 M70,145 L78,158 M32,180 L25,192" stroke="rgba(135, 206, 250, 0.25)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-        </svg>
-        
-        <svg class="lightning-svg streak-2" viewBox="0 0 100 300" xmlns="http://www.w3.org/2000/svg">
-          <path class="lightning-bolt" d="M50,0 L52,35 L48,35 L55,70 L47,70 L53,105 L45,105 L52,140 L46,140 L54,180 L48,180 L52,220 L48,220 L50,260 M48,35 L35,48 M55,70 L70,88 M47,70 L32,85 M53,105 L68,125 M45,105 L30,122 M52,140 L67,158 M46,140 L31,155 M35,50 L28,60 M70,90 L78,102 M32,88 L24,98 M68,128 L76,140 M30,125 L22,135 M67,160 L75,172" stroke="rgba(135, 206, 250, 0.25)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-        </svg>
-        
-        <svg class="lightning-svg streak-3" viewBox="0 0 100 300" xmlns="http://www.w3.org/2000/svg">
-          <path class="lightning-bolt" d="M50,0 L47,45 L53,45 L48,85 L54,85 L46,125 L52,125 L48,165 L55,165 L50,205 L52,245 M53,45 L68,62 M48,85 L33,102 M54,85 L69,105 M46,125 L31,142 M52,125 L67,145 M48,165 L34,182 M55,165 L70,188 M68,65 L76,75 M33,105 L25,115 M69,108 L77,120 M31,145 L23,155 M67,148 L75,160 M34,185 L26,195 M70,190 L78,202" stroke="rgba(135, 206, 250, 0.25)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-        </svg>
-      </div>
+    <!-- Hero Section with Animated Rainbow Stripes -->
+    <section class="hero-wrapper relative min-h-screen flex items-center justify-center pt-32 pb-16">
+      <!-- Animated rainbow stripe background -->
+      <div class="hero-stripes"></div>
       
-      <div class="max-w-screen-xl px-8 md:px-12 lg:px-16 mx-auto text-center relative z-20">
+      <div class="max-w-screen-xl px-8 md:px-12 lg:px-16 mx-auto text-center relative z-20 hero-content">
         <img src="/Architype Van Der Leck.svg" alt="Clouded Basement Logo" class="mx-auto mb-8 h-28 md:h-36 lg:h-40 w-auto relative z-30">
         
-        <!-- Hero Heading with Spotlight -->
+        <!-- Hero Heading with Frosted Glass Effect -->
         <div class="relative inline-block mb-6 z-30">
-          <!-- Spotlight backdrop - white moonlight glow (moved behind everything) -->
-          <div class="absolute -inset-32 bg-gradient-radial from-white/50 via-white/25 to-transparent blur-[100px] scale-[2]" style="z-index: -1;"></div>
-          
-          <h1 class="relative text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight text-white leading-tight transform transition-transform duration-300 hover:scale-105" style="text-shadow: 0 0 60px rgba(255, 255, 255, 0.6), 0 0 100px rgba(255, 255, 255, 0.3), 0 4px 20px rgba(0, 0, 0, 0.8);">
+          <h1 class="hero-title text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight leading-tight" data-text="Your own VPS. Deployed in minutes. No DevOps headaches.">
             Your own VPS.<br class="sm:hidden"> Deployed in minutes.<br class="sm:hidden"> <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">No DevOps headaches.</span>
           </h1>
         </div>
