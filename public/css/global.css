@@ -83,7 +83,7 @@
   background-image: var(--stripes), var(--rainbow);
   background-size: 300%, 200%;
   background-position: 50% 50%, 50% 50%;
-  filter: blur(10px);
+  filter: blur(20px) opacity(50%);
   mask-image: radial-gradient(ellipse at 100% 0%, black 40%, transparent 70%);
   -webkit-mask-image: radial-gradient(ellipse at 100% 0%, black 40%, transparent 70%);
 }
