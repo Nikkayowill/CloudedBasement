@@ -127,22 +127,22 @@ exports.deleteServer = async (req, res) => {
 
     // Send admin notification email (don't wait for it)
     const { sendEmail } = require('../services/email');
-    sendEmail({
-      to: 'support@cloudedbasement.ca',
-      subject: '🚨 Server Termination - Action Required',
-      html: `
-        <h2>Customer Terminated Server</h2>
-        <p><strong>User ID:</strong> ${userId}</p>
-        <p><strong>Email:</strong> ${userEmail}</p>
-        <p><strong>Droplet ID:</strong> ${dropletId}</p>
-        <p><strong>IP Address:</strong> ${dropletIp}</p>
-        <p><strong>Plan:</strong> ${server.plan || 'Unknown'}</p>
-        <p><strong>Time:</strong> ${new Date().toISOString()}</p>
-        <hr>
-        <p><strong>Action Required:</strong> Delete droplet ${dropletId} from DigitalOcean dashboard to stop billing.</p>
-        <p><a href="https://cloud.digitalocean.com/droplets/${dropletId}">View Droplet in DO Dashboard</a></p>
-      `
-    }).catch(err => console.error('Failed to send termination notification:', err));
+    const emailHtml = `
+      <h2>Customer Terminated Server</h2>
+      <p><strong>User ID:</strong> ${userId}</p>
+      <p><strong>Email:</strong> ${userEmail}</p>
+      <p><strong>Droplet ID:</strong> ${dropletId}</p>
+      <p><strong>IP Address:</strong> ${dropletIp}</p>
+      <p><strong>Plan:</strong> ${server.plan || 'Unknown'}</p>
+      <p><strong>Time:</strong> ${new Date().toISOString()}</p>
+      <hr>
+      <p><strong>Action Required:</strong> Delete droplet ${dropletId} from DigitalOcean dashboard to stop billing.</p>
+      <p><a href="https://cloud.digitalocean.com/droplets/${dropletId}">View Droplet in DO Dashboard</a></p>
+    `;
+    const emailText = `Customer Terminated Server\n\nUser ID: ${userId}\nEmail: ${userEmail}\nDroplet ID: ${dropletId}\nIP: ${dropletIp}\nPlan: ${server.plan || 'Unknown'}\nTime: ${new Date().toISOString()}\n\nAction Required: Delete droplet ${dropletId} from DO dashboard.`;
+    
+    sendEmail('support@cloudedbasement.ca', '🚨 Server Termination - Action Required', emailHtml, emailText)
+      .catch(err => console.error('Failed to send termination notification:', err));
 
     res.redirect('/pricing?message=Server deleted successfully');
   } catch (error) {
