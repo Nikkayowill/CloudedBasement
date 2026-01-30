@@ -156,7 +156,10 @@
 }
 
 .card-stack:hover {
-  gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  perspective: none;
 }
 
 .card-stack-item {
@@ -233,13 +236,14 @@
   pointer-events: none;
 }
 
-/* On hover - all 10 cards fan out and become visible */
+/* On hover - all 10 cards in 2-column grid */
 .card-stack:hover .card-stack-item {
   opacity: 1;
   filter: blur(0);
   transform: translateZ(0) translateY(0);
   pointer-events: all;
   z-index: 10;
+  width: auto;
 }
 
 .card-icon {
@@ -276,7 +280,7 @@
   line-height: 1.4;
 }
 
-/* Mobile: disable 3D effect, show normal stacked cards */
+/* Mobile: 2-column grid with smaller cards */
 @media (max-width: 768px) {
   .card-stack-container {
     min-height: auto;
@@ -285,11 +289,13 @@
   
   .card-stack {
     perspective: none;
-    gap: 12px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
   }
   
   .card-stack:hover {
-    gap: 12px;
+    gap: 10px;
   }
   
   .card-stack-item {
@@ -299,6 +305,24 @@
     z-index: auto !important;
     pointer-events: all !important;
     width: 100%;
+    padding: 12px 16px;
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .card-icon {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    font-size: 18px;
+  }
+  
+  .card-content h3 {
+    font-size: 13px;
+  }
+  
+  .card-content p {
+    font-size: 11px;
   }
   
   .card-stack:hover .card-stack-item {
