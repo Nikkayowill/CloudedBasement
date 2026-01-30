@@ -946,8 +946,12 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
     </section>
 
     <!-- How It Works -->
-    <section class="gradient-ascending py-20 md:py-28">
-      <div class="max-w-6xl mx-auto px-8 md:px-12 lg:px-16">
+    <section class="gradient-peak-light py-20 md:py-28 relative overflow-hidden">
+      <!-- Brand color gradient overlay (centered) -->
+      <div class="absolute inset-0 pointer-events-none">
+        <div class="absolute inset-0" style="background-image: radial-gradient(circle farthest-corner at 50% 50%, rgba(45, 167, 223, 0.18) 0%, rgba(0, 0, 0, 1) 85%);"></div>
+      </div>
+      <div class="max-w-6xl mx-auto px-8 md:px-12 lg:px-16 relative z-10">
         <h2 class="mb-6 text-3xl md:text-4xl font-extrabold text-center text-white">How it works</h2>
         <p class="text-center text-gray-400 text-base mb-16">Payment to live server in minutes.</p>
         <ol class="grid grid-cols-1 gap-6 sm:grid-cols-3">
@@ -975,8 +979,12 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
     </section>
 
     <!-- What You Get -->
-    <section class="gradient-peak-light py-20 md:py-28">
-      <div class="max-w-4xl px-8 md:px-12 lg:px-16 mx-auto">
+    <section class="gradient-ascending py-20 md:py-28 relative overflow-hidden">
+      <!-- Brand color gradient overlay (flipped from pricing) -->
+      <div class="absolute inset-0 pointer-events-none">
+        <div class="absolute inset-0" style="background-image: radial-gradient(circle farthest-corner at 82.4% 49.3%, rgba(45, 167, 223, 0.12) 0%, rgba(0, 0, 0, 1) 90%);"></div>
+      </div>
+      <div class="max-w-4xl px-8 md:px-12 lg:px-16 mx-auto relative z-10">
         <h2 class="mb-6 text-3xl md:text-4xl font-extrabold text-center text-white">What you get</h2>
         <p class="text-center text-white text-base" style="margin-bottom: 5rem;">Everything you need to run a production app  —  without managing infrastructure from scratch.</p>
         
