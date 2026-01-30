@@ -28,6 +28,11 @@
     font-display: swap;
 }
 
+/* Radial gradient utility for spotlight effect */
+.bg-gradient-radial {
+    background-image: radial-gradient(circle, var(--tw-gradient-stops));
+}
+
 /* PS5 Design System - Brand Colors & Motion */
 :root {
     --brand-blue: #87CEFA;
