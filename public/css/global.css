@@ -352,34 +352,43 @@
     --hover-scale: scale(1.02);
 }
 
-/* Gaming Typography */
+/* Modern Tech Typography */
 h1, h2, h3, h4, h5, h6 {
-    font-family: 'Rajdhani', sans-serif;
+    font-family: 'Space Grotesk', sans-serif;
     font-weight: 700;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
+    letter-spacing: -0.01em;
 }
 
-/* Hero heading - Supercharge3D font */
+/* Hero heading - Space Grotesk with responsive sizing */
 .hero-heading {
-    font-family: 'Supercharge3D', 'Rajdhani', sans-serif;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+/* Hero title with improved brightness and responsive text */
+.hero-title {
+    font-size: clamp(2rem, 5vw + 1rem, 5rem);
+    line-height: 1.1;
 }
 
 /* Glossy Gradient Text for Headings */
 h1, h2 {
     background: linear-gradient(145deg, 
         rgba(255, 255, 255, 1) 0%, 
-        rgba(135, 206, 250, 0.9) 50%,
-        rgba(173, 216, 230, 0.8) 100%);
+        rgba(255, 255, 255, 1) 30%,
+        rgba(200, 230, 255, 1) 70%,
+        rgba(135, 206, 250, 0.95) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
 }
 
 h3, h4 {
     background: linear-gradient(145deg, 
-        rgba(255, 255, 255, 0.95) 0%, 
-        rgba(135, 206, 250, 0.7) 100%);
+        rgba(255, 255, 255, 1) 0%, 
+        rgba(135, 206, 250, 0.85) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
