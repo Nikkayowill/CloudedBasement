@@ -1114,23 +1114,6 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
       </div>
     </section>
 
-    <!-- Micro FAQ Section - Seamless gradient bridge -->
-    <section class="py-12 md:py-16 relative overflow-hidden" style="background: linear-gradient(to bottom, #0a0812 0%, #050408 50%, #000000 100%);">
-      <!-- Subtle brand glow fading from top and bottom -->
-      <div class="absolute inset-0 pointer-events-none">
-        <div class="absolute inset-0" style="background-image: 
-          radial-gradient(ellipse 800px 300px at 50% 0%, rgba(90, 85, 149, 0.08) 0%, transparent 50%),
-          radial-gradient(ellipse 800px 300px at 50% 100%, rgba(96, 165, 250, 0.06) 0%, transparent 50%);"></div>
-      </div>
-      <div class="max-w-2xl px-8 md:px-12 lg:px-16 mx-auto text-center relative z-10">
-        <p class="text-gray-400 text-sm">
-          <span class="text-gray-500">Got questions about server ownership or setup?</span>
-          Every VPS is yours with full root access, automated provisioning, and one-click deployments.
-          <a href="/faq" class="text-brand hover:text-cyan-400 underline ml-1">See the full FAQ →</a>
-        </p>
-      </div>
-    </section>
-
     <!-- Final CTA Section with Footer -->
     <section class="py-20 md:py-28 relative overflow-hidden">
       <!-- Radial gradient reflection matching hero colors (intensified) -->
@@ -1142,6 +1125,11 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
       <div class="max-w-screen-sm px-8 md:px-12 lg:px-16 mx-auto text-center relative z-10 mb-20">
         <h2 class="mb-4 text-3xl md:text-4xl font-extrabold text-white">Ready to get started?</h2>
         <p class="mb-8 text-lg text-gray-300">Deploy your server in minutes. No credit card required to explore.</p>
+        <p class="mb-8 text-gray-400 text-sm">
+          <span class="text-gray-500">Got questions about server ownership or setup?</span>
+          Every VPS is yours with full root access, automated provisioning, and one-click deployments.
+          <a href="/faq" class="text-brand hover:text-cyan-400 underline ml-1">See the full FAQ →</a>
+        </p>
         <a href="/register" class="inline-flex justify-center items-center py-3 px-8 text-base font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all duration-300">
           Sign up
           <svg class="ml-2 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
