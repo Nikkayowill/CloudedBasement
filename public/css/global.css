@@ -127,18 +127,18 @@
     22%, 94% { opacity: 0; transform: scale(0.9); }
 }
 
-/* Yellow lightning streaks - zig-zag natural shape */
+/* Yellow lightning streaks - zig-zag natural shape, subtle/muffled */
 .lightning-streak {
     position: absolute;
     background: linear-gradient(to bottom, 
-        rgba(255, 223, 0, 0.95) 0%, 
-        rgba(255, 193, 7, 0.9) 30%,
-        rgba(255, 223, 0, 0.85) 60%,
-        rgba(255, 193, 7, 0.8) 80%,
+        rgba(255, 223, 0, 0.25) 0%, 
+        rgba(255, 193, 7, 0.2) 30%,
+        rgba(255, 223, 0, 0.15) 60%,
+        rgba(255, 193, 7, 0.1) 80%,
         transparent 100%);
     pointer-events: none;
-    z-index: 16;
-    filter: drop-shadow(0 0 8px rgba(255, 223, 0, 0.9)) drop-shadow(0 0 15px rgba(255, 193, 7, 0.6));
+    z-index: 12;
+    filter: blur(2px) drop-shadow(0 0 20px rgba(255, 223, 0, 0.3)) drop-shadow(0 0 40px rgba(255, 193, 7, 0.2));
 }
 
 .streak-1 {
