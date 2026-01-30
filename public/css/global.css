@@ -904,8 +904,8 @@ input:focus, textarea:focus, select:focus {
         var(--cloud-clr)
     );
     border-radius: 0;
-    filter: blur(18px);
-    opacity: 0.55;
+    filter: blur(12px);
+    opacity: 0.3;
     animation: cloud-glow-rotate var(--animation-duration) linear infinite;
 }
 
