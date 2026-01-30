@@ -887,7 +887,7 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
 
     <!-- Micro-Trust Block -->
     <section class="py-12 px-8 md:px-12 lg:px-16 mb-12 bg-black">
-      <div class="max-w-3xl mx-auto">
+      <div class="max-w-3xl mx-auto mt-8">
         <ul class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center md:text-left">
           <li class="flex flex-col md:flex-row items-center md:items-start gap-2">
             <svg class="w-5 h-5 text-brand flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
