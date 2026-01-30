@@ -55,7 +55,7 @@ ${getHTMLHead('Register - Basement')}
           
           <div>
             <label class="block text-sm font-medium text-gray-300 mb-1.5">Verify you're human</label>
-            <p class="text-xs text-gray-400 mb-2">Type this code exactly as shown (no paste allowed):</p>
+            <p class="text-xs text-gray-400 mb-2">Type this code exactly as shown</p>
             <div class="bg-black/60 border border-blue-500/40 rounded px-4 py-3 mb-2 text-center">
               <span class="text-2xl font-mono font-bold text-blue-400 tracking-[0.3em]">${botCode}</span>
             </div>
