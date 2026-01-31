@@ -959,7 +959,7 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
       <div class="py-20 md:py-28 relative z-10">
         <div class="max-w-3xl mx-auto px-8 md:px-12 lg:px-16">
           <h2 class="mb-4 text-3xl md:text-4xl font-extrabold text-center text-white">How It Works</h2>
-          <p class="text-center text-gray-400 text-lg mb-12">From idea to a live server — without the setup stress</p>
+          <p class="text-center text-gray-400 text-lg mb-20">From idea to a live server — without the setup stress</p>
           
           <div class="space-y-8 text-left">
             <p class="text-gray-300 text-lg leading-relaxed">
