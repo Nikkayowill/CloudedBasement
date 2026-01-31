@@ -817,6 +817,155 @@ ${getHTMLHead('Documentation - Basement')}
           </div>
         </section>
         
+        <!-- ============================================ -->
+        <!-- SECTION 4: DEPLOYMENT METHODS -->
+        <!-- ============================================ -->
+        <section class="mb-20">
+          <h2 class="text-3xl font-bold text-white mb-6 pb-3 border-b border-gray-800">Deployment Methods</h2>
+          
+          <p class="text-gray-300 leading-relaxed mb-8">
+            Clouded Basement provides automated Git deployment for public repositories. When you paste a repository URL and trigger deployment, the platform connects to your server via SSH, clones the repository, detects the project type, installs dependencies, builds production assets, and configures the web server.
+          </p>
+          
+          <div class="space-y-6">
+            <div>
+              <h3 class="text-xl font-semibold text-white mb-3">Supported Git Platforms</h3>
+              <p class="text-gray-300 leading-relaxed mb-3">
+                The platform supports public repositories from the following providers:
+              </p>
+              <ul class="list-disc list-inside space-y-2 text-gray-300 ml-4">
+                <li><strong class="text-white">GitHub:</strong> Uses tarball API endpoint for faster cloning without Git history</li>
+                <li><strong class="text-white">GitLab:</strong> Direct git clone over HTTPS</li>
+                <li><strong class="text-white">Bitbucket:</strong> Direct git clone over HTTPS</li>
+                <li><strong class="text-white">Codeberg:</strong> Direct git clone over HTTPS</li>
+                <li><strong class="text-white">SourceHut:</strong> Direct git clone over HTTPS</li>
+              </ul>
+              <p class="text-gray-300 leading-relaxed mt-4">
+                <strong class="text-white">Private repositories are not currently supported.</strong> The platform does not implement GitHub Personal Access Token authentication or SSH key deployment. You must make your repository public or use manual deployment via SSH.
+              </p>
+            </div>
+            
+            <div class="bg-blue-950/30 border border-blue-900/30 rounded-lg p-8">
+              <h3 class="text-xl font-semibold text-white mb-3">Project Type Detection</h3>
+              <p class="text-gray-300 leading-relaxed mb-4">
+                After cloning, the platform inspects the repository root to determine project type. Detection happens in this priority order:
+              </p>
+              
+              <div class="space-y-4">
+                <div class="bg-gray-900/50 border-l-4 border-blue-400 p-4">
+                  <h4 class="text-white font-semibold mb-2">1. React/Vue Frontend (package.json detected)</h4>
+                  <p class="text-gray-300 text-sm leading-relaxed mb-2">
+                    Installs dependencies with npm install (--legacy-peer-deps fallback if conflicts occur). Attempts build script detection in this order: npm run build → npm run prod → npm run production.
+                  </p>
+                  <p class="text-gray-300 text-sm leading-relaxed">
+                    Looks for built assets in: dist/ → build/ → out/. Copies entire directory to /var/www/html and configures Nginx for single-page application routing (all requests serve index.html for client-side routing).
+                  </p>
+                </div>
+                
+                <div class="bg-gray-900/50 border-l-4 border-blue-400 p-4">
+                  <h4 class="text-white font-semibold mb-2">2. Node.js Backend (package.json + server detection)</h4>
+                  <p class="text-gray-300 text-sm leading-relaxed mb-2">
+                    If package.json exists but no build output directory found, and files like server.js, app.js, index.js exist, treats as backend application.
+                  </p>
+                  <p class="text-gray-300 text-sm leading-relaxed">
+                    Installs production dependencies (npm ci --production), creates systemd service, starts application, configures Nginx reverse proxy on port 3000. Application must listen on PORT environment variable (defaults to 3000 if not set).
+                  </p>
+                </div>
+                
+                <div class="bg-gray-900/50 border-l-4 border-blue-400 p-4">
+                  <h4 class="text-white font-semibold mb-2">3. Python (requirements.txt or setup.py)</h4>
+                  <p class="text-gray-300 text-sm leading-relaxed mb-2">
+                    Creates Python virtual environment, installs dependencies via pip3. Looks for WSGI application file (wsgi.py, app.py, main.py).
+                  </p>
+                  <p class="text-gray-300 text-sm leading-relaxed">
+                    Configures Gunicorn as WSGI server with 4 workers, creates systemd service, starts application, configures Nginx reverse proxy on port 8000.
+                  </p>
+                </div>
+                
+                <div class="bg-gray-900/50 border-l-4 border-blue-400 p-4">
+                  <h4 class="text-white font-semibold mb-2">4. Rust (Cargo.toml)</h4>
+                  <p class="text-gray-300 text-sm leading-relaxed mb-2">
+                    Builds release binary with cargo build --release. Locates compiled binary in target/release/.
+                  </p>
+                  <p class="text-gray-300 text-sm leading-relaxed">
+                    Creates systemd service, starts application, configures Nginx reverse proxy on port 8080. Application must bind to 0.0.0.0 (not 127.0.0.1) to accept external connections.
+                  </p>
+                </div>
+                
+                <div class="bg-gray-900/50 border-l-4 border-blue-400 p-4">
+                  <h4 class="text-white font-semibold mb-2">5. Go (go.mod)</h4>
+                  <p class="text-gray-300 text-sm leading-relaxed mb-2">
+                    Builds binary with go build. Locates main package and compiles.
+                  </p>
+                  <p class="text-gray-300 text-sm leading-relaxed">
+                    Creates systemd service, starts application, configures Nginx reverse proxy on port 8080. Application must bind to 0.0.0.0 and read PORT environment variable.
+                  </p>
+                </div>
+                
+                <div class="bg-gray-900/50 border-l-4 border-blue-400 p-4">
+                  <h4 class="text-white font-semibold mb-2">6. Static HTML (index.html)</h4>
+                  <p class="text-gray-300 text-sm leading-relaxed">
+                    Copies all files directly to /var/www/html. No build step. Configures Nginx to serve files with proper MIME types.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <h3 class="text-xl font-semibold text-white mb-3">Environment Variables</h3>
+              <p class="text-gray-300 leading-relaxed mb-3">
+                You can configure environment variables through the dashboard. The platform creates a .env file in your project directory before starting the application. Variables are injected at deployment time, not stored in the repository.
+              </p>
+              <p class="text-gray-300 leading-relaxed">
+                Values are shell-escaped to prevent injection attacks. Secrets like API keys are sanitized from deployment logs (pattern matching removes Stripe keys, AWS credentials, database URLs, GitHub tokens, and other common secret formats).
+              </p>
+            </div>
+            
+            <div class="bg-blue-950/40 border-l-4 border-blue-400 p-6">
+              <h3 class="text-lg font-semibold text-white mb-3">Health Checks</h3>
+              <p class="text-gray-300 leading-relaxed mb-3">
+                After deployment completes, the platform verifies the application is running:
+              </p>
+              <ul class="list-disc list-inside space-y-2 text-gray-300 ml-4">
+                <li><strong class="text-white">Static sites:</strong> HTTP request to http://your-server-ip/ expects 200 OK response</li>
+                <li><strong class="text-white">Backend applications:</strong> Systemd service status check expects "active (running)" state</li>
+                <li><strong class="text-white">Retry logic:</strong> 3 attempts with 2-second intervals before marking deployment as failed</li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 class="text-xl font-semibold text-white mb-3">Deployment Logs</h3>
+              <p class="text-gray-300 leading-relaxed mb-3">
+                All deployment steps are logged and displayed in your dashboard in real-time. Logs include:
+              </p>
+              <ul class="list-disc list-inside space-y-2 text-gray-300 ml-4">
+                <li>Repository clone progress and detected branch (main → master fallback)</li>
+                <li>Project type detection results</li>
+                <li>Dependency installation output (npm, pip, cargo, go)</li>
+                <li>Build script execution output</li>
+                <li>Web server configuration changes</li>
+                <li>Health check results</li>
+              </ul>
+              <p class="text-gray-300 leading-relaxed mt-3">
+                Sensitive data like API keys and passwords are automatically redacted from logs using regex pattern matching.
+              </p>
+            </div>
+            
+            <div class="bg-gray-900/50 border border-yellow-500/30 rounded-lg p-6">
+              <h3 class="text-white text-lg font-semibold mb-3 flex items-center gap-2">
+                <span>⚠️</span> Limitations
+              </h3>
+              <ul class="list-disc list-inside space-y-2 text-gray-300 ml-4">
+                <li><strong class="text-white">Repository size:</strong> 100MB maximum (enforced during clone/download)</li>
+                <li><strong class="text-white">Private repositories:</strong> Not supported—no GitHub token authentication implemented</li>
+                <li><strong class="text-white">Build timeouts:</strong> 10-minute maximum for dependency installation and builds</li>
+                <li><strong class="text-white">Docker:</strong> Not supported—no containerization layer</li>
+                <li><strong class="text-white">Database setup:</strong> Must be configured manually via SSH—no automated database provisioning</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+        
       </div>
     </main>
     
