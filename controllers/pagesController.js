@@ -672,8 +672,8 @@ ${getHTMLHead('Documentation - Basement')}
         <!-- ============================================ -->
         <!-- SECTION 2: ARCHITECTURE OVERVIEW -->
         <!-- ============================================ -->
-        <section class="mb-20">
-          <h2 class="text-3xl font-bold text-white mb-6 pb-3 border-b border-gray-800">Architecture Overview</h2>
+        <section class="mb-20 bg-blue-950/30 border border-blue-900/30 rounded-lg p-8">
+          <h2 class="text-3xl font-bold text-white mb-6 pb-3 border-b border-blue-800/50">Architecture Overview</h2>
           
           <div class="space-y-6">
             <div>
@@ -712,7 +712,7 @@ ${getHTMLHead('Documentation - Basement')}
               </p>
             </div>
             
-            <div class="bg-gray-900/50 border border-blue-500/20 rounded-lg p-6">
+            <div class="bg-blue-900/30 border border-blue-500/40 rounded-lg p-6">
               <h3 class="text-white text-lg font-semibold mb-3">Security Model</h3>
               <p class="text-gray-300 leading-relaxed mb-3">
                 SSH credentials are stored in the platform database to enable automation features. This is standard for managed hosting platforms and allows one-click deployments without requiring manual intervention.
@@ -742,7 +742,7 @@ ${getHTMLHead('Documentation - Basement')}
               </p>
             </div>
             
-            <div class="bg-gray-900/50 border-l-4 border-blue-500 p-6">
+            <div class="bg-blue-950/40 border-l-4 border-blue-400 p-6">
               <h3 class="text-lg font-semibold text-white mb-2">Step 2: Droplet Creation</h3>
               <p class="text-gray-300 leading-relaxed mb-3">
                 DigitalOcean API call creates a new droplet with these specifications:
@@ -786,7 +786,7 @@ ${getHTMLHead('Documentation - Basement')}
               </ul>
             </div>
             
-            <div class="bg-gray-900/50 border-l-4 border-blue-500 p-6">
+            <div class="bg-blue-950/40 border-l-4 border-blue-400 p-6">
               <h3 class="text-lg font-semibold text-white mb-2">Step 4: IP Address Polling</h3>
               <p class="text-gray-300 leading-relaxed mb-3">
                 The control plane polls the DigitalOcean API every 10 seconds to check droplet status and IP assignment. Maximum timeout is 5 minutes.
