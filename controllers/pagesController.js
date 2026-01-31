@@ -283,12 +283,17 @@ ${getHTMLHead('Pricing - Basement')}
     
     <main class="bg-black min-h-screen pt-24 pb-16">
       <section class="py-12 px-4 text-center">
-        <div class="inline-block px-6 py-2 bg-gradient-to-r from-blue-300/20 to-blue-400/20 border border-blue-300 rounded-full text-white font-bold text-sm mb-6 uppercase tracking-wider shadow-[0_0_20px_rgba(135,206,250,0.3)]">
-            🚀 Early Adopter Pricing - Only 15 Spots
+        <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4">Simple, Transparent Pricing</h1>
+        <p class="text-gray-300 text-lg mb-8">Full-stack hosting in 5 minutes: Git deploy, one-click databases, SSL, and SSH.</p>
+        
+        <!-- Billing Toggle -->
+        <div class="flex items-center justify-center gap-4 mb-12">
+          <span class="text-gray-300 text-sm font-medium billing-label" data-type="monthly">Monthly</span>
+          <button id="billingToggle" class="relative w-16 h-8 bg-gray-700 rounded-full transition-all hover:bg-gray-600" onclick="toggleBilling()">
+            <div id="billingSlider" class="absolute top-1 left-1 w-6 h-6 bg-blue-400 rounded-full transition-transform duration-300 shadow-[0_0_20px_rgba(96,165,250,0.6)]"></div>
+          </button>
+          <span class="text-gray-400 text-sm billing-label" data-type="yearly">Yearly <span class="text-blue-400 font-bold">(Save 17%)</span></span>
         </div>
-        <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4">6 Months Early Adopter Pricing</h1>
-        <p class="text-gray-300 text-lg mb-2">Full-stack hosting in 5 minutes: Git deploy, one-click databases, SSL, and SSH.</p>
-        <p class="text-gray-400 text-sm italic">*Early adopter rate guaranteed for first 6 months. Then regular pricing applies.</p>
       </section>
       
       <section class="max-w-6xl mx-auto px-8 md:px-12 lg:px-16 pb-20 grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -296,7 +301,10 @@ ${getHTMLHead('Pricing - Basement')}
           <div class="border-b border-blue-400/20 pb-6 mb-6">
             <div class="text-xl font-bold text-white mb-2">Basic</div>
             <div class="flex items-baseline gap-2 mb-2">
-              <div class="text-4xl font-extrabold text-blue-300">$15<span class="text-base font-normal text-gray-300">/mo</span></div>
+              <div class="pricing-amount" data-monthly="15" data-yearly="150">
+                <span class="text-4xl font-extrabold text-blue-300 price-value">$15</span>
+                <span class="text-base font-normal text-gray-300 price-interval">/mo</span>
+              </div>
             </div>
             <div class="text-sm text-gray-300">Perfect for side projects</div>
           </div>
@@ -315,7 +323,7 @@ ${getHTMLHead('Pricing - Basement')}
             <li class="text-gray-400">Deployment logs</li>
             <li class="text-gray-400">Email support (24-48hr)</li>
           </ul>
-          <a href="/pay?plan=basic" class="block w-full px-6 py-3 bg-transparent border border-blue-500 text-blue-400 text-center font-medium rounded hover:bg-blue-600 hover:text-white hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all uppercase tracking-wider text-sm">Select Basic</a>
+          <a href="/pay?plan=basic&interval=monthly" class="plan-cta block w-full px-6 py-3 bg-transparent border border-blue-500 text-blue-400 text-center font-medium rounded hover:bg-blue-600 hover:text-white hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all uppercase tracking-wider text-sm" data-plan="basic">Select Basic</a>
         </div>
         
         <div class="bg-gradient-to-br from-gray-900/95 via-blue-950/30 to-black/95 backdrop-blur-xl border-2 border-blue-300 rounded p-8 relative transform md:scale-105 shadow-[0_0_80px_rgba(135,206,250,0.35),0_0_120px_rgba(135,206,250,0.2),inset_0_0_60px_rgba(135,206,250,0.06),inset_0_2px_2px_rgba(255,255,255,0.15)] hover:scale-[1.08] transition-all duration-300">
@@ -323,7 +331,10 @@ ${getHTMLHead('Pricing - Basement')}
           <div class="border-b border-blue-300 pb-6 mb-6">
             <div class="text-xl font-bold text-white mb-2">Pro</div>
             <div class="flex items-baseline gap-2 mb-2">
-              <div class="text-4xl font-extrabold text-blue-300">$35<span class="text-base font-normal text-gray-300">/mo</span></div>
+              <div class="pricing-amount" data-monthly="35" data-yearly="350">
+                <span class="text-4xl font-extrabold text-blue-300 price-value">$35</span>
+                <span class="text-base font-normal text-gray-300 price-interval">/mo</span>
+              </div>
             </div>
             <div class="text-sm text-gray-300">Most popular • For production apps</div>
           </div>
@@ -344,14 +355,17 @@ ${getHTMLHead('Pricing - Basement')}
             <li class="text-blue-300">Priority support (12hr response)</li>
             <li class="text-blue-300">Server controls (start/stop/restart)</li>
           </ul>
-          <a href="/pay?plan=pro" class="block w-full px-6 py-3 bg-blue-600 text-white text-center font-bold rounded hover:bg-blue-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all uppercase tracking-wider text-sm">Select Pro</a>
+          <a href="/pay?plan=pro&interval=monthly" class="plan-cta block w-full px-6 py-3 bg-blue-600 text-white text-center font-bold rounded hover:bg-blue-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all uppercase tracking-wider text-sm" data-plan="pro">Select Pro</a>
         </div>
         
         <div class="bg-gradient-to-br from-gray-900/90 via-gray-900/80 to-black/90 backdrop-blur-xl border border-blue-400/40 rounded p-8 hover:border-blue-300 hover:scale-[1.02] transition-all shadow-[0_0_60px_rgba(135,206,250,0.2),0_0_90px_rgba(135,206,250,0.1),inset_0_0_40px_rgba(135,206,250,0.03),inset_0_1px_1px_rgba(255,255,255,0.1)]">
           <div class="border-b border-blue-400/20 pb-6 mb-6">
             <div class="text-xl font-bold text-white mb-2">Premium</div>
             <div class="flex items-baseline gap-2 mb-2">
-              <div class="text-4xl font-extrabold text-blue-300">$75<span class="text-base font-normal text-gray-300">/mo</span></div>
+              <div class="pricing-amount" data-monthly="75" data-yearly="750">
+                <span class="text-4xl font-extrabold text-blue-300 price-value">$75</span>
+                <span class="text-base font-normal text-gray-300 price-interval">/mo</span>
+              </div>
             </div>
             <div class="text-sm text-gray-300">For serious projects</div>
           </div>
@@ -373,7 +387,7 @@ ${getHTMLHead('Pricing - Basement')}
             <li class="text-blue-300">Priority support (4-8hr response)</li>
             <li class="text-blue-300">Email/ticket support priority</li>
           </ul>
-          <a href="/pay?plan=premium" class="block w-full px-6 py-3 bg-transparent border border-blue-500 text-blue-400 text-center font-medium rounded hover:bg-blue-600 hover:text-white hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all uppercase tracking-wider text-sm">Select Premium</a>
+          <a href="/pay?plan=premium&interval=monthly" class="plan-cta block w-full px-6 py-3 bg-transparent border border-blue-500 text-blue-400 text-center font-medium rounded hover:bg-blue-600 hover:text-white hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all uppercase tracking-wider text-sm" data-plan="premium">Select Premium</a>
         </div>
       </section>
       
@@ -387,7 +401,7 @@ ${getHTMLHead('Pricing - Basement')}
     </main>
     
     ${getFooter()}
-    ${getScripts('nav.js')}
+    ${getScripts('nav.js', 'pricing.js')}
   `);
 };
 
