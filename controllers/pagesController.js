@@ -1701,27 +1701,27 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
             <div class="bg-gray-900 border border-blue-500/20 rounded-lg p-6 relative overflow-visible">
               <div class="absolute -top-2 left-1/2 -translate-x-1/2 text-white text-[8px] font-semibold px-2 py-0.5 rounded" style="background: linear-gradient(135deg, #ef4444 0%, #f43f5e 100%); box-shadow: 0 1px 4px rgba(239, 68, 68, 0.3); letter-spacing: 0.02em; white-space: nowrap;">3-DAY FREE TRIAL</div>
               <h3 class="text-lg font-bold text-white mb-1 mt-1">Basic</h3>
-              <p class="text-2xl font-extrabold text-white mb-3">$25<span class="text-sm font-normal text-gray-400">/mo</span></p>
-              <p class="text-gray-400 text-sm mb-4">1 GB RAM · 1 vCPU · 25 GB SSD</p>
-              <a href="/pay?plan=basic" class="block w-full px-4 py-2 bg-transparent border border-blue-500 text-blue-400 text-center text-sm font-medium rounded hover:bg-blue-600 hover:text-white hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all duration-300">Deploy Basic</a>
+              <p class="text-2xl font-extrabold text-white mb-3">$15<span class="text-sm font-normal text-gray-400">/mo</span></p>
+              <p class="text-gray-400 text-sm mb-4">1 GB RAM · 1 vCPU · 25 GB SSD · 2 sites</p>
+              <a href="/pay?plan=basic&interval=monthly" class="block w-full px-4 py-2 bg-transparent border border-blue-500 text-blue-400 text-center text-sm font-medium rounded hover:bg-blue-600 hover:text-white hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all duration-300">Deploy Basic</a>
             </div>
             
-            <!-- Priority -->
+            <!-- Pro -->
             <div class="bg-gray-900 border border-blue-500/20 rounded-lg p-6 relative overflow-visible">
               <div class="absolute -top-2 left-1/2 -translate-x-1/2 text-white text-[8px] font-semibold px-2 py-0.5 rounded" style="background: linear-gradient(135deg, #ef4444 0%, #f43f5e 100%); box-shadow: 0 1px 4px rgba(239, 68, 68, 0.3); letter-spacing: 0.02em; white-space: nowrap;">3-DAY FREE TRIAL</div>
-              <h3 class="text-lg font-bold text-white mb-1 mt-1">Priority</h3>
-              <p class="text-2xl font-extrabold text-white mb-3">$60<span class="text-sm font-normal text-gray-400">/mo</span></p>
-              <p class="text-gray-400 text-sm mb-4">2 GB RAM · 2 vCPUs · 50 GB SSD</p>
-              <a href="/pay?plan=priority" class="block w-full px-4 py-2 bg-blue-600 text-white text-center text-sm font-medium rounded hover:bg-blue-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all duration-300">Deploy Pro</a>
+              <h3 class="text-lg font-bold text-white mb-1 mt-1">Pro</h3>
+              <p class="text-2xl font-extrabold text-white mb-3">$35<span class="text-sm font-normal text-gray-400">/mo</span></p>
+              <p class="text-gray-400 text-sm mb-4">2 GB RAM · 2 vCPUs · 50 GB SSD · 5 sites</p>
+              <a href="/pay?plan=pro&interval=monthly" class="block w-full px-4 py-2 bg-blue-600 text-white text-center text-sm font-medium rounded hover:bg-blue-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all duration-300">Deploy Pro</a>
             </div>
             
             <!-- Premium -->
             <div class="bg-gray-900 border border-blue-500/20 rounded-lg p-6 relative overflow-visible">
               <div class="absolute -top-2 left-1/2 -translate-x-1/2 text-white text-[8px] font-semibold px-2 py-0.5 rounded" style="background: linear-gradient(135deg, #ef4444 0%, #f43f5e 100%); box-shadow: 0 1px 4px rgba(239, 68, 68, 0.3); letter-spacing: 0.02em; white-space: nowrap;">3-DAY FREE TRIAL</div>
               <h3 class="text-lg font-bold text-white mb-1 mt-1">Premium</h3>
-              <p class="text-2xl font-extrabold text-white mb-3">$120<span class="text-sm font-normal text-gray-400">/mo</span></p>
-              <p class="text-gray-400 text-sm mb-4">4 GB RAM · 2 vCPUs · 80 GB SSD</p>
-              <a href="/pay?plan=premium" class="block w-full px-4 py-2 bg-transparent border border-blue-500 text-blue-400 text-center text-sm font-medium rounded hover:bg-blue-600 hover:text-white hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all duration-300">Deploy Premium</a>
+              <p class="text-2xl font-extrabold text-white mb-3">$75<span class="text-sm font-normal text-gray-400">/mo</span></p>
+              <p class="text-gray-400 text-sm mb-4">4 GB RAM · 2 vCPUs · 80 GB SSD · 10 sites</p>
+              <a href="/pay?plan=premium&interval=monthly" class="block w-full px-4 py-2 bg-transparent border border-blue-500 text-blue-400 text-center text-sm font-medium rounded hover:bg-blue-600 hover:text-white hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all duration-300">Deploy Premium</a>
             </div>
           </div>
           
