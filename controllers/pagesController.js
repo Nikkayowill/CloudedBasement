@@ -115,7 +115,7 @@ ${getHTMLHead('Terms of Service - Basement')}
           <li>Discounted rates locked in for 6 months from signup date</li>
           <li>After 6 months, pricing automatically transitions to standard rates</li>
           <li>You will be notified 30 days before rate change takes effect</li>
-          <li>Standard pricing: Basic ($25/mo), Priority ($60/mo), Premium ($120/mo)</li>
+          <li>Standard pricing: Basic ($15/mo), Pro ($35/mo), Premium ($75/mo)</li>
         </ul>
 
         <h3 class="text-xl font-bold text-white mt-8 mb-3">4.3 Payment Processing</h3>
@@ -296,17 +296,17 @@ ${getHTMLHead('Pricing - Basement')}
           <div class="border-b border-blue-400/20 pb-6 mb-6">
             <div class="text-xl font-bold text-white mb-2">Basic</div>
             <div class="flex items-baseline gap-2 mb-2">
-              <div class="text-4xl font-extrabold text-blue-300">$10<span class="text-base font-normal text-gray-300">/mo</span></div>
-              <div class="text-xl text-gray-500 line-through">$25</div>
+              <div class="text-4xl font-extrabold text-blue-300">$15<span class="text-base font-normal text-gray-300">/mo</span></div>
             </div>
             <div class="text-sm text-gray-300">Perfect for side projects</div>
-            <div class="mt-2 px-3 py-1 bg-gradient-to-r from-blue-300/20 to-blue-400/20 border border-blue-300 rounded text-white text-xs font-bold inline-block">60% OFF - 6 MONTHS</div>
           </div>
           <ul class="space-y-3 mb-8 text-sm">
             <li class="text-gray-300"><strong class="text-white">1 GB RAM</strong></li>
             <li class="text-gray-300"><strong class="text-white">1 CPU core</strong></li>
             <li class="text-gray-300"><strong class="text-white">25 GB SSD storage</strong></li>
             <li class="text-gray-300"><strong class="text-white">1 TB bandwidth</strong></li>
+            <li class="text-blue-300 pt-3 border-t border-blue-400/30"><strong class="text-white">2 sites included</strong></li>
+            <li class="text-blue-300">Unlimited updates per site</li>
             <li class="text-gray-400">Full SSH/root access</li>
             <li class="text-gray-400">One-click Git deployment</li>
             <li class="text-gray-400">One-click database setup (MongoDB, PostgreSQL)</li>
@@ -321,47 +321,47 @@ ${getHTMLHead('Pricing - Basement')}
         <div class="bg-gradient-to-br from-gray-900/95 via-blue-950/30 to-black/95 backdrop-blur-xl border-2 border-blue-300 rounded p-8 relative transform md:scale-105 shadow-[0_0_80px_rgba(135,206,250,0.35),0_0_120px_rgba(135,206,250,0.2),inset_0_0_60px_rgba(135,206,250,0.06),inset_0_2px_2px_rgba(255,255,255,0.15)] hover:scale-[1.08] transition-all duration-300">
           <div class="popular-badge">Most Popular</div>
           <div class="border-b border-blue-300 pb-6 mb-6">
-            <div class="text-xl font-bold text-white mb-2">Priority</div>
+            <div class="text-xl font-bold text-white mb-2">Pro</div>
             <div class="flex items-baseline gap-2 mb-2">
-              <div class="text-4xl font-extrabold text-blue-300">$30<span class="text-base font-normal text-gray-300">/mo</span></div>
-              <div class="text-xl text-gray-500 line-through">$60</div>
+              <div class="text-4xl font-extrabold text-blue-300">$35<span class="text-base font-normal text-gray-300">/mo</span></div>
             </div>
             <div class="text-sm text-gray-300">Most popular • For production apps</div>
-            <div class="mt-2 px-3 py-1 bg-gradient-to-r from-blue-300 to-blue-400 text-black rounded text-xs font-bold inline-block shadow-[0_0_20px_rgba(135,206,250,0.4)]">50% OFF - 6 MONTHS</div>
           </div>
           <ul class="space-y-3 mb-8 text-sm">
             <li class="text-gray-300"><strong class="text-white">2 GB RAM</strong></li>
             <li class="text-gray-300"><strong class="text-white">2 CPU cores</strong></li>
             <li class="text-gray-300"><strong class="text-white">50 GB SSD storage</strong></li>
             <li class="text-gray-300"><strong class="text-white">2 TB bandwidth</strong></li>
+            <li class="text-blue-300 pt-3 border-t border-blue-400/30"><strong class="text-white">5 sites included</strong></li>
+            <li class="text-blue-300">Unlimited updates per site</li>
             <li class="text-gray-400">Full SSH/root access</li>
             <li class="text-gray-400">One-click Git deployment</li>
             <li class="text-gray-400">One-click database setup (MongoDB, PostgreSQL)</li>
             <li class="text-gray-400">Custom domains</li>
             <li class="text-gray-400">One-click SSL</li>
             <li class="text-gray-400">Deployment logs</li>
-            <li class="text-blue-300 pt-3 border-t border-blue-400/30">Plus Priority perks:</li>
+            <li class="text-blue-300 pt-3 border-t border-blue-400/30">Plus Pro perks:</li>
             <li class="text-blue-300">Priority support (12hr response)</li>
             <li class="text-blue-300">Server controls (start/stop/restart)</li>
           </ul>
-          <a href="/pay?plan=priority" class="block w-full px-6 py-3 bg-blue-600 text-white text-center font-bold rounded hover:bg-blue-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all uppercase tracking-wider text-sm">Select Priority</a>
+          <a href="/pay?plan=pro" class="block w-full px-6 py-3 bg-blue-600 text-white text-center font-bold rounded hover:bg-blue-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all uppercase tracking-wider text-sm">Select Pro</a>
         </div>
         
         <div class="bg-gradient-to-br from-gray-900/90 via-gray-900/80 to-black/90 backdrop-blur-xl border border-blue-400/40 rounded p-8 hover:border-blue-300 hover:scale-[1.02] transition-all shadow-[0_0_60px_rgba(135,206,250,0.2),0_0_90px_rgba(135,206,250,0.1),inset_0_0_40px_rgba(135,206,250,0.03),inset_0_1px_1px_rgba(255,255,255,0.1)]">
           <div class="border-b border-blue-400/20 pb-6 mb-6">
             <div class="text-xl font-bold text-white mb-2">Premium</div>
             <div class="flex items-baseline gap-2 mb-2">
-              <div class="text-4xl font-extrabold text-blue-300">$60<span class="text-base font-normal text-gray-300">/mo</span></div>
-              <div class="text-xl text-gray-500 line-through">$120</div>
+              <div class="text-4xl font-extrabold text-blue-300">$75<span class="text-base font-normal text-gray-300">/mo</span></div>
             </div>
             <div class="text-sm text-gray-300">For serious projects</div>
-            <div class="mt-2 px-3 py-1 bg-gradient-to-r from-blue-300/20 to-blue-400/20 border border-blue-300 rounded text-white text-xs font-bold inline-block">50% OFF - 6 MONTHS</div>
           </div>
           <ul class="space-y-3 mb-8 text-sm">
             <li class="text-gray-300"><strong class="text-white">4 GB RAM</strong></li>
             <li class="text-gray-300"><strong class="text-white">2 CPU cores</strong></li>
             <li class="text-gray-300"><strong class="text-white">80 GB SSD storage</strong></li>
             <li class="text-gray-300"><strong class="text-white">4 TB bandwidth</strong></li>
+            <li class="text-blue-300 pt-3 border-t border-blue-400/30"><strong class="text-white">10 sites included</strong></li>
+            <li class="text-blue-300">Unlimited updates per site</li>
             <li class="text-gray-400">Full SSH/root access</li>
             <li class="text-gray-400">One-click Git deployment</li>
             <li class="text-gray-400">One-click database setup (MongoDB, PostgreSQL)</li>
