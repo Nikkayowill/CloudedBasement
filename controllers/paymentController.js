@@ -332,7 +332,7 @@ exports.createCheckoutSession = async (req, res) => {
         },
       ],
       mode: 'payment',
-      success_url: `${req.protocol}://${req.get('host')}/payment-success?plan=${plan}&interval=${interval}&payment_intent_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${req.protocol}://${req.get('host')}/payment-success?plan=${plan}&interval=${interval}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.protocol}://${req.get('host')}/payment-cancel`,
       metadata: {
         plan: plan,
@@ -350,18 +350,29 @@ exports.createCheckoutSession = async (req, res) => {
 // GET /payment-success
 exports.paymentSuccess = async (req, res) => {
   try {
-    const sessionId = req.query.payment_intent_id; // Actually session_id from Stripe
+    const sessionId = req.query.session_id; // Stripe checkout session ID
     const plan = req.query.plan || 'basic';
     const interval = req.query.interval || 'monthly';
     
+    console.log('[PAYMENT-SUCCESS] Received:', { sessionId, plan, interval, userId: req.session.userId });
+    
     // Record payment immediately so onboarding wizard detects it
     if (!sessionId) {
+      console.error('[PAYMENT-SUCCESS] Missing session ID');
       return res.redirect('/payment-cancel?error=Missing session ID');
     }
 
     // Retrieve session to get payment intent
     const session = await getStripe().checkout.sessions.retrieve(sessionId);
+    console.log('[PAYMENT-SUCCESS] Session retrieved:', { sessionId, paymentIntent: session.payment_intent, status: session.payment_status });
+    
+    if (!session.payment_intent) {
+      console.error('[PAYMENT-SUCCESS] No payment intent in session:', sessionId);
+      return res.redirect('/payment-cancel?error=Invalid payment session');
+    }
+    
     const paymentIntent = await getStripe().paymentIntents.retrieve(session.payment_intent);
+    console.log('[PAYMENT-SUCCESS] Payment intent retrieved:', { id: paymentIntent.id, status: paymentIntent.status });
     
     // If session expired, skip recording (webhook will handle it)
     // User still gets redirected to dashboard if they log back in
@@ -401,7 +412,12 @@ exports.paymentSuccess = async (req, res) => {
     }
 
   } catch (error) {
-    console.error('Payment processing error:', error);
+    console.error('[PAYMENT-SUCCESS ERROR]', {
+      message: error.message,
+      sessionId: req.query.session_id,
+      userId: req.session.userId,
+      stack: error.stack
+    });
     return res.redirect('/payment-cancel?error=Payment recording failed. Please contact support.');
   }
 
