@@ -645,136 +645,30 @@ ${getHTMLHead('Documentation - Basement')}
     
     <main class="bg-black min-h-screen pt-24 pb-16">
       <div class="max-w-4xl mx-auto px-8 md:px-12 lg:px-16">
-        <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4">Documentation</h1>
-        <p class="text-xl text-gray-300 mb-12">Complete guide to Basement hosting — what you get, how to use it, and technical details.</p>
+        <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4">Technical Documentation</h1>
+        <p class="text-xl text-gray-400 mb-16">Complete technical reference for Clouded Basement — infrastructure details, deployment methods, and system architecture.</p>
         
-        <h2 class="text-2xl font-bold text-white mt-12 mb-4">What You Get</h2>
-        <p class="text-gray-300 mb-4">When you sign up, you get a dedicated cloud server (VPS - Virtual Private Server). This is a complete Linux machine that you control.</p>
+        <!-- ============================================ -->
+        <!-- SECTION 1: OVERVIEW -->
+        <!-- ============================================ -->
+        <section class="mb-20">
+          <h2 class="text-3xl font-bold text-white mb-6 pb-3 border-b border-gray-800">Overview</h2>
+          
+          <div class="space-y-4 text-gray-300 leading-relaxed">
+            <p>
+              Clouded Basement provides automated VPS provisioning on DigitalOcean infrastructure. When you complete payment, the platform creates an Ubuntu 22.04 server with a complete development environment pre-installed, including Node.js, Python, Rust, Go, Nginx, and SSL tooling.
+            </p>
+            
+            <p>
+              Each server is fully isolated with dedicated resources and a unique IP address. You receive root SSH access immediately upon provisioning. The platform handles initial setup automation but does not restrict server access or sandbox applications.
+            </p>
+            
+            <p>
+              This is not a Platform-as-a-Service (PaaS). You have complete control over the server, can install any software, modify configurations, and migrate elsewhere at any time. Clouded Basement automates provisioning and provides deployment tools, but the server itself operates as a standard VPS with no vendor lock-in.
+            </p>
+          </div>
+        </section>
         
-        <p class="text-gray-300 mb-6"><strong class="text-white">It's like renting a computer that runs 24/7 in a data center.</strong></p>
-        
-        <ul class="list-disc list-inside space-y-2 text-gray-300 mb-8">
-            <li><strong class="text-white">Full root/SSH access</strong> - Complete control over your server</li>
-            <li><strong class="text-white">Dedicated IP address</strong> - Point your domain wherever you want</li>
-            <li><strong class="text-white">Install anything</strong> - Node, Python, Docker, databases, whatever you need</li>
-            <li><strong class="text-white">Deploy your way</strong> - Git, FTP, rsync, manual uploads - your choice</li>
-        </ul>
-        
-        <h2 class="text-2xl font-bold text-white mt-12 mb-4">Two Ways to Manage Your Server</h2>
-        <p class="text-gray-300 mb-8">You decide how much control you want at any given time.</p>
-        
-        <h3 class="text-xl font-bold text-white mt-8 mb-3">Dashboard</h3>
-        <p class="text-gray-300 mb-3">A web interface for common tasks:</p>
-        <ul class="list-disc list-inside space-y-2 text-gray-300 mb-4">
-            <li>Deploy your code with a few clicks</li>
-            <li>Restart your server</li>
-            <li>View logs and monitor resources</li>
-            <li>Set up SSL certificates automatically</li>
-            <li>Manage backups</li>
-        </ul>
-        <p class="text-gray-300 mb-8">Good for routine operations and quick deployments.</p>
-        
-        <h3 class="text-xl font-bold text-white mt-8 mb-3">Direct SSH Access</h3>
-        <p class="text-gray-300 mb-3">Full terminal access to your server:</p>
-        <ul class="list-disc list-inside space-y-2 text-gray-300 mb-4">
-            <li>Configure web servers (Nginx, Apache)</li>
-            <li>Set up custom services</li>
-            <li>Install any dependencies</li>
-            <li>Run background processes</li>
-            <li>Debug directly in production</li>
-        </ul>
-        <p class="text-gray-300 mb-8">Good when you need precise control or custom configurations.</p>
-        
-        <h3 class="text-xl font-bold text-white mt-8 mb-3">Use Both</h3>
-        <p class="text-gray-300 mb-8">Most people use the dashboard for everyday tasks and SSH when they need it. You're not locked into one approach.</p>
-        
-        <div class="bg-gray-900 border border-blue-500/30 rounded-lg p-6 my-8">
-            <h3 class="text-white text-xl font-bold mb-3">Managed Infrastructure</h3>
-            <p class="text-gray-300 mb-3">While you have full control, we handle the foundational maintenance:</p>
-            <ul class="list-disc list-inside space-y-2 text-gray-300">
-                <li><strong class="text-white">Security updates:</strong> Operating system patches applied automatically</li>
-                <li><strong class="text-white">Uptime monitoring:</strong> We're alerted if your server goes down</li>
-                <li><strong class="text-white">DDoS protection:</strong> Network-level protection included</li>
-            </ul>
-        </div>
-        
-        <h2 class="text-2xl font-bold text-white mt-12 mb-4">Getting Started</h2>
-        <p class="text-gray-300 mb-4">Here's the process from signup to deployment:</p>
-        
-        <ol class="list-decimal list-inside space-y-2 text-gray-300 mb-6">
-            <li><strong class="text-white">Choose a plan</strong> - Basic ($25), Priority ($60), or Premium ($120)</li>
-            <li><strong class="text-white">Complete payment</strong> - Secure checkout via Stripe</li>
-            <li><strong class="text-white">Server provisioning</strong> - Takes about 60 seconds</li>
-            <li><strong class="text-white">Receive credentials</strong> - Dashboard access and SSH details via email</li>
-            <li><strong class="text-white">Deploy</strong> - Use the dashboard or SSH directly</li>
-        </ol>
-        
-        <p class="text-gray-300 mb-8">Your server is live immediately. No approval process, no configuration maze.</p>
-        
-        <h2 class="text-2xl font-bold text-white mt-12 mb-4">Technical Stack</h2>
-        <p class="text-gray-300 mb-4">Full transparency on our infrastructure:</p>
-        
-        <ul class="list-disc list-inside space-y-2 text-gray-300 mb-8">
-            <li><strong class="text-white">Cloud Provider:</strong> DigitalOcean data centers</li>
-            <li><strong class="text-white">Operating System:</strong> Ubuntu LTS (long-term support)</li>
-            <li><strong class="text-white">Dashboard:</strong> Custom Node.js application</li>
-            <li><strong class="text-white">Payment Processing:</strong> Stripe</li>
-            <li><strong class="text-white">Monitoring:</strong> Open-source tooling</li>
-        </ul>
-        
-        <div class="bg-gray-900 border border-blue-500/30 rounded-lg p-6 my-8">
-            <h3 class="text-white text-xl font-bold mb-3">Open Source</h3>
-            <p class="text-gray-300 mb-3">The dashboard and deployment tools are open source:</p>
-            <ul class="list-disc list-inside space-y-2 text-gray-300">
-                <li>Review the code and understand how everything works</li>
-                <li>Contribute improvements or report issues</li>
-                <li>Fork it and modify for your needs</li>
-                <li>Verify security practices</li>
-            </ul>
-        </div>
-        
-        <h2 class="text-2xl font-bold text-white mt-12 mb-4">Who This Works For</h2>
-        <p class="text-gray-300 mb-4">Basement is designed for:</p>
-        <ul class="list-disc list-inside space-y-2 text-gray-300 mb-6">
-            <li>Solo developers deploying projects</li>
-            <li>Students learning production deployment</li>
-            <li>Indie founders running applications</li>
-            <li>Small to medium teams wanting server control without infrastructure management</li>
-            <li>Anyone comfortable with basic Linux commands</li>
-        </ul>
-        
-        <p class="text-gray-300 mb-8"><strong class="text-white">Note:</strong> We're a small team building and expanding features over time. The infrastructure can support enterprise workloads, but our feature set and support capacity are currently focused on smaller deployments as we grow.</p>
-        
-        <h2 class="text-2xl font-bold text-white mt-12 mb-4">Pricing Structure</h2>
-        <p class="text-gray-300 mb-4">Three tiers based on server resources and support level:</p>
-        
-        <p class="text-gray-300 mb-4"><strong class="text-white">Basic ($25/mo):</strong> 1 GB RAM, 1 CPU, 25 GB storage. Email support with 48-hour response. Suitable for static sites, small APIs, personal projects.</p>
-        
-        <p class="text-gray-300 mb-4"><strong class="text-white">Priority ($60/mo):</strong> 2 GB RAM, 2 CPUs, 50 GB storage. Priority support with 12-hour response, SSL automation, staging environments. Suitable for production applications.</p>
-        
-        <p class="text-gray-300 mb-4"><strong class="text-white">Premium ($120/mo):</strong> 4 GB RAM, 2 CPUs, 80 GB storage. Direct chat support, deployment assistance, performance optimization. Suitable for revenue-generating applications.</p>
-        
-        <p class="text-gray-300 mb-8"><strong class="text-white">No usage charges.</strong> Your monthly bill is capped at your plan price. No surprise bandwidth or storage overages.</p>
-        
-        <h2 class="text-2xl font-bold text-white mt-12 mb-4">Support Approach</h2>
-        <p class="text-gray-300 mb-4">Documentation-first support model:</p>
-        <ul class="list-disc list-inside space-y-2 text-gray-300 mb-4">
-            <li>Comprehensive guides (including this page)</li>
-            <li>FAQ covering common questions</li>
-            <li>GitHub discussions for community help</li>
-            <li>Open issues for bug reports</li>
-        </ul>
-        
-        <p class="text-gray-300 mb-12">Email support included with all plans. Higher tiers provide faster response times and direct chat access for urgent issues.</p>
-        
-        <div class="bg-gray-900 border-2 border-blue-400/40 rounded-xl p-8 text-center my-12">
-            <h2 class="text-3xl font-bold text-white mb-4">Ready to Get Started?</h2>
-            <p class="text-gray-300 mb-6">No long-term contracts. Cancel anytime.</p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="/register" class="inline-block px-8 py-3 bg-blue-600 text-white font-bold rounded hover:bg-blue-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(135,206,250,0.6)] transition-all duration-300 uppercase tracking-wider text-sm">Sign up</a>
-                <a href="/contact" class="inline-block px-8 py-3 border-2 border-blue-400 text-white bg-gray-800 font-bold rounded hover:bg-gray-700 transition-all duration-300 uppercase tracking-wider text-sm">Contact Us</a>
-            </div>
-        </div>
       </div>
     </main>
     
