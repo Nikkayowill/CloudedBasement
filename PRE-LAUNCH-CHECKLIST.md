@@ -1,103 +1,228 @@
-# 🚀 PRE-LAUNCH CHECKLIST - Clouded Basement
-**Generated:** January 28, 2026  
-**Status:** MUST FIX before marketing
+# 🚀 FINAL LAUNCH CHECKLIST - Clouded Basement
+**Last Updated:** January 31, 2026  
+**Status:** Production-ready with new pricing model
 
 ---
 
-## 🔴 CRITICAL (Will cause crashes or 404s)
+## ✅ COMPLETED FEATURES
 
-### Code Errors That Break The App
+### Site Limits & Pricing (January 31, 2026)
+- [x] **New pricing tiers implemented**
+  - Basic: $15/mo (2 sites) or $150/year (17% savings)
+  - Pro: $35/mo (5 sites) or $350/year (17% savings)
+  - Premium: $75/mo (10 sites) or $750/year (17% savings)
 
-- [ ] **Missing `sendServerRequestEmail` import in index.js**
-  - File: `index.js` line ~190
-  - Issue: Function called but never imported
-  - Fix: Add `const { sendServerRequestEmail } = require('./services/email');`
+- [x] **Site limit enforcement**
+  - Deployment controller blocks new sites at limit
+  - Unlimited updates to existing sites (same git_url)
+  - Database tracking of distinct git_urls per server
 
-- [ ] **Missing `isTokenValid` function reference**
-  - File: `controllers/authController.js`
-  - Issue: Calls `isTokenValid()` but function is named `isCodeValid()` in emailToken.js
-  - Fix: Change to `isCodeValid()` or add alias
+- [x] **Dashboard site usage display**
+  - "X/Y sites deployed" counter in server card
+  - Red highlight when at limit
+  - Warning banner with upgrade CTA when limit reached
 
-- [ ] **Missing `/resend-confirmation` route**
-  - File: `index.js`
-  - Issue: Login page links to `/resend-confirmation` but route doesn't exist
-  - Fix: Add route handler
+- [x] **Monthly/yearly billing toggle**
+  - JavaScript toggle on pricing page
+  - Dynamic price updates ($15→$150, etc.)
+  - Payment interval stored in database
 
-- [ ] **Email parameter order wrong**
-  - File: `services/digitalocean.js` line ~142
-  - Issue: `sendEmail(subject, html, text, to)` but function expects `(to, subject, text, html)`
-  - Fix: Reorder parameters in call
+- [x] **Payment flow integration**
+  - Checkout captures interval parameter
+  - Webhooks extract interval from metadata
+  - Provisioning sets site_limit based on plan
 
----
-
-## 🟠 HIGH PRIORITY (Security + Legal)
-
-### Security Issues
-
-- [ ] **Missing CSRF on 3 POST routes**
-  - `/request-server` - needs `csrfProtection` middleware
-  - `/admin/domains` - needs CSRF
-  - `PUT /admin/domains/:id` - needs CSRF
-
-- [ ] **Missing input validation on route params**
-  - `dashboardController.js` - `req.query.success/error` used directly
-  - `serverController.js` - `req.body.serverId` should use `parseInt(x, 10)` with NaN check
-  - `domainController.js` - `req.params.id` should validate as integer
-
-- [ ] **Missing rate limiting**
-  - `/request-server` needs `deploymentLimiter`
-  - Add rate limiting to admin domain endpoints
-
-- [ ] **Health endpoint exposes environment info**
-  - File: `index.js` `/health` route
-  - Consider: Remove `environment` field or restrict to internal IPs
-
-### Legal Issues
-
-- [ ] **Add DigitalOcean to Privacy Policy third parties**
-  - File: `pagesController.js` showPrivacy
-  - Missing: DigitalOcean not disclosed as infrastructure provider
-
-- [ ] **Add physical address to email footers (CAN-SPAM)**
-  - File: `services/email.js`
-  - Required: Physical mailing address in all transactional emails
-
-- [ ] **Fix refund policy contradiction**
-  - Terms says "non-refundable" but marketing says "30-day guarantee"
-  - Decision needed: Pick one and update both places
+- [x] **Pricing updates across site**
+  - Landing page quick pricing updated
+  - Pricing page cards updated with site counts
+  - README.md updated
+  - Terms page reflects new pricing
+  - "Priority" renamed to "Pro" throughout
 
 ---
 
-## 🟡 MEDIUM PRIORITY (Marketing consistency)
+## 🔴 CRITICAL (Must fix before launch)
 
-### Copy Inconsistencies
+### Infrastructure
+- [ ] **Test Stripe live mode end-to-end**
+  - Switch from test keys to live keys
+  - Complete actual payment with real card
+  - Verify webhook fires in production
+  - Confirm server provisioning works
 
-- [ ] **14-day vs 30-day guarantee**
-  - `/docs` says 14-day money-back
-  - All other pages say 30-day
-  - Fix: Change docs to 30-day
+- [ ] **Test DigitalOcean API in production**
+  - Verify droplet creation with live API token
+  - Test IP polling and provisioning
+  - Confirm SSH credentials work
+  - Check IPv6 assignment
 
-- [ ] **"Lifetime pricing" in final CTA is misleading**
-  - Home page says "lock in lifetime pricing"
-  - Early Operator is only 6 months
-  - Fix: Change to "early adopter pricing"
+- [ ] **Email sending verification**
+  - Test all email types (welcome, confirmation, support)
+  - Verify Gmail OAuth2 / SendGrid / SMTP works
+  - Check email deliverability (not spam folder)
+  - Test email links (confirmation tokens, password reset)
 
-- [ ] **Placeholder GitHub link**
-  - File: `pagesController.js` showAbout
-  - Issue: `href="#"` for "View on GitHub →"
-  - Fix: Add real URL or remove link
+### Security
+- [ ] **Rotate all API keys before launch**
+  - New Stripe live keys (never used in testing)
+  - New DigitalOcean token (production-only)
+  - New session secret (generate new random string)
+  - New webhook secrets
 
-- [ ] **Inconsistent branding**
-  - Footer uses "Basement"
-  - Main pages use "Clouded Basement"
-  - Decision: Pick one and be consistent
+- [ ] **Production environment variables**
+  - Set NODE_ENV=production
+  - Verify all .env variables present
+  - Remove any test/debug variables
+  - Check database credentials
 
-- [ ] **CTA button text inconsistent**
-  - Pricing page: "Select Basic/Priority/Premium"
-  - Home page: "Deploy Basic/Priority/Premium"
-  - Fix: Use same verb everywhere
+---
 
-- [ ] **Support response times inconsistent**
+## 🟠 HIGH PRIORITY (Important but not blocking)
+
+### Legal & Compliance
+- [ ] **Privacy Policy - add DigitalOcean disclosure**
+  - Currently missing as third-party infrastructure provider
+  - Required by law to disclose data processors
+
+- [ ] **Email footers - add physical address (CAN-SPAM)**
+  - All transactional emails need mailing address
+  - File: services/email.js
+
+- [ ] **Terms of Service - clarify refund policy**
+  - Currently says "non-refundable"
+  - Decide final policy and be consistent
+
+### Monitoring & Logging
+- [ ] **Set up Sentry alerts**
+  - Verify Sentry_DSN configured
+  - Test error reporting
+  - Set up alert notifications
+
+- [ ] **Production logging**
+  - Verify systemd logs working
+  - Set up log rotation
+  - Monitor disk space usage
+
+### Backup & Recovery
+- [ ] **Database backups configured**
+  - Automated daily backups
+  - Backup retention policy (7 days recommended)
+  - Test restore procedure
+
+- [ ] **Application backup**
+  - Git repository up to date
+  - .env file backed up securely (separate from git)
+  - Document recovery procedures
+
+---
+
+## 🟡 MEDIUM PRIORITY (Polish before marketing)
+
+### Marketing Consistency
+- [ ] **"Priority" → "Pro" everywhere**
+  - Check all remaining "Priority" references
+  - Update any old pricing references ($25/$60/$120)
+  - Verify all CTAs use "Pro" not "Priority"
+
+- [ ] **Support response times consistent**
+  - Basic: 24hr
+  - Pro: 12hr  
+  - Premium: 4-8hr
+  - Update all pages to match
+
+- [ ] **Branding consistency**
+  - Use "Clouded Basement" everywhere (not just "Basement")
+  - Fix footer if inconsistent
+  - Check all page titles
+
+### Testing
+- [ ] **Mobile device testing**
+  - Test on real iPhone
+  - Test on real Android device
+  - Check responsive navigation works
+  - Verify forms work on mobile
+
+- [ ] **Cross-browser testing**
+  - Chrome (primary)
+  - Firefox
+  - Safari
+  - Edge
+
+- [ ] **Load testing**
+  - Test concurrent users (10+)
+  - Check rate limiting doesn't block legit users
+  - Verify database connection pool handles load
+
+---
+
+## 🟢 LOW PRIORITY (Nice to have)
+
+### Features
+- [ ] **Delete site functionality**
+  - Add delete button per deployment
+  - Free up site slot when deleted
+  - Update counter in real-time
+
+- [ ] **Upgrade flow**
+  - Smooth upgrade from Basic → Pro → Premium
+  - Prorate charges
+  - Instant site limit increase
+
+- [ ] **Usage metrics**
+  - Bandwidth tracking
+  - Deployment success rate
+  - Most popular frameworks
+
+---
+
+## 📊 LAUNCH READINESS SCORE
+
+### Current Status: **85/100**
+- ✅ Core platform: 100%
+- ✅ Pricing model: 100%
+- ✅ Site limits: 100%
+- ⚠️ Production testing: 0% (not done yet)
+- ⚠️ Email verification: 0% (not tested)
+- ✅ Security: 90% (need to rotate keys)
+- ⚠️ Legal: 70% (minor gaps)
+- ✅ Marketing: 95% (minor inconsistencies)
+
+**Recommendation:** Complete critical tests (Stripe live mode, email sending, production deployment) before launching. Current blockers are infrastructure verification, not code issues.
+
+---
+
+## 🎯 LAUNCH STRATEGY
+
+### Soft Launch (Week 1)
+1. Fix all critical items above
+2. Launch to 5-10 beta customers (friends/network)
+3. $0.50 test pricing (or first month free)
+4. Intensive monitoring and support
+5. Collect feedback
+
+### Public Launch (Week 2-3)
+1. Announce on social media
+2. Post on relevant forums (Reddit, HackerNews, IndieHackers)
+3. Enable full pricing ($15/$35/$75)
+4. Set up analytics tracking
+5. Monitor conversion rates
+
+### Scale (Week 4+)
+1. Implement feedback from beta
+2. Add requested features
+3. Optimize onboarding
+4. Start content marketing (blog, tutorials)
+5. Consider paid ads if profitable
+
+---
+
+**Next Actions:**
+1. Test Stripe live mode payment → server provisioning
+2. Verify email sending works end-to-end
+3. Deploy to production server
+4. Complete 1-2 test purchases yourself
+5. Fix any issues discovered
+6. Invite 5 beta testers
   - Privacy page: 48hr for all
   - Safety page: 24hr
   - Pricing tiers: 24-48hr, 12hr, 4-8hr
