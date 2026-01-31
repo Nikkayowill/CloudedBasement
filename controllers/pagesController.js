@@ -1075,7 +1075,7 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 mt-12">
             <!-- Basic -->
             <div class="bg-gray-900 border border-blue-500/20 rounded-lg p-6 relative overflow-visible">
-              <div class="absolute -top-2.5 left-1/2 -translate-x-1/2 text-white text-[9px] sm:text-[10px] md:text-[11px] font-bold px-2.5 sm:px-3 py-1 rounded-md" style="background: linear-gradient(135deg, #ef4444 0%, #f43f5e 100%); box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4); letter-spacing: 0.03em; white-space: nowrap;">3-DAY FREE TRIAL</div>
+              <div class="absolute -top-2 left-1/2 -translate-x-1/2 text-white text-[8px] font-semibold px-2 py-0.5 rounded" style="background: linear-gradient(135deg, #ef4444 0%, #f43f5e 100%); box-shadow: 0 1px 4px rgba(239, 68, 68, 0.3); letter-spacing: 0.02em; white-space: nowrap;">3-DAY FREE TRIAL</div>
               <h3 class="text-lg font-bold text-white mb-1 mt-1">Basic</h3>
               <p class="text-2xl font-extrabold text-white mb-3">$25<span class="text-sm font-normal text-gray-400">/mo</span></p>
               <p class="text-gray-400 text-sm mb-4">1 GB RAM · 1 vCPU · 25 GB SSD</p>
@@ -1084,7 +1084,7 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
             
             <!-- Priority -->
             <div class="bg-gray-900 border border-blue-500/20 rounded-lg p-6 relative overflow-visible">
-              <div class="absolute -top-2.5 left-1/2 -translate-x-1/2 text-white text-[9px] sm:text-[10px] md:text-[11px] font-bold px-2.5 sm:px-3 py-1 rounded-md" style="background: linear-gradient(135deg, #ef4444 0%, #f43f5e 100%); box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4); letter-spacing: 0.03em; white-space: nowrap;">3-DAY FREE TRIAL</div>
+              <div class="absolute -top-2 left-1/2 -translate-x-1/2 text-white text-[8px] font-semibold px-2 py-0.5 rounded" style="background: linear-gradient(135deg, #ef4444 0%, #f43f5e 100%); box-shadow: 0 1px 4px rgba(239, 68, 68, 0.3); letter-spacing: 0.02em; white-space: nowrap;">3-DAY FREE TRIAL</div>
               <h3 class="text-lg font-bold text-white mb-1 mt-1">Priority</h3>
               <p class="text-2xl font-extrabold text-white mb-3">$60<span class="text-sm font-normal text-gray-400">/mo</span></p>
               <p class="text-gray-400 text-sm mb-4">2 GB RAM · 2 vCPUs · 50 GB SSD</p>
@@ -1093,7 +1093,7 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
             
             <!-- Premium -->
             <div class="bg-gray-900 border border-blue-500/20 rounded-lg p-6 relative overflow-visible">
-              <div class="absolute -top-2.5 left-1/2 -translate-x-1/2 text-white text-[9px] sm:text-[10px] md:text-[11px] font-bold px-2.5 sm:px-3 py-1 rounded-md" style="background: linear-gradient(135deg, #ef4444 0%, #f43f5e 100%); box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4); letter-spacing: 0.03em; white-space: nowrap;">3-DAY FREE TRIAL</div>
+              <div class="absolute -top-2 left-1/2 -translate-x-1/2 text-white text-[8px] font-semibold px-2 py-0.5 rounded" style="background: linear-gradient(135deg, #ef4444 0%, #f43f5e 100%); box-shadow: 0 1px 4px rgba(239, 68, 68, 0.3); letter-spacing: 0.02em; white-space: nowrap;">3-DAY FREE TRIAL</div>
               <h3 class="text-lg font-bold text-white mb-1 mt-1">Premium</h3>
               <p class="text-2xl font-extrabold text-white mb-3">$120<span class="text-sm font-normal text-gray-400">/mo</span></p>
               <p class="text-gray-400 text-sm mb-4">4 GB RAM · 2 vCPUs · 80 GB SSD</p>
