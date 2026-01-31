@@ -957,9 +957,8 @@ ${getHTMLHead('Documentation - Basement')}
               </h3>
               <ul class="list-disc list-inside space-y-2 text-gray-300 ml-4">
                 <li><strong class="text-white">Repository size:</strong> 100MB maximum (enforced during clone/download)</li>
-                <li><strong class="text-white">Private repositories:</strong> Not supported—no GitHub token authentication implemented</li>
+                <li><strong class="text-white">Private repositories:</strong> Currently only public repos supported. Private repo authentication is planned but requires secure token storage and testing. Solo dev, so no timeline yet.</li>
                 <li><strong class="text-white">Build timeouts:</strong> 10-minute maximum for dependency installation and builds</li>
-                <li><strong class="text-white">Docker:</strong> Not supported—no containerization layer</li>
                 <li><strong class="text-white">Database setup:</strong> Must be configured manually via SSH—no automated database provisioning</li>
               </ul>
             </div>
