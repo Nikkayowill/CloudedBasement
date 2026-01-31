@@ -957,30 +957,40 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
 
       <!-- How It Works -->
       <div class="py-20 md:py-28 relative z-10">
-        <div class="max-w-6xl mx-auto px-8 md:px-12 lg:px-16">
-          <h2 class="mb-6 text-3xl md:text-4xl font-extrabold text-center text-white">How it works</h2>
-          <p class="text-center text-gray-400 text-base mb-16">Payment to live server in minutes.</p>
-          <ol class="grid grid-cols-1 gap-6 sm:grid-cols-3 mt-8">
-            <!-- Step 1 -->
-            <li class="relative text-center">
-              <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-gradient-to-br from-blue-300 to-blue-400 rounded-full text-white text-2xl font-bold shadow-[0_0_20px_rgba(135,206,250,0.5)]">1</div>
-              <h3 class="mb-2 text-xl font-bold text-white">Pick a plan</h3>
-              <p class="text-gray-300">Checkout. Done. Provisioning starts automatically.</p>
-            </li>
-            <!-- Step 2 -->
-            <li class="relative text-center">
-              <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-gradient-to-br from-blue-300 to-blue-400 rounded-full text-white text-2xl font-bold shadow-[0_0_20px_rgba(135,206,250,0.5)]">2</div>
-              <h3 class="mb-2 text-xl font-bold text-white">We build your server</h3>
-              <p class="text-gray-300">Ubuntu, Nginx, Node, Python, SSL. Pre-configured and secure.</p>
-            </li>
-            <!-- Step 3 -->
-            <li class="relative text-center">
-              <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-gradient-to-br from-blue-300 to-blue-400 rounded-full text-white text-2xl font-bold shadow-[0_0_20px_rgba(135,206,250,0.5)]">3</div>
-              <h3 class="mb-2 text-xl font-bold text-white">Deploy your app</h3>
-              <p class="text-gray-300">SSH in or push from GitHub. Your choice.</p>
-            </li>
-          </ol>
-          <p class="text-center text-gray-500 text-sm max-w-4xl mx-auto py-20">That's it. Your server is live.</p>
+        <div class="max-w-3xl mx-auto px-8 md:px-12 lg:px-16">
+          <h2 class="mb-4 text-3xl md:text-4xl font-extrabold text-center text-white">How It Works</h2>
+          <p class="text-center text-gray-400 text-lg mb-12">From idea to a live server — without the setup stress</p>
+          
+          <div class="space-y-8 text-left">
+            <p class="text-gray-300 text-lg leading-relaxed">
+              <strong class="text-white">You don't need to think about infrastructure.</strong><br>
+              We handle the boring parts so you can ship.
+            </p>
+            
+            <div>
+              <h3 class="text-xl font-bold text-white mb-2">You choose a plan</h3>
+              <p class="text-gray-300 leading-relaxed">Pick the resources you need. No hidden configs, no surprise limits.</p>
+            </div>
+            
+            <div>
+              <h3 class="text-xl font-bold text-white mb-2">We prepare everything</h3>
+              <p class="text-gray-300 leading-relaxed">We provision a secure Ubuntu server with Nginx, Node, Python, and SSL — ready to go when you are.</p>
+            </div>
+            
+            <div>
+              <h3 class="text-xl font-bold text-white mb-2">You deploy your way</h3>
+              <p class="text-gray-300 leading-relaxed">SSH in like a normal VPS, or deploy directly from GitHub with one click.</p>
+            </div>
+            
+            <div class="pt-6">
+              <p class="text-white text-lg font-semibold mb-2">That's it.</p>
+              <p class="text-gray-300 leading-relaxed">No dashboards to fight. No DevOps rabbit holes.<br>Just a server you control.</p>
+            </div>
+            
+            <p class="text-gray-400 text-sm leading-relaxed pt-4">
+              Every server is isolated, yours alone, and can be accessed or moved at any time.
+            </p>
+          </div>
         </div>
       </div>
 
