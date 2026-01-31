@@ -524,6 +524,10 @@ exports.stripeWebhook = async (req, res) => {
           const successUrl = session.success_url || '';
           const planMatch = successUrl.match(/[?&]plan=([^&]+)/);
           const plan = planMatch ? planMatch[1] : 'basic';
+          
+          // Extract interval from success_url
+          const intervalMatch = successUrl.match(/[?&]interval=([^&]+)/);
+          const interval = intervalMatch ? intervalMatch[1] : 'monthly';
 
           if (!customerEmail) {
             console.log('No customer email found in checkout session');
@@ -554,8 +558,8 @@ exports.stripeWebhook = async (req, res) => {
           );
           
           if (serverCheck.rows.length === 0) {
-            console.log('Creating server for user from webhook:', userId, 'Plan:', plan);
-            await createRealServer(userId, plan, paymentIntentId || session.id);
+            console.log('Creating server for user from webhook:', userId, 'Plan:', plan, 'Interval:', interval);
+            await createRealServer(userId, plan, paymentIntentId || session.id, interval);
           } else {
             console.log('User already has active/provisioning server, skipping creation');
           }
@@ -582,6 +586,7 @@ exports.stripeWebhook = async (req, res) => {
           // Extract user_id and plan from metadata (set during createPaymentIntent)
           const userIdStr = paymentIntent.metadata?.user_id;
           const plan = paymentIntent.metadata?.plan || 'basic';
+          const interval = paymentIntent.metadata?.interval || 'monthly';
           const amount = paymentIntent.amount / 100; // Convert cents to dollars
 
           if (!userIdStr) {
@@ -658,7 +663,7 @@ exports.stripeWebhook = async (req, res) => {
           
           if (serverCheck.rows.length === 0) {
             console.log('Creating server for user from webhook:', userId);
-            await createRealServer(userId, plan, paymentIntent.id);
+            await createRealServer(userId, plan, paymentIntent.id, interval);
           } else {
             console.log('User already has active server, skipping creation');
           }
