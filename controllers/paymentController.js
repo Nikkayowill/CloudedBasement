@@ -7,12 +7,12 @@ const pool = require('../db');
 const { createRealServer } = require('../services/digitalocean');
 const { getHTMLHead, getScripts, getFooter, getResponsiveNav, escapeHtml } = require('../helpers');
 
-// Pricing plans configuration
+// Pricing plans configuration (monthly and yearly prices)
 const PRICING_PLANS = {
-  basic: { name: 'Basic', price: 15, priceId: process.env.STRIPE_PRICE_BASIC, features: ['1GB RAM', '1 CPU', '25GB Storage', '2 sites'] },
-  pro: { name: 'Pro', price: 35, priceId: process.env.STRIPE_PRICE_PRO, features: ['2GB RAM', '2 CPUs', '50GB Storage', '5 sites'] },
-  priority: { name: 'Pro', price: 35, priceId: process.env.STRIPE_PRICE_PRIORITY, features: ['2GB RAM', '2 CPUs', '50GB Storage', '5 sites'] }, // legacy
-  premium: { name: 'Premium', price: 75, priceId: process.env.STRIPE_PRICE_PREMIUM, features: ['4GB RAM', '2 CPUs', '80GB Storage', '10 sites'] }
+  basic: { name: 'Basic', monthly: 15, yearly: 150, was: 25, description: 'Perfect for side projects', features: ['1GB RAM', '1 CPU', '25GB Storage', '2 sites'] },
+  pro: { name: 'Pro', monthly: 35, yearly: 350, was: 60, description: 'Most popular • For production apps', features: ['2GB RAM', '2 CPUs', '50GB Storage', '5 sites'] },
+  priority: { name: 'Pro', monthly: 35, yearly: 350, was: 60, description: 'Most popular • For production apps', features: ['2GB RAM', '2 CPUs', '50GB Storage', '5 sites'] }, // legacy
+  premium: { name: 'Premium', monthly: 75, yearly: 750, was: 120, description: 'For serious projects', features: ['4GB RAM', '2 CPUs', '80GB Storage', '10 sites'] }
 };
 
 // GET /pay
@@ -23,9 +23,13 @@ exports.showCheckout = (req, res) => {
   }
   
   const plan = req.query.plan || 'basic';
+  const interval = req.query.interval || 'monthly';
   const selectedPlan = PRICING_PLANS[plan] || PRICING_PLANS.basic;
-  // Convert to cents for display (0.50 test pricing vs 25.00 production)
-  const displayPrice = process.env.NODE_ENV === 'production' ? selectedPlan.displayPrice : '$0.50';
+  
+  // Get the right price based on interval
+  const price = interval === 'yearly' ? selectedPlan.yearly : selectedPlan.monthly;
+  const intervalLabel = interval === 'yearly' ? 'Yearly' : 'Monthly';
+  const intervalShort = interval === 'yearly' ? '/year' : '/month';
   
   res.send(`
 ${getHTMLHead('Checkout - Clouded  Basement')}
@@ -35,7 +39,7 @@ ${getHTMLHead('Checkout - Clouded  Basement')}
       <div class="max-w-md w-full bg-gray-800 border border-brand rounded-lg p-8">
         <div class="text-center mb-6">
           <div class="inline-block px-4 py-2 bg-brand bg-opacity-20 border border-brand rounded-full mb-4">
-            <span class="text-white text-xs font-bold uppercase">Monthly Billing</span>
+            <span class="text-white text-xs font-bold uppercase">${intervalLabel} Billing</span>
           </div>
           <h1 class="text-3xl font-bold text-white mb-2">${escapeHtml(selectedPlan.name)}</h1>
           <p class="text-gray-400 text-sm">${escapeHtml(selectedPlan.description)}</p>
@@ -44,15 +48,15 @@ ${getHTMLHead('Checkout - Clouded  Basement')}
         <div class="bg-black bg-opacity-30 rounded-lg p-6 mb-6">
           <div class="text-center mb-4">
             <div class="text-5xl font-bold text-brand">
-              $${selectedPlan.price}<span class="text-2xl text-gray-400">/month</span>
+              $${price}<span class="text-2xl text-gray-400">${intervalShort}</span>
             </div>
-            <p class="text-gray-400 text-xs mt-2">Early Adopter price · was $${selectedPlan.was} · locked for life</p>
+            ${interval === 'yearly' ? `<p class="text-green-400 text-xs mt-2">Save 17% with yearly billing!</p>` : `<p class="text-gray-400 text-xs mt-2">Early Adopter price · was $${selectedPlan.was} · locked for life</p>`}
           </div>
           
           <div class="border-t border-gray-700 pt-4 space-y-3">
             <div class="flex items-start gap-3">
               <span class="text-brand text-lg">✓</span>
-              <p class="text-gray-300 text-sm">Billed monthly starting today</p>
+              <p class="text-gray-300 text-sm">Billed ${interval === 'yearly' ? 'annually' : 'monthly'} starting today</p>
             </div>
             <div class="flex items-start gap-3">
               <span class="text-brand text-lg">✓</span>
@@ -67,6 +71,7 @@ ${getHTMLHead('Checkout - Clouded  Basement')}
         
         <form id="payment-form" class="mb-4">
           <input type="hidden" name="plan" value="${plan}">
+          <input type="hidden" name="interval" value="${interval}">
           
           <!-- Cardholder Name -->
           <div class="mb-4">
@@ -199,11 +204,12 @@ ${getHTMLHead('Checkout - Clouded  Basement')}
         try {
           // Create payment intent on backend
           const plan = form.querySelector('input[name="plan"]').value;
+          const interval = form.querySelector('input[name="interval"]').value;
           const response = await fetch('/create-payment-intent', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'same-origin',
-            body: JSON.stringify({ plan })
+            body: JSON.stringify({ plan, interval })
           });
           
           // Check if response is JSON
@@ -241,10 +247,10 @@ ${getHTMLHead('Checkout - Clouded  Basement')}
             buttonText.classList.remove('hidden');
             spinner.classList.add('hidden');
           } else if (paymentIntent.status === 'succeeded') {
-            window.location.href = '/payment-success?plan=' + plan + '&payment_intent_id=' + paymentIntent.id;
+            window.location.href = '/payment-success?plan=' + plan + '&interval=' + interval + '&payment_intent_id=' + paymentIntent.id;
           } else if (paymentIntent.status === 'processing') {
             // Payment is processing asynchronously (some payment methods)
-            window.location.href = '/payment-success?plan=' + plan + '&payment_intent_id=' + paymentIntent.id;
+            window.location.href = '/payment-success?plan=' + plan + '&interval=' + interval + '&payment_intent_id=' + paymentIntent.id;
           } else {
             // Handle unexpected payment states (requires_action shouldn't happen - confirmCardPayment handles it)
             document.getElementById('card-errors').textContent = 'Payment status: ' + paymentIntent.status + '. Please contact support.';
@@ -269,6 +275,7 @@ ${getHTMLHead('Checkout - Clouded  Basement')}
 exports.createPaymentIntent = async (req, res) => {
   try {
     const plan = req.body.plan || 'basic';
+    const interval = req.body.interval || 'monthly';
     
     // Verify user is authenticated (double-check after middleware)
     if (!req.session.userId) {
@@ -277,19 +284,21 @@ exports.createPaymentIntent = async (req, res) => {
     
     // Test pricing - $0.50 (allows testing without real charges)
     const planPrices = {
-      basic: { amount: 50, name: 'Basic Plan' },
-      pro: { amount: 50, name: 'Pro Plan' },
-      premium: { amount: 50, name: 'Premium Plan' }
+      basic: { monthly: 50, yearly: 50, name: 'Basic Plan' },
+      pro: { monthly: 50, yearly: 50, name: 'Pro Plan' },
+      premium: { monthly: 50, yearly: 50, name: 'Premium Plan' }
     };
     const selectedPlan = planPrices[plan] || planPrices.basic;
+    const amount = interval === 'yearly' ? selectedPlan.yearly : selectedPlan.monthly;
     
     // Create Payment Intent
     const paymentIntent = await getStripe().paymentIntents.create({
-      amount: selectedPlan.amount,
+      amount: amount,
       currency: 'usd',
-      description: `${selectedPlan.name} - Monthly subscription`,
+      description: `${selectedPlan.name} - ${interval === 'yearly' ? 'Yearly' : 'Monthly'} subscription`,
       metadata: {
         plan: plan,
+        interval: interval,
         user_id: String(req.session.userId)
       }
     });
