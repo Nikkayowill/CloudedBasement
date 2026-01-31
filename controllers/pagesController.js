@@ -980,7 +980,7 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
               <p class="text-gray-300">SSH in or push from GitHub. Your choice.</p>
             </li>
           </ol>
-          <p class="text-center text-gray-500 text-sm mt-20">That's it. Your server is live.</p>
+          <p class="text-center text-gray-500 text-sm mt-20 mb-16">That's it. Your server is live.</p>
         </div>
       </div>
 
