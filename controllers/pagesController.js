@@ -669,6 +669,61 @@ ${getHTMLHead('Documentation - Basement')}
           </div>
         </section>
         
+        <!-- ============================================ -->
+        <!-- SECTION 2: ARCHITECTURE OVERVIEW -->
+        <!-- ============================================ -->
+        <section class="mb-20">
+          <h2 class="text-3xl font-bold text-white mb-6 pb-3 border-b border-gray-800">Architecture Overview</h2>
+          
+          <div class="space-y-6">
+            <div>
+              <h3 class="text-xl font-semibold text-white mb-3">Control Plane vs Customer Server</h3>
+              <p class="text-gray-300 leading-relaxed mb-4">
+                Clouded Basement operates as a control plane that provisions and manages infrastructure. When you trigger a payment, the control plane communicates with the DigitalOcean API to create a droplet, then monitors the provisioning process until an IP address is assigned. Once provisioning completes, your server operates independently.
+              </p>
+              <p class="text-gray-300 leading-relaxed">
+                The platform stores SSH credentials to enable automated deployments and SSL certificate installation. When you use one-click deployment features, the control plane connects to your server, executes the necessary commands, and returns logs. You retain full root access and can change passwords or configurations at any time.
+              </p>
+            </div>
+            
+            <div>
+              <h3 class="text-xl font-semibold text-white mb-3">What Clouded Basement Touches</h3>
+              <p class="text-gray-300 leading-relaxed mb-3">
+                Platform access to customer servers is limited to automation features:
+              </p>
+              <ul class="list-disc list-inside space-y-2 text-gray-300 ml-4">
+                <li><strong class="text-white">Git deployments:</strong> Connects via SSH when you trigger a deployment, clones repository, installs dependencies, and configures web server</li>
+                <li><strong class="text-white">SSL certificates:</strong> Executes certbot commands to install Let's Encrypt certificates when you enable SSL for a domain</li>
+                <li><strong class="text-white">Server controls:</strong> Sends power on/off/restart commands to DigitalOcean API when you use dashboard controls</li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 class="text-xl font-semibold text-white mb-3">What Clouded Basement Never Touches</h3>
+              <ul class="list-disc list-inside space-y-2 text-gray-300 ml-4">
+                <li>Application data or user files (no scanning, no monitoring)</li>
+                <li>Database contents or credentials beyond what you configure</li>
+                <li>Application logs (stored locally on your server only)</li>
+                <li>Network traffic or API requests your application makes</li>
+                <li>Custom configurations you manually set via SSH</li>
+              </ul>
+              <p class="text-gray-300 leading-relaxed mt-4">
+                Once provisioned, your server is yours. The platform does not have background processes monitoring activity, reading files, or analyzing usage patterns.
+              </p>
+            </div>
+            
+            <div class="bg-gray-900/50 border border-blue-500/20 rounded-lg p-6">
+              <h3 class="text-white text-lg font-semibold mb-3">Security Model</h3>
+              <p class="text-gray-300 leading-relaxed mb-3">
+                SSH credentials are stored in the platform database to enable automation features. This is standard for managed hosting platforms and allows one-click deployments without requiring manual intervention.
+              </p>
+              <p class="text-gray-300 leading-relaxed">
+                <strong class="text-white">You can change your SSH password at any time</strong> via direct server access. Future deployments will prompt for new credentials if the stored password no longer works. This gives you full control over access while maintaining convenience when you need it.
+              </p>
+            </div>
+          </div>
+        </section>
+        
       </div>
     </main>
     
