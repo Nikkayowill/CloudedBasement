@@ -81,6 +81,7 @@ exports.showDashboard = async (req, res) => {
             serverName: server?.hostname || 'basement-core',
             plan: (server?.plan || paidPlan || 'basic').toString(),
             ipAddress: server?.ip_address || '',
+            ipv6Address: server?.ipv6_address || '',
             serverIp: server?.ip_address || '',
             sshUsername: server?.ssh_username || 'root',
             sshPassword: server?.ssh_password || '',
@@ -333,6 +334,12 @@ const buildDashboardTemplate = (data) => {
                         <span class="text-xs text-gray-500 uppercase font-bold">IPv4 Interface</span>
                         <span class="text-sm font-mono text-brand">${escapeHtml(data.ipAddress)}</span>
                     </div>
+                    ${data.ipv6Address ? `
+                    <div class="flex justify-between items-center pb-2 border-b border-white border-opacity-5">
+                        <span class="text-xs text-gray-500 uppercase font-bold">IPv6 Interface</span>
+                        <span class="text-xs font-mono text-purple-400">${escapeHtml(data.ipv6Address)}</span>
+                    </div>
+                    ` : ''}
                     <div class="flex justify-between items-center pb-2 border-b border-white border-opacity-5">
                         <span class="text-xs text-gray-500 uppercase font-bold">Host Name</span>
                         <span class="text-sm font-mono text-white">${escapeHtml(data.serverName)}</span>
@@ -385,13 +392,24 @@ const buildDashboardTemplate = (data) => {
                 </div>
                 
                 <div>
-                    <p class="text-xs text-gray-400 uppercase font-bold mb-2">Connection Command</p>
+                    <p class="text-xs text-gray-400 uppercase font-bold mb-2">Connection Command (IPv4)</p>
                     <div class="flex gap-2">
                         <input type="password" id="sshCommand" value="ssh ${escapeHtml(data.sshUsername)}@${escapeHtml(data.ipAddress)}" readonly class="flex-1 px-3 py-2 bg-black bg-opacity-30 border border-gray-700 rounded text-white font-mono text-sm">
                         <button onclick="togglePassword('sshCommand', this)" class="px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors text-xs">Show</button>
                         <button onclick="navigator.clipboard.writeText('ssh ${data.sshUsername.replace(/'/g, "\\'")}@${data.ipAddress.replace(/'/g, "\\'")}')" class="px-4 py-2 bg-brand text-gray-900 font-bold rounded hover:bg-cyan-500 transition-colors text-xs">Copy</button>
                     </div>
                 </div>
+                
+                ${data.ipv6Address ? `
+                <div>
+                    <p class="text-xs text-gray-400 uppercase font-bold mb-2">Connection Command (IPv6)</p>
+                    <div class="flex gap-2">
+                        <input type="password" id="sshCommandIPv6" value="ssh ${escapeHtml(data.sshUsername)}@[${escapeHtml(data.ipv6Address)}]" readonly class="flex-1 px-3 py-2 bg-black bg-opacity-30 border border-purple-700 rounded text-purple-300 font-mono text-sm">
+                        <button onclick="togglePassword('sshCommandIPv6', this)" class="px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors text-xs">Show</button>
+                        <button onclick="navigator.clipboard.writeText(\`ssh ${data.sshUsername.replace(/'/g, "\\'")}@[${data.ipv6Address.replace(/'/g, "\\'")}]\`)" class="px-4 py-2 bg-purple-600 text-white font-bold rounded hover:bg-purple-500 transition-colors text-xs">Copy</button>
+                    </div>
+                </div>
+                ` : ''}
             </div>
         </div>
         ` : `
@@ -705,6 +723,102 @@ db = client['${data.mongodbCredentials.dbName}']</code></pre>
         <!-- Custom Domains -->
         <div class="bg-gray-800 rounded-lg p-6">
             <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-6">Custom Domains</h4>
+            
+            ${data.ipAddress ? `
+            <!-- DNS Configuration Instructions -->
+            <div class="bg-blue-900 bg-opacity-20 border border-blue-600 rounded-lg p-4 mb-6">
+                <h5 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-brand" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                    </svg>
+                    DNS Configuration
+                </h5>
+                <p class="text-xs text-gray-300 mb-4">
+                    Point your domain to this server by adding these DNS records at your domain registrar (Namecheap, GoDaddy, Cloudflare, etc.):
+                </p>
+                
+                <div class="space-y-3">
+                    <!-- IPv4 A Records -->
+                    <div class="bg-black bg-opacity-40 rounded-lg p-3 border border-gray-700">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-brand uppercase">A Record (Root Domain)</span>
+                            <button onclick="navigator.clipboard.writeText(\`${data.ipAddress.replace(/'/g, "\\'")}\`); this.textContent='Copied!'; setTimeout(() => this.textContent='Copy IP', 1500)" class="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded transition-colors">Copy IP</button>
+                        </div>
+                        <div class="grid grid-cols-[80px_1fr] gap-2 text-xs">
+                            <span class="text-gray-400">Type:</span>
+                            <span class="text-white font-mono">A</span>
+                            <span class="text-gray-400">Name:</span>
+                            <span class="text-white font-mono">@</span>
+                            <span class="text-gray-400">Value:</span>
+                            <span class="text-white font-mono">${escapeHtml(data.ipAddress)}</span>
+                            <span class="text-gray-400">TTL:</span>
+                            <span class="text-white font-mono">3600</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-black bg-opacity-40 rounded-lg p-3 border border-gray-700">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-brand uppercase">A Record (www Subdomain)</span>
+                            <button onclick="navigator.clipboard.writeText(\`${data.ipAddress.replace(/'/g, "\\'")}\`); this.textContent='Copied!'; setTimeout(() => this.textContent='Copy IP', 1500)" class="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded transition-colors">Copy IP</button>
+                        </div>
+                        <div class="grid grid-cols-[80px_1fr] gap-2 text-xs">
+                            <span class="text-gray-400">Type:</span>
+                            <span class="text-white font-mono">A</span>
+                            <span class="text-gray-400">Name:</span>
+                            <span class="text-white font-mono">www</span>
+                            <span class="text-gray-400">Value:</span>
+                            <span class="text-white font-mono">${escapeHtml(data.ipAddress)}</span>
+                            <span class="text-gray-400">TTL:</span>
+                            <span class="text-white font-mono">3600</span>
+                        </div>
+                    </div>
+                    
+                    ${data.ipv6Address ? `
+                    <!-- IPv6 AAAA Records -->
+                    <div class="bg-black bg-opacity-40 rounded-lg p-3 border border-purple-700">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-purple-400 uppercase">AAAA Record (IPv6 Root)</span>
+                            <button onclick="navigator.clipboard.writeText(\`${data.ipv6Address.replace(/'/g, "\\'")}\`); this.textContent='Copied!'; setTimeout(() => this.textContent='Copy IP', 1500)" class="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded transition-colors">Copy IP</button>
+                        </div>
+                        <div class="grid grid-cols-[80px_1fr] gap-2 text-xs">
+                            <span class="text-gray-400">Type:</span>
+                            <span class="text-purple-300 font-mono">AAAA</span>
+                            <span class="text-gray-400">Name:</span>
+                            <span class="text-purple-300 font-mono">@</span>
+                            <span class="text-gray-400">Value:</span>
+                            <span class="text-purple-300 font-mono break-all">${escapeHtml(data.ipv6Address)}</span>
+                            <span class="text-gray-400">TTL:</span>
+                            <span class="text-purple-300 font-mono">3600</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-black bg-opacity-40 rounded-lg p-3 border border-purple-700">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-purple-400 uppercase">AAAA Record (IPv6 www)</span>
+                            <button onclick="navigator.clipboard.writeText(\`${data.ipv6Address.replace(/'/g, "\\'")}\`); this.textContent='Copied!'; setTimeout(() => this.textContent='Copy IP', 1500)" class="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded transition-colors">Copy IP</button>
+                        </div>
+                        <div class="grid grid-cols-[80px_1fr] gap-2 text-xs">
+                            <span class="text-gray-400">Type:</span>
+                            <span class="text-purple-300 font-mono">AAAA</span>
+                            <span class="text-gray-400">Name:</span>
+                            <span class="text-purple-300 font-mono">www</span>
+                            <span class="text-gray-400">Value:</span>
+                            <span class="text-purple-300 font-mono break-all">${escapeHtml(data.ipv6Address)}</span>
+                            <span class="text-gray-400">TTL:</span>
+                            <span class="text-purple-300 font-mono">3600</span>
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+                
+                <div class="mt-4 pt-3 border-t border-blue-700">
+                    <p class="text-xs text-gray-400 leading-relaxed">
+                        <strong class="text-white">⏱️ Propagation Time:</strong> DNS changes typically take 5-15 minutes to propagate worldwide. Once configured, add your domain below to enable SSL.
+                    </p>
+                </div>
+            </div>
+            ` : ''}
+            
             <form action="/add-domain" method="POST" class="mb-6">
                 <input type="hidden" name="_csrf" value="${data.csrfToken}">
                 <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">

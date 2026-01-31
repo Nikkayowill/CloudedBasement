@@ -130,7 +130,7 @@ echo "Setup complete!" > /root/setup.log
       image: 'ubuntu-22-04-x64',
       ssh_keys: null,
       backups: true,
-      ipv6: false,
+      ipv6: true,
       user_data: setupScript,
       monitoring: true,
       tags: ['basement-server']
@@ -272,14 +272,15 @@ async function pollDropletStatus(dropletId, serverId) {
       });
 
       const droplet = response.data.droplet;
-      const ip = droplet.networks?.v4?.[0]?.ip_address;
+      const ipv4 = droplet.networks?.v4?.[0]?.ip_address;
+      const ipv6 = droplet.networks?.v6?.[0]?.ip_address;
 
-      if (ip && droplet.status === 'active') {
+      if (ipv4 && droplet.status === 'active') {
         await pool.query(
-          'UPDATE servers SET ip_address = $1, status = $2 WHERE id = $3',
-          [ip, 'running', serverId]
+          'UPDATE servers SET ip_address = $1, ipv6_address = $2, status = $3 WHERE id = $4',
+          [ipv4, ipv6, 'running', serverId]
         );
-        console.log(`Server ${serverId} is now running at ${ip}`);
+        console.log(`Server ${serverId} is now running at ${ipv4}${ipv6 ? ` (IPv6: ${ipv6})` : ''}`);
         
         // Send welcome email when server is ready
         try {
@@ -288,7 +289,7 @@ async function pollDropletStatus(dropletId, serverId) {
           
           if (userResult.rows[0]?.email) {
             const serverName = serverResult.rows[0]?.hostname || 'cloudedbasement-server';
-            await sendServerReadyEmail(userResult.rows[0].email, ip, serverName);
+            await sendServerReadyEmail(userResult.rows[0].email, ipv4, ipv6, serverName);
             console.log(`Welcome email sent to ${userResult.rows[0].email}`);
           }
         } catch (emailError) {

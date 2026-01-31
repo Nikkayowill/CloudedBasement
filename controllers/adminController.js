@@ -7,7 +7,7 @@ const listUsers = async (req, res) => {
     // Optimized: Single query with parallel fetching instead of 6 sequential queries
     const [usersResult, serversResult, domainsResult, deploymentsResult, paymentsResult, pendingRequestsResult] = await Promise.all([
       pool.query('SELECT id, email, role, email_confirmed, created_at FROM users ORDER BY created_at DESC'),
-      pool.query('SELECT s.id, s.plan, s.status, s.ip_address, s.created_at, u.email as owner_email FROM servers s LEFT JOIN users u ON s.user_id = u.id ORDER BY s.created_at DESC'),
+      pool.query('SELECT s.id, s.plan, s.status, s.ip_address, s.ipv6_address, s.created_at, u.email as owner_email FROM servers s LEFT JOIN users u ON s.user_id = u.id ORDER BY s.created_at DESC'),
       pool.query('SELECT id, domain, ssl_enabled, ssl_expires_at, created_at FROM domains ORDER BY created_at DESC'),
       pool.query('SELECT d.id, d.git_url, d.status, d.deployed_at, u.email as owner_email FROM deployments d LEFT JOIN users u ON d.user_id = u.id ORDER BY d.deployed_at DESC LIMIT 50'),
       pool.query('SELECT p.id, p.amount, p.plan, p.status, p.created_at, u.email as customer_email FROM payments p LEFT JOIN users u ON p.user_id = u.id ORDER BY p.created_at DESC LIMIT 50'),
@@ -135,7 +135,7 @@ ${getHTMLHead('Admin Dashboard')}
                 <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Owner</th>
                 <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Plan</th>
                 <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
-                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">IP Address</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">IP Addresses</th>
                 <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Created</th>
                 <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Action</th>
               </tr>
@@ -147,7 +147,10 @@ ${getHTMLHead('Admin Dashboard')}
                   <td class="px-6 py-4 text-sm text-white">${escapeHtml(s.owner_email || '-')}</td>
                   <td class="px-6 py-4 text-sm text-gray-300">${escapeHtml(s.plan)}</td>
                   <td class="px-6 py-4 text-sm text-gray-300">${escapeHtml(s.status)}</td>
-                  <td class="px-6 py-4 text-sm text-gray-300 font-mono">${escapeHtml(s.ip_address || '-')}</td>
+                  <td class="px-6 py-4 text-xs font-mono">
+                    <div class="text-brand">${escapeHtml(s.ip_address || '-')}</div>
+                    ${s.ipv6_address ? `<div class="text-purple-400 mt-1">${escapeHtml(s.ipv6_address)}</div>` : ''}
+                  </td>
                   <td class="px-6 py-4 text-sm text-gray-400">${new Date(s.created_at).toLocaleDateString()}</td>
                   <td class="px-6 py-4 text-sm">
                     <div class="flex flex-col sm:flex-row gap-2">

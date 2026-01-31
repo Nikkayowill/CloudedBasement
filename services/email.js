@@ -219,11 +219,12 @@ async function sendServerRequestEmail(userEmail, region, serverName) {
 }
 
 // Send server ready email with credentials
-async function sendServerReadyEmail(userEmail, serverIp, serverName) {
+async function sendServerReadyEmail(userEmail, serverIp, serverIpv6, serverName) {
   const subject = 'Your Server is Ready! - Clouded Basement';
   const text = `Your server is ready!
 
-Server IP: ${serverIp}
+Server IPv4: ${serverIp}${serverIpv6 ? `
+Server IPv6: ${serverIpv6}` : ''}
 Username: root
 Password: (Login to dashboard to view)
 
@@ -231,7 +232,8 @@ For security, your SSH password is only shown in your secure dashboard.
 Login at: https://cloudedbasement.ca/dashboard
 
 Connect via SSH:
-ssh root@${serverIp}
+ssh root@${serverIp}${serverIpv6 ? `
+(IPv6): ssh root@[${serverIpv6}]` : ''}
 
 What's Next? (3 Easy Steps)
 
@@ -264,10 +266,20 @@ Need help? Check our docs at https://cloudedbasement.ca/docs or reply to this em
     
     <br>
     <h2>Access Your Server</h2>
-    <p><strong>IP Address:</strong> ${serverIp}</p>
+    <p><strong>IPv4 Address:</strong> <code style="background: #f0f0f0; padding: 2px 6px; border-radius: 3px; font-family: monospace;">${serverIp}</code></p>
+    ${serverIpv6 ? `<p><strong>IPv6 Address:</strong> <code style="background: #f0f0f0; padding: 2px 6px; border-radius: 3px; font-family: monospace; color: #7c3aed;">${serverIpv6}</code></p>` : ''}
     <p><strong>Username:</strong> root</p>
     <p><strong>Password:</strong> <a href="https://cloudedbasement.ca/dashboard" style="color: #2DA7DF; font-weight: 600; text-decoration: none;">🔒 Click to view in secure dashboard →</a></p>
     <p style="font-size: 12px; color: #666; margin-top: 8px;">For your security, SSH passwords are never sent via email. Login to your dashboard to reveal your credentials with one click.</p>
+    
+    ${serverIpv6 ? `
+    <br>
+    <div style="background: #f0f4ff; border-left: 4px solid #7c3aed; padding: 12px; margin: 16px 0;">
+      <p style="margin: 0; font-size: 13px; color: #444;">
+        <strong>🌐 IPv6 Enabled:</strong> Your server supports both IPv4 and IPv6. When adding DNS records for your domain, you can add AAAA records alongside A records for full dual-stack support.
+      </p>
+    </div>
+    ` : ''}
     
     <br>
     <h2>What's Next? (3 Easy Steps)</h2>
