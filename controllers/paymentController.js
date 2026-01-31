@@ -9,9 +9,10 @@ const { getHTMLHead, getScripts, getFooter, getResponsiveNav, escapeHtml } = req
 
 // Pricing plans configuration
 const PRICING_PLANS = {
-  basic: { name: 'Basic', price: 10, priceId: process.env.STRIPE_PRICE_BASIC, features: ['1GB RAM', '1 CPU', '25GB Storage'] },
-  priority: { name: 'Pro', price: 30, priceId: process.env.STRIPE_PRICE_PRIORITY, features: ['2GB RAM', '2 CPUs', '50GB Storage'] },
-  premium: { name: 'Premium', price: 60, priceId: process.env.STRIPE_PRICE_PREMIUM, features: ['4GB RAM', '2 CPUs', '80GB Storage'] }
+  basic: { name: 'Basic', price: 15, priceId: process.env.STRIPE_PRICE_BASIC, features: ['1GB RAM', '1 CPU', '25GB Storage', '2 sites'] },
+  pro: { name: 'Pro', price: 35, priceId: process.env.STRIPE_PRICE_PRO, features: ['2GB RAM', '2 CPUs', '50GB Storage', '5 sites'] },
+  priority: { name: 'Pro', price: 35, priceId: process.env.STRIPE_PRICE_PRIORITY, features: ['2GB RAM', '2 CPUs', '50GB Storage', '5 sites'] }, // legacy
+  premium: { name: 'Premium', price: 75, priceId: process.env.STRIPE_PRICE_PREMIUM, features: ['4GB RAM', '2 CPUs', '80GB Storage', '10 sites'] }
 };
 
 // GET /pay
