@@ -10,7 +10,7 @@ const { getHTMLHead, getScripts, getFooter, getResponsiveNav, escapeHtml } = req
 // Pricing plans configuration
 const PRICING_PLANS = {
   basic: { name: 'Basic', price: 10, priceId: process.env.STRIPE_PRICE_BASIC, features: ['1GB RAM', '1 CPU', '25GB Storage'] },
-  priority: { name: 'Priority', price: 30, priceId: process.env.STRIPE_PRICE_PRIORITY, features: ['2GB RAM', '2 CPUs', '50GB Storage'] },
+  priority: { name: 'Pro', price: 30, priceId: process.env.STRIPE_PRICE_PRIORITY, features: ['2GB RAM', '2 CPUs', '50GB Storage'] },
   premium: { name: 'Premium', price: 60, priceId: process.env.STRIPE_PRICE_PREMIUM, features: ['4GB RAM', '2 CPUs', '80GB Storage'] }
 };
 
@@ -277,7 +277,7 @@ exports.createPaymentIntent = async (req, res) => {
     // Early access pricing - $0.50 (production will be $25/$60/$120)
     const planPrices = {
       basic: { amount: 50, name: 'Basic Plan' },
-      priority: { amount: 50, name: 'Priority Plan' },
+      pro: { amount: 50, name: 'Pro Plan' },
       premium: { amount: 50, name: 'Premium Plan' }
     };
     const selectedPlan = planPrices[plan] || planPrices.basic;
@@ -307,7 +307,7 @@ exports.createCheckoutSession = async (req, res) => {
     // Early access pricing - $0.50 (production will be $25/$60/$120)
     const planPrices = {
       basic: { amount: 50, name: 'Basic Plan' },
-      priority: { amount: 50, name: 'Priority Plan' },
+      pro: { amount: 50, name: 'Pro Plan' },
       premium: { amount: 50, name: 'Premium Plan' }
     };
     const selectedPlan = planPrices[plan] || planPrices.basic;
@@ -623,7 +623,7 @@ exports.stripeWebhook = async (req, res) => {
           }
 
           // Security: Validate plan matches amount paid
-          const validPlans = { basic: 2500, priority: 6000, premium: 12000 }; // cents
+          const validPlans = { basic: 2500, pro: 6000, premium: 12000 }; // cents
           const expectedAmount = validPlans[plan] || validPlans['basic'];
           
           if (amount !== expectedAmount) {
@@ -633,7 +633,7 @@ exports.stripeWebhook = async (req, res) => {
           }
           
           // Validate plan is one of the allowed values
-          if (!['basic', 'priority', 'premium'].includes(plan)) {
+          if (!['basic', 'pro', 'premium'].includes(plan)) {
             console.log(`⚠️ Invalid plan '${plan}', defaulting to basic`);
             plan = 'basic';
           }
