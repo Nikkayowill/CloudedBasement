@@ -458,8 +458,13 @@ const buildDashboardTemplate = (data) => {
 
         <!-- Site Limit Warning -->
         ${data.hasServer && data.siteCount >= data.siteLimit ? `
-        <div class="bg-gradient-to-r from-orange-600 to-red-600 rounded-lg p-6 border-l-4 border-red-400">
-            <div class="flex items-start gap-4">
+        <div id="siteLimitWarning" class="bg-gradient-to-r from-orange-600 to-red-600 rounded-lg p-6 border-l-4 border-red-400 relative">
+            <button onclick="document.getElementById('siteLimitWarning').remove()" class="absolute top-3 right-3 text-white hover:text-gray-200 transition-colors" aria-label="Dismiss">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                </svg>
+            </button>
+            <div class="flex items-start gap-4 pr-8">
                 <svg class="w-6 h-6 text-white flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                 </svg>
@@ -498,12 +503,12 @@ const buildDashboardTemplate = (data) => {
                             <td class="px-6 py-4 text-xs text-gray-400">${escapeHtml(dep.git_url.split('/').pop() || 'repo')}</td>
                             <td class="px-6 py-4 text-xs text-gray-400 font-mono">${new Date(dep.deployed_at).toLocaleDateString()} ${new Date(dep.deployed_at).toLocaleTimeString()}</td>
                             <td class="px-6 py-4">
-                                <span class="deployment-status-badge px-2 py-1 text-xs font-bold uppercase rounded ${
+                                <span class="deployment-status-badge px-2 py-1 text-xs font-bold uppercase rounded inline-flex items-center gap-2 ${
                                     dep.status === 'success' ? 'bg-green-900 text-green-300' : 
                                     dep.status === 'failed' ? 'bg-red-900 text-red-300' : 
                                     dep.status === 'deploying' ? 'bg-yellow-900 text-yellow-300' :
                                     'bg-blue-900 text-blue-300'
-                                }">${escapeHtml(dep.status)}</span>
+                                }">${(dep.status === 'pending' || dep.status === 'deploying') ? `<svg class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>` : ''}${dep.status === 'pending' ? 'Building' : dep.status === 'deploying' ? 'Deploying' : escapeHtml(dep.status)}</span>
                                 ${dep.status === 'success' && data.serverIp ? `
                                 <div class="mt-2">
                                     <a href="http://${escapeHtml(data.serverIp)}" target="_blank" class="text-brand hover:text-cyan-400 text-xs">View Live Site →</a>
