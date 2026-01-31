@@ -1098,7 +1098,7 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
               <h3 class="text-lg font-bold text-white mb-1 mt-1">Priority</h3>
               <p class="text-2xl font-extrabold text-white mb-3">$60<span class="text-sm font-normal text-gray-400">/mo</span></p>
               <p class="text-gray-400 text-sm mb-4">2 GB RAM · 2 vCPUs · 50 GB SSD</p>
-              <a href="/pay?plan=priority" class="block w-full px-4 py-2 bg-blue-600 text-white text-center text-sm font-medium rounded hover:bg-blue-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all duration-300">Deploy Priority</a>
+              <a href="/pay?plan=priority" class="block w-full px-4 py-2 bg-blue-600 text-white text-center text-sm font-medium rounded hover:bg-blue-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all duration-300">Deploy Pro</a>
             </div>
             
             <!-- Premium -->
