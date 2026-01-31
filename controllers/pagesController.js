@@ -1043,6 +1043,111 @@ ${getHTMLHead('Documentation - Basement')}
           </div>
         </section>
         
+        <!-- ============================================ -->
+        <!-- SECTION 6: OWNERSHIP & CONTROL -->
+        <!-- ============================================ -->
+        <section class="mb-20">
+          <h2 class="text-3xl font-bold text-white mb-6 pb-3 border-b border-gray-800">Ownership & Control</h2>
+          
+          <div class="space-y-6">
+            <div>
+              <h3 class="text-xl font-semibold text-white mb-3">Full Root Access</h3>
+              <p class="text-gray-300 leading-relaxed mb-4">
+                You receive root SSH access immediately upon provisioning. There are no restrictions, sandboxing, or custom kernels. This is a standard Ubuntu 22.04 VPS with full privileges—you can install any software, modify system configurations, change firewall rules, add users, or wipe the server entirely.
+              </p>
+              <p class="text-gray-300 leading-relaxed">
+                Clouded Basement automation scripts do not lock files, prevent package installation, or restrict system access in any way. If you want to uninstall Nginx and use Apache instead, install Docker manually, or run your own deployment tools—you can.
+              </p>
+            </div>
+            
+            <div class="bg-blue-950/40 border-l-4 border-blue-400 p-6">
+              <h3 class="text-lg font-semibold text-white mb-3">No Vendor Lock-In</h3>
+              <p class="text-gray-300 leading-relaxed mb-3">
+                Your server is a DigitalOcean droplet provisioned under your indirect control. The droplet belongs to Clouded Basement's DigitalOcean account for billing simplicity, but the infrastructure is standard and portable.
+              </p>
+              <p class="text-gray-300 leading-relaxed mb-3">
+                <strong class="text-white">Migration path:</strong> If you decide to leave Clouded Basement, you can:
+              </p>
+              <ul class="list-disc list-inside space-y-2 text-gray-300 ml-4">
+                <li>Create a snapshot of your server via DigitalOcean support (contact support@cloudedbasement.ca for coordination)</li>
+                <li>Recreate the environment on your own VPS by documenting installed packages (use <code class="bg-gray-900 px-2 py-1 rounded text-sm text-blue-400">dpkg -l</code> to list)</li>
+                <li>Use standard backup tools (rsync, tar) to copy files to another server</li>
+                <li>Export databases with mysqldump or pg_dump and restore elsewhere</li>
+              </ul>
+              <p class="text-gray-300 leading-relaxed mt-3">
+                There is no proprietary runtime, custom deployment format, or platform-specific database structure. Your application code and data are completely portable.
+              </p>
+            </div>
+            
+            <div>
+              <h3 class="text-xl font-semibold text-white mb-3">Password Control</h3>
+              <p class="text-gray-300 leading-relaxed mb-4">
+                You can change your SSH password at any time via direct server access. Run <code class="bg-gray-900 px-2 py-1 rounded text-sm text-blue-400">passwd</code> as root to set a new password. The platform will continue to attempt connections with the old stored credentials until you update them in the dashboard.
+              </p>
+              <p class="text-gray-300 leading-relaxed">
+                <strong class="text-white">Disabling platform access:</strong> Changing your password without updating the dashboard effectively locks out the control plane. Automated deployments and SSL installation will fail until you provide new credentials. This gives you a manual killswitch for platform automation if needed.
+              </p>
+            </div>
+            
+            <div class="bg-blue-950/30 border border-blue-900/30 rounded-lg p-8">
+              <h3 class="text-xl font-semibold text-white mb-3">Server Management Controls</h3>
+              <p class="text-gray-300 leading-relaxed mb-4">
+                The dashboard provides power controls that interact with the DigitalOcean API:
+              </p>
+              
+              <div class="space-y-3">
+                <div>
+                  <p class="text-white font-semibold mb-1">Power Off</p>
+                  <p class="text-gray-300 text-sm leading-relaxed">
+                    Sends graceful shutdown signal to droplet. Server stops but disk persists. You are not billed for compute hours while powered off (only storage costs apply). Data remains intact.
+                  </p>
+                </div>
+                
+                <div>
+                  <p class="text-white font-semibold mb-1">Power On</p>
+                  <p class="text-gray-300 text-sm leading-relaxed">
+                    Boots the droplet. Server resumes from powered-off state with all data and configurations intact. IP address remains the same (static assignment).
+                  </p>
+                </div>
+                
+                <div>
+                  <p class="text-white font-semibold mb-1">Restart</p>
+                  <p class="text-gray-300 text-sm leading-relaxed">
+                    Reboots the server. Equivalent to running <code class="bg-gray-900 px-1 rounded text-xs text-blue-400">reboot</code> via SSH. Useful for applying kernel updates or resetting stuck processes.
+                  </p>
+                </div>
+                
+                <div>
+                  <p class="text-white font-semibold mb-1">Delete Server</p>
+                  <p class="text-gray-300 text-sm leading-relaxed">
+                    Permanently destroys the droplet via DigitalOcean API. All data is lost immediately and cannot be recovered. Your subscription ends and no further charges occur.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <h3 class="text-xl font-semibold text-white mb-3">What "Ownership" Means</h3>
+              <p class="text-gray-300 leading-relaxed mb-3">
+                Technically, the DigitalOcean droplet is created under Clouded Basement's account for billing aggregation. You do not have direct DigitalOcean dashboard access to the droplet.
+              </p>
+              <p class="text-gray-300 leading-relaxed mb-3">
+                <strong class="text-white">However, in practical terms:</strong>
+              </p>
+              <ul class="list-disc list-inside space-y-2 text-gray-300 ml-4">
+                <li>You have root SSH access with full system control</li>
+                <li>Your data and applications are completely portable</li>
+                <li>You can disable platform automation anytime (change SSH password)</li>
+                <li>You control when the server is powered on/off or deleted</li>
+                <li>No vendor-specific dependencies exist in your application stack</li>
+              </ul>
+              <p class="text-gray-300 leading-relaxed mt-4">
+                This is a <strong class="text-white">convenience layer over standard VPS hosting</strong>, not a proprietary platform. You're paying for automated provisioning and deployment tools, not sacrificing portability or control.
+              </p>
+            </div>
+          </div>
+        </section>
+        
       </div>
     </main>
     
