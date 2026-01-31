@@ -7,7 +7,7 @@ const { sendServerReadyEmail } = require('./email');
 const activePolls = new Map(); // serverId -> intervalId
 
 // Helper function to create real DigitalOcean server
-async function createRealServer(userId, plan, stripeChargeId = null) {
+async function createRealServer(userId, plan, stripeChargeId = null, paymentInterval = 'monthly') {
   // Check if user has trial available
   const userResult = await pool.query(
     'SELECT trial_used, email FROM users WHERE id = $1',
@@ -22,7 +22,17 @@ async function createRealServer(userId, plan, stripeChargeId = null) {
     premium: { ram: '4 GB', cpu: '2 CPUs', storage: '80 GB SSD', bandwidth: '4 TB', slug: 's-2vcpu-4gb' }
   };
 
+  // Site limits based on plan
+  const siteLimits = {
+    basic: 2,
+    pro: 5,
+    priority: 5, // legacy plan name
+    premium: 10,
+    founder: 10 // legacy plan
+  };
+
   const selectedSpec = specs[plan] || specs.basic;
+  const siteLimit = siteLimits[plan] || 2;
   // Generate cryptographically secure password (256 bits of entropy)
   const password = crypto.randomBytes(16).toString('base64').replace(/[+/=]/g, '') + '!@#';
 
@@ -147,10 +157,10 @@ echo "Setup complete!" > /root/setup.log
     // Save to database - wrapped in try-catch to handle race condition
     try {
       const result = await pool.query(
-        `INSERT INTO servers (user_id, plan, status, ip_address, ssh_username, ssh_password, specs, stripe_charge_id, droplet_id, droplet_name, is_trial)
-         VALUES ($1, $2, 'provisioning', $3, 'root', $4, $5, $6, $7, $8, $9)
+        `INSERT INTO servers (user_id, plan, status, ip_address, ssh_username, ssh_password, specs, stripe_charge_id, droplet_id, droplet_name, is_trial, payment_interval, site_limit)
+         VALUES ($1, $2, 'provisioning', $3, 'root', $4, $5, $6, $7, $8, $9, $10, $11)
          RETURNING *`,
-        [userId, plan, droplet.networks?.v4?.[0]?.ip_address || 'pending', password, JSON.stringify(selectedSpec), stripeChargeId, String(droplet.id), dropletName, isTrial]
+        [userId, plan, droplet.networks?.v4?.[0]?.ip_address || 'pending', password, JSON.stringify(selectedSpec), stripeChargeId, String(droplet.id), dropletName, isTrial, paymentInterval, siteLimit]
       );
       
       // If this is a trial server, mark trial as used
