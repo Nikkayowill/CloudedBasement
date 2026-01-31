@@ -1148,6 +1148,100 @@ ${getHTMLHead('Documentation - Basement')}
           </div>
         </section>
         
+        <!-- ============================================ -->
+        <!-- SECTION 7: CURRENT LIMITATIONS -->
+        <!-- ============================================ -->
+        <section class="mb-20 bg-blue-950/30 border border-blue-900/30 rounded-lg p-8">
+          <h2 class="text-3xl font-bold text-white mb-6 pb-3 border-b border-blue-800/50">Current Limitations</h2>
+          
+          <p class="text-gray-300 leading-relaxed mb-6">
+            Clouded Basement is a solo-founder operation. The platform prioritizes working features over comprehensive coverage. These limitations are intentional trade-offs for simplicity and maintainability.
+          </p>
+          
+          <div class="space-y-6">
+            <div>
+              <h3 class="text-xl font-semibold text-white mb-3">Infrastructure</h3>
+              <ul class="list-disc list-inside space-y-3 text-gray-300 ml-4">
+                <li>
+                  <strong class="text-white">Single region:</strong> All servers provision in NYC3 (New York). The dashboard shows region selection UI, but the backend ignores it and hardcodes NYC3. Multi-region support requires additional testing and geographic load balancing complexity.
+                </li>
+                <li>
+                  <strong class="text-white">One server per customer:</strong> Database constraint enforces single server limit. No support for multiple servers, staging environments, or load-balanced clusters. This is a deliberate scope limitation for early-stage customers.
+                </li>
+                <li>
+                  <strong class="text-white">No automated backups:</strong> DigitalOcean backups are disabled on droplets to reduce costs. You must implement your own backup strategy via cron jobs (mysqldump, rsync, tar). Contact support if you need a manual snapshot before risky operations.
+                </li>
+              </ul>
+            </div>
+            
+            <div class="bg-gray-900/50 border-l-4 border-blue-400 p-6">
+              <h3 class="text-lg font-semibold text-white mb-3">Deployment & Development</h3>
+              <ul class="list-disc list-inside space-y-3 text-gray-300 ml-4">
+                <li>
+                  <strong class="text-white">Public repositories only:</strong> Private repo support requires GitHub Personal Access Token storage and OAuth flow. Planned feature, no timeline. Use manual deployment via SSH for private code.
+                </li>
+                <li>
+                  <strong class="text-white">No Docker support:</strong> Containers add orchestration complexity, security isolation concerns, and resource overhead. Not currently planned. Install Docker manually via SSH if needed, but platform deployments won't use it.
+                </li>
+                <li>
+                  <strong class="text-white">100MB repository limit:</strong> Prevents long clone times and disk space abuse. Large monorepos or projects with heavy assets won't deploy. Use .gitignore for node_modules, build artifacts, and media files.
+                </li>
+                <li>
+                  <strong class="text-white">No CI/CD pipelines:</strong> Deployment is triggered manually through dashboard. No GitHub Actions integration, webhooks, or automatic deploys on git push. You must click "Deploy from Git" each time.
+                </li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 class="text-xl font-semibold text-white mb-3">Account & Billing</h3>
+              <ul class="list-disc list-inside space-y-3 text-gray-300 ml-4">
+                <li>
+                  <strong class="text-white">No plan changes:</strong> Cannot upgrade/downgrade plans after provisioning. Must delete existing server and create new one with different plan. Refunds handled manually via Stripe dashboard—contact support.
+                </li>
+                <li>
+                  <strong class="text-white">Single payment method:</strong> Stripe only. No cryptocurrency, PayPal, or wire transfers. Credit/debit card required.
+                </li>
+                <li>
+                  <strong class="text-white">3-day trial enforcement:</strong> Servers power off automatically 3 days after provisioning if no payment received. Destroyed permanently after 7 more days. Trial system runs every 6 hours—not real-time.
+                </li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 class="text-xl font-semibold text-white mb-3">Support & Reliability</h3>
+              <ul class="list-disc list-inside space-y-3 text-gray-300 ml-4">
+                <li>
+                  <strong class="text-white">Solo founder support:</strong> No 24/7 support team. Response time typically same-day during Atlantic Time business hours. Urgent issues may take several hours if I'm asleep or unavailable.
+                </li>
+                <li>
+                  <strong class="text-white">No SLA guarantee:</strong> Platform uptime is best-effort. DigitalOcean infrastructure is reliable, but control plane issues (database downtime, deployment system failures) may prevent dashboard access or new deployments temporarily.
+                </li>
+                <li>
+                  <strong class="text-white">Manual intervention required:</strong> Some failure modes (provisioning timeout, corrupted deployment, API rate limits) require manual investigation. Automatic retry logic exists but not comprehensive.
+                </li>
+              </ul>
+            </div>
+            
+            <div class="bg-blue-900/30 border border-blue-500/40 rounded-lg p-6">
+              <h3 class="text-white text-lg font-semibold mb-3">Not Suitable For</h3>
+              <p class="text-gray-300 leading-relaxed mb-3">
+                Be honest with yourself about whether this platform fits your needs. Clouded Basement is <strong class="text-white">not appropriate for</strong>:
+              </p>
+              <ul class="list-disc list-inside space-y-2 text-gray-300 ml-4">
+                <li>Production applications with strict uptime requirements (use AWS, GCP, Azure)</li>
+                <li>Enterprise customers requiring compliance certifications (SOC 2, HIPAA, PCI-DSS)</li>
+                <li>High-traffic applications needing auto-scaling or load balancing</li>
+                <li>Teams requiring multi-server environments, staging/production separation</li>
+                <li>Projects with complex CI/CD pipelines and automated testing workflows</li>
+                <li>Applications requiring geographic distribution or edge caching (Cloudflare, Vercel better fit)</li>
+              </ul>
+              <p class="text-gray-300 leading-relaxed mt-4">
+                This platform is designed for <strong class="text-white">indie developers, side projects, prototypes, and small applications</strong> where simplicity and cost matter more than enterprise features.
+              </p>
+            </div>
+          </div>
+        </section>
+        
       </div>
     </main>
     
