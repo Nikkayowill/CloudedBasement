@@ -1,9 +1,13 @@
 // Cookie Consent Banner
 (function() {
-  // Check if user already accepted cookies
-  if (localStorage.getItem('cookieConsent') === 'accepted') {
+  // Check if user already made a choice (accepted or declined)
+  const consent = localStorage.getItem('cookieConsent');
+  console.log('[Cookie] Current consent value:', consent);
+  if (consent === 'accepted' || consent === 'declined') {
+    console.log('[Cookie] User already made choice, not showing banner');
     return;
   }
+  console.log('[Cookie] Showing banner');
 
   // Create banner HTML
   const banner = document.createElement('div');

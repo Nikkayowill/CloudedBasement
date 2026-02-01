@@ -1551,18 +1551,47 @@ ${getHTMLHead('Contact - Basement')}
 exports.submitContact = async (req, res) => {
   const { validationResult } = require('express-validator');
   const { sendContactEmail } = require('../services/email');
+  const { validateEmailDomain } = require('../utils/emailValidation');
+  const { getHTMLHead, getResponsiveNav, getFooter, getScripts } = require('../helpers');
   
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).send(`
-      <h1>Validation Error</h1>
-      <ul>${errors.array().map(err => `<li>${err.msg}</li>`).join('')}</ul>
-      <a href="/contact">Go back</a>
+      ${getHTMLHead('Validation Error - Clouded Basement')}
+      ${getResponsiveNav(req)}
+      <main class="min-h-screen flex items-center justify-center px-4 pt-24">
+        <div class="bg-gray-900/80 border border-red-500/30 rounded-lg p-8 max-w-md text-center">
+          <h1 class="text-2xl font-bold text-red-400 mb-4">Validation Error</h1>
+          <ul class="text-gray-300 mb-6 text-left list-disc list-inside">${errors.array().map(err => `<li>${err.msg}</li>`).join('')}</ul>
+          <a href="/contact" class="inline-block px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-500 transition">Go back</a>
+        </div>
+      </main>
+      ${getFooter()}
+      ${getScripts('nav.js')}
     `);
   }
   
   const { name, email, message } = req.body;
-  console.log('Contact form received:', { name, email, message: message.substring(0, 50) + '...' });
+  
+  // Validate email domain is real
+  const emailCheck = await validateEmailDomain(email);
+  if (!emailCheck.valid) {
+    return res.status(400).send(`
+      ${getHTMLHead('Invalid Email - Clouded Basement')}
+      ${getResponsiveNav(req)}
+      <main class="min-h-screen flex items-center justify-center px-4 pt-24">
+        <div class="bg-gray-900/80 border border-red-500/30 rounded-lg p-8 max-w-md text-center">
+          <h1 class="text-2xl font-bold text-red-400 mb-4">Invalid Email</h1>
+          <p class="text-gray-300 mb-6">${emailCheck.reason}</p>
+          <a href="/contact" class="inline-block px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-500 transition">Go back</a>
+        </div>
+      </main>
+      ${getFooter()}
+      ${getScripts('nav.js')}
+    `);
+  }
+  
+  console.log('Contact form received:', { name, email, message: (message || '').substring(0, 50) + '...' });
   
   // Send email to business inbox
   const result = await sendContactEmail(name, email, message);
