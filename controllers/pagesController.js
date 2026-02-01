@@ -424,7 +424,7 @@ ${getHTMLHead('Pricing - Basement')}
               <li class="flex items-center gap-2"><span class="text-green-400">✓</span> Deployment history & logs</li>
               <li class="flex items-center gap-2"><span class="text-green-400">✓</span> Server controls (start/stop/restart)</li>
               <li class="flex items-center gap-2"><span class="text-green-400">✓</span> Weekly automated backups</li>
-              <li class="flex items-center gap-2"><span class="text-purple-400 font-bold">★</span> <span class="text-purple-300">Priority developer access (4-8hr)</span></li>
+              <li class="flex items-center gap-2"><span class="text-purple-400 font-bold">★</span> <span class="text-purple-300 font-semibold">Direct access to developer support</span></li>
               <li class="flex items-center gap-2"><span class="text-purple-400 font-bold">★</span> <span class="text-purple-300">2x the RAM for heavy workloads</span></li>
             </ul>
           </div>
@@ -459,7 +459,7 @@ ${getHTMLHead('Pricing - Basement')}
               <tr class="border-b border-gray-800"><td class="py-3 px-4">Free SSL (Let's Encrypt)</td><td class="text-center text-green-400">✓</td><td class="text-center text-green-400">✓</td><td class="text-center text-green-400">✓</td></tr>
               <tr class="border-b border-gray-800"><td class="py-3 px-4">Server Controls</td><td class="text-center text-green-400">✓</td><td class="text-center text-green-400">✓</td><td class="text-center text-green-400">✓</td></tr>
               <tr class="border-b border-gray-800"><td class="py-3 px-4">Weekly Automated Backups</td><td class="text-center text-red-400">✗</td><td class="text-center text-green-400">✓</td><td class="text-center text-green-400">✓</td></tr>
-              <tr class="border-b border-gray-800"><td class="py-3 px-4">Developer Support</td><td class="text-center">Email (24-48hr)</td><td class="text-center text-blue-300">Direct (12hr)</td><td class="text-center text-purple-300">Priority (4-8hr)</td></tr>
+              <tr class="border-b border-gray-800"><td class="py-3 px-4">Developer Support</td><td class="text-center">Email (24-48hr)</td><td class="text-center text-blue-300">Email (12-24hr)</td><td class="text-center text-purple-300 font-semibold">Direct Access</td></tr>
               <tr class="border-b border-gray-800"><td class="py-3 px-4">Debug & Config Help</td><td class="text-center text-green-400">✓</td><td class="text-center text-green-400">✓</td><td class="text-center text-green-400">✓</td></tr>
             </tbody>
           </table>
