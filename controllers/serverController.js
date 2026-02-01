@@ -1095,8 +1095,8 @@ async function triggerSSLCertificateForCustomer(serverId, domain, server) {
         return reject(new Error('Invalid domain format'));
       }
       
-      // Use SSH2 library's exec with validated domain (no quotes needed, already validated)
-      const certbotCmd = `certbot certonly --standalone -d ${domain} --email admin@${domain} --non-interactive --agree-tos`;
+      // Use --nginx plugin which works with nginx running (no need to stop services)
+      const certbotCmd = `certbot --nginx -d ${domain} --email admin@${domain} --non-interactive --agree-tos --redirect`;
       
       conn.exec(certbotCmd, { timeout: 60000 }, (err, stream) => {
         if (err) {
