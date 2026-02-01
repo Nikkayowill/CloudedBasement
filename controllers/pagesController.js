@@ -299,8 +299,8 @@ ${getHTMLHead('Pricing - Basement')}
       
       <section class="py-12 px-4 text-center">
         <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4">Simple, Transparent Pricing</h1>
-        <p class="text-gray-300 text-lg mb-4">Full-stack hosting in 5 minutes. One server, unlimited deploys.</p>
-        <p class="text-blue-400 text-sm mb-8 max-w-md mx-auto">I update, add security, and backup your servers for you — you can focus on shipping your apps.</p>
+        <p class="text-gray-300 text-lg mb-4">One server, deploy as many times as you want.</p>
+        <p class="text-blue-400 text-sm mb-8 max-w-md mx-auto">I update, add security, and backup your server for you — you can focus on shipping your apps.</p>
         
         <!-- Billing Toggle -->
         <div class="flex items-center justify-center gap-4 mb-12">
