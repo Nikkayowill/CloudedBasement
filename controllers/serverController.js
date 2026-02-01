@@ -1200,7 +1200,7 @@ exports.setupDatabase = async (req, res) => {
 
     // Get user's server
     const serverResult = await pool.query(
-      'SELECT * FROM servers WHERE user_id = $1',
+      "SELECT * FROM servers WHERE user_id = $1 AND status NOT IN ('deleted', 'failed')",
       [userId]
     );
 
