@@ -5,7 +5,7 @@ const pool = require('../db');
 const { validationResult } = require('express-validator');
 const { getHTMLHead, getFooter, getScripts, getResponsiveNav, escapeHtml } = require('../helpers');
 const { createConfirmationCode, isCodeValid } = require('../utils/emailToken');
-const { sendConfirmationEmail } = require('../services/email');
+const { sendConfirmationEmail, sendWelcomeEmail } = require('../services/email');
 const { isDisposableEmail } = require('../utils/emailValidation');
 
 // Helper function to generate random verification code
@@ -579,6 +579,11 @@ const handleVerifyCode = async (req, res) => {
       'UPDATE users SET email_confirmed = true WHERE id = $1',
       [user.id]
     );
+
+    // Send welcome email (don't block on it)
+    sendWelcomeEmail(user.email).catch(err => {
+      console.error('[EMAIL] Failed to send welcome email:', err.message);
+    });
 
     req.session.flashMessage = 'Email confirmed! You can now login.';
     res.redirect('/login');

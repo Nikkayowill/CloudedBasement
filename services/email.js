@@ -368,11 +368,106 @@ async function sendContactEmail(name, email, message) {
   }
 }
 
+// Welcome email after registration/email confirmation
+async function sendWelcomeEmail(userEmail) {
+  const subject = 'Welcome to Clouded Basement!';
+  
+  const html = `
+    <h2>Welcome to Clouded Basement! 🎉</h2>
+    <p>Your account is confirmed and ready to go.</p>
+    
+    <h3>What's next?</h3>
+    <ol>
+      <li><strong>Choose a plan</strong> - Pick the server size that fits your project</li>
+      <li><strong>Get your server</strong> - We'll provision it in under 5 minutes</li>
+      <li><strong>Deploy your code</strong> - Push via Git and go live</li>
+    </ol>
+    
+    <p style="margin-top: 24px;">
+      <a href="https://cloudedbasement.ca/pricing" style="background: #2DA7DF; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">View Plans</a>
+    </p>
+    
+    <p style="margin-top: 24px; color: #666;">Questions? Just reply to this email - you'll reach a real developer, not a bot.</p>
+    ${emailFooterHtml}
+  `;
+  
+  const text = `Welcome to Clouded Basement!\n\nYour account is confirmed and ready to go.\n\nWhat's next?\n1. Choose a plan - Pick the server size that fits your project\n2. Get your server - We'll provision it in under 5 minutes\n3. Deploy your code - Push via Git and go live\n\nView plans: https://cloudedbasement.ca/pricing\n\nQuestions? Just reply to this email - you'll reach a real developer, not a bot.${emailFooterText}`;
+  
+  return sendEmail(userEmail, subject, html, text);
+}
+
+// Trial ending warning email
+async function sendTrialEndingEmail(userEmail, daysLeft, serverName) {
+  const subject = daysLeft === 1 
+    ? '⚠️ Your trial ends tomorrow' 
+    : `⚠️ Your trial ends in ${daysLeft} days`;
+  
+  const html = `
+    <h2>Your Trial is Ending Soon</h2>
+    <p>Your server <strong>${serverName || 'server'}</strong> trial will expire in <strong>${daysLeft} day${daysLeft === 1 ? '' : 's'}</strong>.</p>
+    
+    <p>To keep your server running, please add a payment method before your trial ends.</p>
+    
+    <p style="margin-top: 24px;">
+      <a href="https://cloudedbasement.ca/dashboard" style="background: #2DA7DF; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">Go to Dashboard</a>
+    </p>
+    
+    <p style="margin-top: 24px; color: #666;">If you don't add a payment method, your server will be automatically deleted when the trial ends.</p>
+    
+    <p style="color: #666;">Questions? Reply to this email.</p>
+    ${emailFooterHtml}
+  `;
+  
+  const text = `Your Trial is Ending Soon\n\nYour server "${serverName || 'server'}" trial will expire in ${daysLeft} day${daysLeft === 1 ? '' : 's'}.\n\nTo keep your server running, please add a payment method before your trial ends.\n\nGo to dashboard: https://cloudedbasement.ca/dashboard\n\nIf you don't add a payment method, your server will be automatically deleted when the trial ends.${emailFooterText}`;
+  
+  return sendEmail(userEmail, subject, html, text);
+}
+
+// Deploy error notification email
+async function sendDeployErrorEmail(userEmail, repoUrl, errorMessage) {
+  const subject = '❌ Deployment Failed';
+  
+  // Truncate error message if too long
+  const shortError = errorMessage && errorMessage.length > 500 
+    ? errorMessage.substring(0, 500) + '...' 
+    : (errorMessage || 'Unknown error');
+  
+  const html = `
+    <h2>Deployment Failed</h2>
+    <p>Your deployment from <code>${repoUrl || 'your repository'}</code> encountered an error.</p>
+    
+    <h3>Error Details:</h3>
+    <pre style="background: #1a1a2e; color: #ff6b6b; padding: 16px; border-radius: 4px; overflow-x: auto; white-space: pre-wrap;">${shortError}</pre>
+    
+    <h3>Common Fixes:</h3>
+    <ul>
+      <li>Check that your repository URL is correct and accessible</li>
+      <li>Verify your project has a valid package.json or requirements.txt</li>
+      <li>Check for syntax errors in your code</li>
+      <li>Make sure all dependencies are listed in your package file</li>
+    </ul>
+    
+    <p style="margin-top: 24px;">
+      <a href="https://cloudedbasement.ca/dashboard" style="background: #2DA7DF; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">Try Again</a>
+    </p>
+    
+    <p style="margin-top: 24px; color: #666;">Need help? Reply to this email and we'll take a look.</p>
+    ${emailFooterHtml}
+  `;
+  
+  const text = `Deployment Failed\n\nYour deployment from "${repoUrl || 'your repository'}" encountered an error.\n\nError Details:\n${shortError}\n\nCommon Fixes:\n- Check that your repository URL is correct and accessible\n- Verify your project has a valid package.json or requirements.txt\n- Check for syntax errors in your code\n- Make sure all dependencies are listed in your package file\n\nTry again: https://cloudedbasement.ca/dashboard\n\nNeed help? Reply to this email and we'll take a look.${emailFooterText}`;
+  
+  return sendEmail(userEmail, subject, html, text);
+}
+
 module.exports = {
   sendConfirmationEmail,
   sendEmail,
   sendContactEmail,
   verifyConnection,
   sendServerRequestEmail,
-  sendServerReadyEmail
+  sendServerReadyEmail,
+  sendWelcomeEmail,
+  sendTrialEndingEmail,
+  sendDeployErrorEmail
 };
