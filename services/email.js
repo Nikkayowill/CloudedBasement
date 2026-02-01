@@ -321,9 +321,46 @@ Need help? Check our docs at https://cloudedbasement.ca/docs or reply to this em
   return sendEmail(userEmail, subject, html, textWithFooter);
 }
 
+// Send contact form submission to business email
+async function sendContactEmail(name, email, message) {
+  const subject = `[Contact Form] New message from ${name}`;
+  
+  const html = `
+    <h2>New Contact Form Submission</h2>
+    <p><strong>From:</strong> ${name}</p>
+    <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
+    <hr style="border: 1px solid #ddd; margin: 20px 0;">
+    <p><strong>Message:</strong></p>
+    <p style="white-space: pre-wrap; background: #f5f5f5; padding: 15px; border-radius: 5px;">${message}</p>
+    <hr style="border: 1px solid #ddd; margin: 20px 0;">
+    <p style="color: #666; font-size: 12px;">Reply directly to this email to respond to ${name}.</p>
+  `;
+  
+  const text = `New Contact Form Submission\n\nFrom: ${name}\nEmail: ${email}\n\nMessage:\n${message}`;
+  
+  const mailOptions = {
+    from: fromAddress,
+    replyTo: email, // Reply goes to the person who submitted the form
+    to: 'support@cloudedbasement.ca',
+    subject,
+    text,
+    html
+  };
+  
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`[EMAIL] Contact form sent to support@cloudedbasement.ca from ${email}`);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error(`[EMAIL] Failed to send contact form:`, error.message);
+    return { success: false, error: error.message };
+  }
+}
+
 module.exports = {
   sendConfirmationEmail,
   sendEmail,
+  sendContactEmail,
   verifyConnection,
   sendServerRequestEmail,
   sendServerReadyEmail
