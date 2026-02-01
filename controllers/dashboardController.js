@@ -752,14 +752,17 @@ db = client['${data.mongodbCredentials.dbName}']</code></pre>
             <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-6">Custom Domains</h4>
             
             ${data.ipAddress ? `
-            <!-- DNS Configuration Instructions -->
-            <div class="bg-blue-900 bg-opacity-20 border border-blue-600 rounded-lg p-4 mb-6">
-                <h5 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                    <svg class="w-4 h-4 text-brand" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                    </svg>
-                    DNS Configuration
-                </h5>
+            <!-- DNS Configuration Instructions (Collapsible) -->
+            <details class="bg-blue-900 bg-opacity-20 border border-blue-600 rounded-lg mb-6">
+                <summary class="p-4 cursor-pointer hover:bg-blue-900 hover:bg-opacity-30 transition-colors">
+                    <span class="text-sm font-bold text-white flex items-center gap-2">
+                        <svg class="w-4 h-4 text-brand" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                        DNS Configuration — Click to expand
+                    </span>
+                </summary>
+                <div class="p-4 pt-0">
                 <p class="text-xs text-gray-300 mb-4">
                     Point your domain to this server by adding these DNS records at your domain registrar (Namecheap, GoDaddy, Cloudflare, etc.):
                 </p>
@@ -843,7 +846,8 @@ db = client['${data.mongodbCredentials.dbName}']</code></pre>
                         <strong class="text-white">⏱️ Propagation Time:</strong> DNS changes typically take 5-15 minutes to propagate worldwide. Once configured, add your domain below to enable SSL.
                     </p>
                 </div>
-            </div>
+                </div>
+            </details>
             ` : ''}
             
             <form action="/add-domain" method="POST" class="mb-6">
@@ -857,8 +861,7 @@ db = client['${data.mongodbCredentials.dbName}']</code></pre>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     ${data.domains.map(dom => `
                     <div class="bg-black bg-opacity-30 border border-gray-700 rounded-lg p-3">
-                        <p class="text-sm text-white font-medium mb-1.5">${escapeHtml(dom.domain)}</p>
-                        <p class="text-xs text-gray-500 mb-2">Added ${new Date(dom.created_at).toLocaleDateString()}</p>
+                        <p class="text-sm text-white font-medium mb-2">${escapeHtml(dom.domain)}</p>
                         <div class="flex items-center gap-2">
                             ${dom.ssl_enabled 
                                 ? '<span class="px-2 py-1 text-xs font-bold uppercase rounded bg-green-900 text-green-300">SSL Active</span>' 
