@@ -130,6 +130,13 @@ exports.showDashboard = async (req, res) => {
         // Show provisioning UI if: coming from payment OR server exists with provisioning status
         const showProvisioningUI = isProvisioning || (hasServer && server?.status === 'provisioning');
 
+        // Compute live site URL: prefer SSL domain > any domain > IP
+        const domains = domainsResult.rows || [];
+        const sslDomain = domains.find(d => d.ssl_enabled);
+        const liveSiteUrl = sslDomain 
+            ? `https://${sslDomain.domain}` 
+            : (domains.length > 0 ? `http://${domains[0].domain}` : `http://${server?.ip_address || ''}`);
+
         const dashboardHTML = buildDashboardTemplate({
             flashSuccess,
             flashError,
@@ -146,8 +153,9 @@ exports.showDashboard = async (req, res) => {
             userId: userId,
             csrfToken,
             deployments: deploymentsResult.rows || [],
-            domains: domainsResult.rows || [],
+            domains: domains,
             tickets: ticketsResult.rows || [],
+            liveSiteUrl,
             userEmail: req.session.userEmail,
             userRole: req.session.userRole,
             hasPaid,
@@ -600,7 +608,7 @@ const buildDashboardTemplate = (data) => {
                                 }">${(dep.status === 'pending' || dep.status === 'deploying') ? `<svg class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>` : ''}${dep.status === 'pending' ? 'Building' : dep.status === 'deploying' ? 'Deploying' : escapeHtml(dep.status)}</span>
                                 ${dep.status === 'success' && data.serverIp ? `
                                 <div class="mt-2">
-                                    <a href="http://${escapeHtml(data.serverIp)}" target="_blank" class="text-brand hover:text-cyan-400 text-xs">View Live Site →</a>
+                                    <a href="${data.liveSiteUrl}" target="_blank" class="text-brand hover:text-cyan-400 text-xs">View Live Site →</a>
                                 </div>
                                 ` : ''}
                             </td>
