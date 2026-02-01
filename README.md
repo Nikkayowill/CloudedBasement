@@ -21,7 +21,7 @@
 
 ### Payment Options:
 - **Monthly:** Pay monthly, cancel anytime
-- **Yearly:** Pay upfront, save 17% (10 months price for 12 months)
+- **Yearly:** Pay upfront, save 10%
 
 ---
 

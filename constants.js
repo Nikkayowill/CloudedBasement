@@ -58,7 +58,7 @@ const PRICING_PLANS = {
   basic: {
     name: 'Basic Plan',
     monthlyPrice: 1500,     // $15.00/month
-    yearlyPrice: 15000,     // $150.00/year (save 17%)
+    yearlyPrice: 16200,     // $162.00/year (save 10%)
     displayPrice: '$15/mo',
     ram: '1GB',
     cpu: 1,
@@ -68,7 +68,7 @@ const PRICING_PLANS = {
   pro: {
     name: 'Pro Plan',
     monthlyPrice: 3500,     // $35.00/month
-    yearlyPrice: 35000,     // $350.00/year (save 17%)
+    yearlyPrice: 37800,     // $378.00/year (save 10%)
     displayPrice: '$35/mo',
     ram: '2GB',
     cpu: 2,
@@ -78,7 +78,7 @@ const PRICING_PLANS = {
   premium: {
     name: 'Premium Plan',
     monthlyPrice: 7500,     // $75.00/month
-    yearlyPrice: 75000,     // $750.00/year (save 17%)
+    yearlyPrice: 81000,     // $810.00/year (save 10%)
     displayPrice: '$75/mo',
     ram: '4GB',
     cpu: 2,
