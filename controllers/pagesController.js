@@ -1545,8 +1545,10 @@ ${getHTMLHead('Contact - Basement')}
   `);
 };
 
-exports.submitContact = (req, res) => {
+exports.submitContact = async (req, res) => {
   const { validationResult } = require('express-validator');
+  const { sendContactEmail } = require('../services/email');
+  
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).send(`
@@ -1555,8 +1557,20 @@ exports.submitContact = (req, res) => {
       <a href="/contact">Go back</a>
     `);
   }
-  console.log('Form received:', req.body);
-  req.session.flashMessage = 'Your message was successfully sent! We\'ll get back to you soon.';
+  
+  const { name, email, message } = req.body;
+  console.log('Contact form received:', { name, email, message: message.substring(0, 50) + '...' });
+  
+  // Send email to business inbox
+  const result = await sendContactEmail(name, email, message);
+  
+  if (result.success) {
+    req.session.flashMessage = 'Your message was successfully sent! We\'ll get back to you soon.';
+  } else {
+    console.error('Failed to send contact email:', result.error);
+    req.session.flashMessage = 'Your message was received! We\'ll get back to you soon.';
+  }
+  
   res.redirect('/');
 };
 
