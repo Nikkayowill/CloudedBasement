@@ -859,7 +859,17 @@ db = client['${data.mongodbCredentials.dbName}']</code></pre>
                     <div class="bg-black bg-opacity-30 border border-gray-700 rounded-lg p-3">
                         <p class="text-sm text-white font-medium mb-1.5">${escapeHtml(dom.domain)}</p>
                         <p class="text-xs text-gray-500 mb-2">Added ${new Date(dom.created_at).toLocaleDateString()}</p>
-                        ${dom.ssl_enabled ? '<span class="px-2 py-1 text-xs font-bold uppercase rounded bg-green-900 text-green-300">SSL Active</span>' : '<span class="px-2 py-1 text-xs font-bold uppercase rounded bg-yellow-900 text-yellow-300">No SSL</span>'}
+                        <div class="flex items-center gap-2">
+                            ${dom.ssl_enabled 
+                                ? '<span class="px-2 py-1 text-xs font-bold uppercase rounded bg-green-900 text-green-300">SSL Active</span>' 
+                                : `<span class="px-2 py-1 text-xs font-bold uppercase rounded bg-yellow-900 text-yellow-300">No SSL</span>
+                                   <form action="/enable-ssl" method="POST" class="inline">
+                                       <input type="hidden" name="_csrf" value="${data.csrfToken}">
+                                       <input type="hidden" name="domain" value="${escapeHtml(dom.domain)}">
+                                       <button type="submit" class="px-3 py-1 text-xs font-bold bg-brand text-black rounded hover:bg-cyan-400 transition-colors">Enable SSL</button>
+                                   </form>`
+                            }
+                        </div>
                     </div>
                     `).join('')}
                 </div>
