@@ -5,6 +5,7 @@ const pool = require('../db');
 const { escapeHtml } = require('../helpers');
 const { getUserServer, verifyServerOwnership, updateServerStatus, appendDeploymentOutput, updateDeploymentStatus } = require('../utils/db-helpers');
 const { SERVER_STATUS, DEPLOYMENT_STATUS, TIMEOUTS, PORTS } = require('../constants');
+const { sendDeployErrorEmail } = require('../services/email');
 
 // Strict DNS-compliant domain validation
 function isValidDomain(domain) {
@@ -424,6 +425,16 @@ async function performDeployment(server, gitUrl, repoName, deploymentId) {
     output += `\n❌ Deployment failed: ${error.message}\n`;
     output += `Error details: ${error.stack || error}\n`;
     await updateDeploymentOutput(deploymentId, output, 'failed');
+    
+    // Send deploy error email to user
+    try {
+      const userResult = await pool.query('SELECT u.email FROM users u JOIN servers s ON s.user_id = u.id WHERE s.id = $1', [server.id]);
+      if (userResult.rows[0]?.email) {
+        await sendDeployErrorEmail(userResult.rows[0].email, gitUrl, error.message);
+      }
+    } catch (emailErr) {
+      console.error(`[DEPLOY] Failed to send deploy error email:`, emailErr.message);
+    }
   } finally {
     conn.end();
   }

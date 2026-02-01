@@ -1,7 +1,7 @@
 require('dotenv').config();
 const pool = require('../db');
 const axios = require('axios');
-const { sendEmail } = require('./email');
+const { sendEmail, sendTrialEndingEmail } = require('./email');
 
 /**
  * Subscription Monitor Service
@@ -181,10 +181,45 @@ async function destroyStoppedServers() {
   }
 }
 
+// Check for trials ending soon and send warning emails
+async function checkTrialWarnings() {
+  try {
+    // Find servers in trial (no payment) that are 1 or 2 days old
+    const result = await pool.query(`
+      SELECT s.*, u.email,
+        EXTRACT(DAY FROM (INTERVAL '3 days' - (NOW() - s.created_at))) as days_left
+      FROM servers s
+      JOIN users u ON s.user_id = u.id
+      LEFT JOIN payments p ON s.user_id = p.user_id AND p.status = 'succeeded'
+      WHERE s.status = 'running'
+        AND p.id IS NULL
+        AND s.droplet_id IS NOT NULL
+        AND s.created_at >= NOW() - INTERVAL '2 days 23 hours'
+        AND s.created_at < NOW() - INTERVAL '1 day'
+    `);
+
+    console.log(`[Subscription Monitor] Found ${result.rows.length} trials needing warning emails`);
+
+    for (const server of result.rows) {
+      const daysLeft = Math.max(1, Math.ceil(server.days_left));
+      console.log(`[Subscription Monitor] Sending trial warning to ${server.email} (${daysLeft} days left)`);
+      
+      try {
+        await sendTrialEndingEmail(server.email, daysLeft, server.droplet_name || server.name);
+      } catch (emailError) {
+        console.error('[Subscription Monitor] Failed to send trial warning:', emailError.message);
+      }
+    }
+  } catch (error) {
+    console.error('[Subscription Monitor] Error checking trial warnings:', error);
+  }
+}
+
 // Main monitoring function
 async function monitorSubscriptions() {
   console.log('[Subscription Monitor] Starting subscription check...');
   
+  await checkTrialWarnings();
   await checkExpiredTrials();
   await checkFailedPayments();
   await destroyStoppedServers();
