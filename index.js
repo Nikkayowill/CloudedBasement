@@ -303,9 +303,9 @@ app.post('/request-server', requireAuth, deploymentLimiter, csrfProtection, asyn
       return res.redirect('/pricing?error=payment_required');
     }
     
-    // Check if user already has a server
+    // Check if user already has a server (exclude deleted/failed)
     const serverCheck = await pool.query(
-      'SELECT * FROM servers WHERE user_id = $1',
+      "SELECT * FROM servers WHERE user_id = $1 AND status NOT IN ('deleted', 'failed')",
       [req.session.userId]
     );
     
@@ -385,9 +385,9 @@ app.post('/start-trial', requireAuth, deploymentLimiter, csrfProtection, async (
       return res.redirect('/dashboard?error=You have already used your free trial. Please subscribe to continue.');
     }
     
-    // Check if user already has a server
+    // Check if user already has a server (exclude deleted/failed)
     const serverCheck = await pool.query(
-      'SELECT * FROM servers WHERE user_id = $1',
+      "SELECT * FROM servers WHERE user_id = $1 AND status NOT IN ('deleted', 'failed')",
       [userId]
     );
     
@@ -456,7 +456,7 @@ app.get('/payment-cancel', requireAuth, paymentController.paymentCancel);
 
 app.get('/pay', requireAuth, csrfProtection, paymentController.showCheckout);
 
-app.post('/create-payment-intent', requireAuth, paymentLimiter, paymentController.createPaymentIntent);
+app.post('/create-payment-intent', requireAuth, paymentLimiter, csrfProtection, paymentController.createPaymentIntent);
 
 app.post('/create-checkout-session', requireAuth, paymentLimiter, csrfProtection, paymentController.createCheckoutSession);
 

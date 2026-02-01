@@ -74,6 +74,7 @@ ${getHTMLHead('Checkout - Clouded  Basement')}
         <form id="payment-form" class="mb-4">
           <input type="hidden" name="plan" value="${plan}">
           <input type="hidden" name="interval" value="${interval}">
+          <input type="hidden" name="_csrf" value="${req.csrfToken()}">
           
           <!-- Cardholder Name -->
           <div class="mb-4">
@@ -207,11 +208,12 @@ ${getHTMLHead('Checkout - Clouded  Basement')}
           // Create payment intent on backend
           const plan = form.querySelector('input[name="plan"]').value;
           const interval = form.querySelector('input[name="interval"]').value;
+          const csrfToken = form.querySelector('input[name="_csrf"]').value;
           const response = await fetch('/create-payment-intent', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'same-origin',
-            body: JSON.stringify({ plan, interval })
+            body: JSON.stringify({ plan, interval, _csrf: csrfToken })
           });
           
           // Check if response is JSON

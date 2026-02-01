@@ -13,7 +13,7 @@ exports.showGettingStarted = async (req, res) => {
     const plan = hasPaid ? paymentCheck.rows[0].plan : null;
     
     const serverCheck = await pool.query(
-      'SELECT * FROM servers WHERE user_id = $1',
+      "SELECT * FROM servers WHERE user_id = $1 AND status NOT IN ('deleted', 'failed')",
       [req.session.userId]
     );
     

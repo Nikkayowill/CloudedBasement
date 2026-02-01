@@ -283,6 +283,21 @@ ${getHTMLHead('Pricing - Basement')}
     ${getResponsiveNav(req)}
     
     <main class="bg-black min-h-screen pt-24 pb-16">
+      <!-- Free Trial Banner -->
+      <div class="max-w-2xl mx-auto mb-8 px-4">
+        <div class="bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border border-blue-500/40 rounded-xl p-6 text-center">
+          <div class="flex items-center justify-center gap-2 mb-2">
+            <span class="text-2xl">🎉</span>
+            <span class="text-xl font-bold text-white">Try Free for 3 Days</span>
+          </div>
+          <p class="text-gray-300 text-sm mb-4">No credit card required. Get a real server instantly.</p>
+          <a href="/register" class="inline-flex items-center px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-500 hover:scale-105 transition-all">
+            Start Free Trial
+            <svg class="ml-2 w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+          </a>
+        </div>
+      </div>
+      
       <section class="py-12 px-4 text-center">
         <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4">Simple, Transparent Pricing</h1>
         <p class="text-gray-300 text-lg mb-4">Full-stack hosting in 5 minutes. One server, unlimited deploys.</p>
@@ -1638,8 +1653,8 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
         
         <p class="mb-8 text-lg font-normal text-gray-400 lg:text-xl sm:px-16 xl:px-48 relative z-30">Clouded Basement provisions a production-ready Linux server with SSL, Git deployments, and full root access  —  so you can ship without babysitting infrastructure.</p>
         <div class="flex flex-col mb-4 space-y-4 sm:flex-row sm:justify-center sm:space-y-0 sm:space-x-4">
-          <a href="/pricing" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all duration-300">
-            Deploy your server
+          <a href="/register" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all duration-300">
+            Try for free
             <svg class="ml-2 w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
             </svg>

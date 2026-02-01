@@ -487,14 +487,14 @@ ${getHTMLHead('Email Confirmed - Basement')}
 
 // GET /logout - Destroy session and redirect to login
 const handleLogout = (req, res) => {
-  req.session.flashMessage = 'Successfully logged out';
   req.session.destroy((err) => {
     if (err) {
       console.error('Session destroy error:', err);
       return res.redirect('/');
     }
     res.clearCookie('connect.sid');
-    res.redirect('/login');
+    res.clearCookie('sessionId'); // Clear custom session cookie name too
+    res.redirect('/login?message=Successfully logged out');
   });
 };
 
