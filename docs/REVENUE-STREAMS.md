@@ -8,7 +8,7 @@ Core business model with predictable MRR:
 - **Pro Plan:** $35/mo (2GB RAM, 2 CPUs, 60GB SSD)
 - **Premium Plan:** $75/mo (4GB RAM, 2 CPUs, 80GB SSD)
 
-### Yearly Subscriptions (17% discount)
+### Yearly Subscriptions (10% discount)
 - **Basic:** $150/year (saves $30)
 - **Pro:** $350/year (saves $70)
 - **Premium:** $750/year (saves $150)

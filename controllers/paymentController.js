@@ -8,11 +8,12 @@ const { createRealServer, destroyDroplet } = require('../services/digitalocean')
 const { getHTMLHead, getScripts, getFooter, getResponsiveNav, escapeHtml } = require('../helpers');
 
 // Pricing plans configuration (monthly and yearly prices in CENTS for Stripe)
+// Yearly = 10% discount (monthly × 12 × 0.90)
 const PRICING_PLANS = {
-  basic: { name: 'Basic', monthly: 1500, yearly: 15000, was: 25, description: 'Perfect for side projects', features: ['1GB RAM', '1 CPU', '25GB Storage', '2 sites'] },
-  pro: { name: 'Pro', monthly: 3500, yearly: 35000, was: 60, description: 'Most popular • For production apps', features: ['2GB RAM', '2 CPUs', '60GB Storage', '5 sites'] },
-  priority: { name: 'Pro', monthly: 3500, yearly: 35000, was: 60, description: 'Most popular • For production apps', features: ['2GB RAM', '2 CPUs', '60GB Storage', '5 sites'] }, // legacy
-  premium: { name: 'Premium', monthly: 7500, yearly: 75000, was: 120, description: 'For serious projects', features: ['4GB RAM', '2 CPUs', '80GB Storage', '10 sites'] }
+  basic: { name: 'Basic', monthly: 1500, yearly: 16200, was: 25, description: 'Perfect for side projects', features: ['1GB RAM', '1 CPU', '25GB Storage', '2 sites'] },
+  pro: { name: 'Pro', monthly: 3500, yearly: 37800, was: 60, description: 'Most popular • For production apps', features: ['2GB RAM', '2 CPUs', '60GB Storage', '5 sites'] },
+  priority: { name: 'Pro', monthly: 3500, yearly: 37800, was: 60, description: 'Most popular • For production apps', features: ['2GB RAM', '2 CPUs', '60GB Storage', '5 sites'] }, // legacy
+  premium: { name: 'Premium', monthly: 7500, yearly: 81000, was: 120, description: 'For serious projects', features: ['4GB RAM', '2 CPUs', '80GB Storage', '10 sites'] }
 };
 
 // GET /pay
@@ -51,7 +52,7 @@ ${getHTMLHead('Checkout - Clouded  Basement')}
             <div class="text-5xl font-bold text-brand">
               $${price}<span class="text-2xl text-gray-400">${intervalShort}</span>
             </div>
-            ${interval === 'yearly' ? `<p class="text-green-400 text-xs mt-2">Save 17% with yearly billing!</p>` : `<p class="text-gray-400 text-xs mt-2">Early Adopter price · was $${selectedPlan.was} · locked for life</p>`}
+            ${interval === 'yearly' ? `<p class="text-green-400 text-xs mt-2">Save 10% with yearly billing!</p>` : `<p class="text-gray-400 text-xs mt-2">Early Adopter price · was $${selectedPlan.was} · locked for life</p>`}
           </div>
           
           <div class="border-t border-gray-700 pt-4 space-y-3">

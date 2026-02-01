@@ -8,9 +8,9 @@
 
 ### Site Limits & Pricing (January 31, 2026)
 - [x] **New pricing tiers implemented**
-  - Basic: $15/mo (2 sites) or $150/year (17% savings)
-  - Pro: $35/mo (5 sites) or $350/year (17% savings)
-  - Premium: $75/mo (10 sites) or $750/year (17% savings)
+  - Basic: $15/mo (2 sites) or $162/year (10% savings)
+  - Pro: $35/mo (5 sites) or $378/year (10% savings)
+  - Premium: $75/mo (10 sites) or $810/year (10% savings)
 
 - [x] **Site limit enforcement**
   - Deployment controller blocks new sites at limit
@@ -122,7 +122,7 @@
 - [x] **\"Priority\" → \"Pro\" everywhere** ✅ Done Jan 2026
   - All references updated to Pro
   - Pricing is now $15/$35/$75 monthly
-  - Yearly option available (17% discount)
+  - Yearly option available (10% discount)
 
 - [ ] **Support response times consistent**
   - Basic: 24hr

@@ -206,7 +206,7 @@ Prevents dashboard showing "Server Running" when it's actually gone.
 
 We charge $15/$35/$75 → margins of $9/$17/$27 per customer monthly.
 
-**Yearly discounts:** 17% off (10 months for 12)
+**Yearly discounts:** 10% off
 
 **Bandwidth:**
 - 1TB/month included (enough for most sites)

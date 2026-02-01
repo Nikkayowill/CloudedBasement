@@ -285,7 +285,8 @@ ${getHTMLHead('Pricing - Basement')}
     <main class="bg-black min-h-screen pt-24 pb-16">
       <section class="py-12 px-4 text-center">
         <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4">Simple, Transparent Pricing</h1>
-        <p class="text-gray-300 text-lg mb-8">Full-stack hosting in 5 minutes. One server, unlimited deploys.</p>
+        <p class="text-gray-300 text-lg mb-4">Full-stack hosting in 5 minutes. One server, unlimited deploys.</p>
+        <p class="text-blue-400 text-sm mb-8">🛠️ Real developer support included — debug help, config assistance, and server management when you need it.</p>
         
         <!-- Billing Toggle -->
         <div class="flex items-center justify-center gap-4 mb-12">
@@ -293,7 +294,7 @@ ${getHTMLHead('Pricing - Basement')}
           <button id="billingToggle" class="relative w-16 h-8 bg-gray-700 rounded-full transition-all hover:bg-gray-600" onclick="toggleBilling()">
             <div id="billingSlider" class="absolute top-1 left-1 w-6 h-6 bg-blue-400 rounded-full transition-transform duration-300 shadow-[0_0_20px_rgba(96,165,250,0.6)]"></div>
           </button>
-          <span class="text-gray-400 text-sm billing-label" data-type="yearly">Yearly <span class="text-blue-400 font-bold">(Save 17%)</span></span>
+          <span class="text-gray-400 text-sm billing-label" data-type="yearly">Yearly <span class="text-blue-400 font-bold">(Save 10%)</span></span>
         </div>
       </section>
       
@@ -303,7 +304,7 @@ ${getHTMLHead('Pricing - Basement')}
           <div class="border-b border-blue-400/20 pb-6 mb-6">
             <div class="text-xl font-bold text-white mb-2">Basic</div>
             <div class="flex items-baseline gap-2 mb-2">
-              <div class="pricing-amount" data-monthly="15" data-yearly="150">
+              <div class="pricing-amount" data-monthly="15" data-yearly="162">
                 <span class="text-4xl font-extrabold text-blue-300 price-value">$15</span>
                 <span class="text-base font-normal text-gray-300 price-interval">/mo</span>
               </div>
@@ -332,7 +333,7 @@ ${getHTMLHead('Pricing - Basement')}
               <li class="flex items-center gap-2"><span class="text-green-400">✓</span> Free SSL certificates</li>
               <li class="flex items-center gap-2"><span class="text-green-400">✓</span> Deployment history & logs</li>
               <li class="flex items-center gap-2"><span class="text-green-400">✓</span> Server controls (start/stop/restart)</li>
-              <li class="flex items-center gap-2"><span class="text-green-400">✓</span> Email support (24-48hr)</li>
+              <li class="flex items-center gap-2"><span class="text-green-400">✓</span> Email support from a real developer</li>
             </ul>
           </div>
           
@@ -353,7 +354,7 @@ ${getHTMLHead('Pricing - Basement')}
           <div class="border-b border-blue-300 pb-6 mb-6">
             <div class="text-xl font-bold text-white mb-2">Pro</div>
             <div class="flex items-baseline gap-2 mb-2">
-              <div class="pricing-amount" data-monthly="35" data-yearly="350">
+              <div class="pricing-amount" data-monthly="35" data-yearly="378">
                 <span class="text-4xl font-extrabold text-blue-300 price-value">$35</span>
                 <span class="text-base font-normal text-gray-300 price-interval">/mo</span>
               </div>
@@ -382,7 +383,7 @@ ${getHTMLHead('Pricing - Basement')}
               <li class="flex items-center gap-2"><span class="text-green-400">✓</span> Deployment history & logs</li>
               <li class="flex items-center gap-2"><span class="text-green-400">✓</span> Server controls (start/stop/restart)</li>
               <li class="flex items-center gap-2"><span class="text-blue-400 font-bold">★</span> <span class="text-blue-300">Weekly automated backups</span></li>
-              <li class="flex items-center gap-2"><span class="text-blue-400 font-bold">★</span> <span class="text-blue-300">Priority support (12hr response)</span></li>
+              <li class="flex items-center gap-2"><span class="text-blue-400 font-bold">★</span> <span class="text-blue-300">Direct developer support (12hr)</span></li>
             </ul>
           </div>
           
@@ -394,7 +395,7 @@ ${getHTMLHead('Pricing - Basement')}
           <div class="border-b border-blue-400/20 pb-6 mb-6">
             <div class="text-xl font-bold text-white mb-2">Premium</div>
             <div class="flex items-baseline gap-2 mb-2">
-              <div class="pricing-amount" data-monthly="75" data-yearly="750">
+              <div class="pricing-amount" data-monthly="75" data-yearly="810">
                 <span class="text-4xl font-extrabold text-blue-300 price-value">$75</span>
                 <span class="text-base font-normal text-gray-300 price-interval">/mo</span>
               </div>
@@ -423,7 +424,7 @@ ${getHTMLHead('Pricing - Basement')}
               <li class="flex items-center gap-2"><span class="text-green-400">✓</span> Deployment history & logs</li>
               <li class="flex items-center gap-2"><span class="text-green-400">✓</span> Server controls (start/stop/restart)</li>
               <li class="flex items-center gap-2"><span class="text-green-400">✓</span> Weekly automated backups</li>
-              <li class="flex items-center gap-2"><span class="text-purple-400 font-bold">★</span> <span class="text-purple-300">Priority support (4-8hr response)</span></li>
+              <li class="flex items-center gap-2"><span class="text-purple-400 font-bold">★</span> <span class="text-purple-300">Priority developer access (4-8hr)</span></li>
               <li class="flex items-center gap-2"><span class="text-purple-400 font-bold">★</span> <span class="text-purple-300">2x the RAM for heavy workloads</span></li>
             </ul>
           </div>
@@ -458,7 +459,8 @@ ${getHTMLHead('Pricing - Basement')}
               <tr class="border-b border-gray-800"><td class="py-3 px-4">Free SSL (Let's Encrypt)</td><td class="text-center text-green-400">✓</td><td class="text-center text-green-400">✓</td><td class="text-center text-green-400">✓</td></tr>
               <tr class="border-b border-gray-800"><td class="py-3 px-4">Server Controls</td><td class="text-center text-green-400">✓</td><td class="text-center text-green-400">✓</td><td class="text-center text-green-400">✓</td></tr>
               <tr class="border-b border-gray-800"><td class="py-3 px-4">Weekly Automated Backups</td><td class="text-center text-red-400">✗</td><td class="text-center text-green-400">✓</td><td class="text-center text-green-400">✓</td></tr>
-              <tr class="border-b border-gray-800"><td class="py-3 px-4">Support Response Time</td><td class="text-center">24-48hr</td><td class="text-center text-blue-300">12hr</td><td class="text-center text-purple-300">4-8hr</td></tr>
+              <tr class="border-b border-gray-800"><td class="py-3 px-4">Developer Support</td><td class="text-center">Email (24-48hr)</td><td class="text-center text-blue-300">Direct (12hr)</td><td class="text-center text-purple-300">Priority (4-8hr)</td></tr>
+              <tr class="border-b border-gray-800"><td class="py-3 px-4">Debug & Config Help</td><td class="text-center text-green-400">✓</td><td class="text-center text-green-400">✓</td><td class="text-center text-green-400">✓</td></tr>
             </tbody>
           </table>
         </div>
@@ -1819,7 +1821,8 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
       <div class="py-20 md:py-28 relative z-10">
         <div class="max-w-4xl px-8 md:px-12 lg:px-16 mx-auto">
           <h2 class="mb-6 text-3xl md:text-4xl font-extrabold text-center text-white">Pricing</h2>
-          <p class="text-center text-gray-400 text-base mb-16">Simple monthly pricing · No usage surprises · Cancel anytime</p>
+          <p class="text-center text-gray-400 text-base mb-4">Simple monthly pricing · No usage surprises · Cancel anytime</p>
+          <p class="text-center text-blue-400 text-sm mb-16">💬 Every plan includes real developer support — not just docs</p>
           
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 mt-12">
             <!-- Basic -->
