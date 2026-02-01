@@ -300,7 +300,7 @@ ${getHTMLHead('Pricing - Basement')}
       
       <section class="max-w-6xl mx-auto px-8 md:px-12 lg:px-16 pb-12 grid grid-cols-1 md:grid-cols-3 gap-8">
         <!-- BASIC -->
-        <div class="bg-gradient-to-br from-gray-900/90 via-gray-900/80 to-black/90 backdrop-blur-xl border border-blue-400/40 rounded p-8 hover:border-blue-300 hover:scale-[1.02] transition-all shadow-[0_0_60px_rgba(135,206,250,0.2),0_0_90px_rgba(135,206,250,0.1),inset_0_0_40px_rgba(135,206,250,0.03),inset_0_1px_1px_rgba(255,255,255,0.1)]">
+        <div class="bg-gray-900 border border-gray-700 rounded-lg p-8 hover:border-blue-500/50 hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] transition-all duration-300">
           <div class="border-b border-blue-400/20 pb-6 mb-6">
             <div class="text-xl font-bold text-white mb-2">Basic</div>
             <div class="flex items-baseline gap-2 mb-2">
@@ -349,7 +349,7 @@ ${getHTMLHead('Pricing - Basement')}
         </div>
         
         <!-- PRO -->
-        <div class="bg-gradient-to-br from-gray-900/95 via-blue-950/30 to-black/95 backdrop-blur-xl border-2 border-blue-300 rounded p-8 relative transform md:scale-105 shadow-[0_0_80px_rgba(135,206,250,0.35),0_0_120px_rgba(135,206,250,0.2),inset_0_0_60px_rgba(135,206,250,0.06),inset_0_2px_2px_rgba(255,255,255,0.15)] hover:scale-[1.08] transition-all duration-300">
+        <div class="bg-gray-900 border-2 border-blue-500 rounded-lg p-8 relative transform md:scale-[1.02] shadow-[0_0_40px_rgba(59,130,246,0.2)] hover:shadow-[0_0_50px_rgba(59,130,246,0.3)] transition-all duration-300">
           <div class="popular-badge">Best Value</div>
           <div class="border-b border-blue-300 pb-6 mb-6">
             <div class="text-xl font-bold text-white mb-2">Pro</div>
@@ -391,7 +391,7 @@ ${getHTMLHead('Pricing - Basement')}
         </div>
         
         <!-- PREMIUM -->
-        <div class="bg-gradient-to-br from-gray-900/90 via-gray-900/80 to-black/90 backdrop-blur-xl border border-blue-400/40 rounded p-8 hover:border-blue-300 hover:scale-[1.02] transition-all shadow-[0_0_60px_rgba(135,206,250,0.2),0_0_90px_rgba(135,206,250,0.1),inset_0_0_40px_rgba(135,206,250,0.03),inset_0_1px_1px_rgba(255,255,255,0.1)]">
+        <div class="bg-gray-900 border border-gray-700 rounded-lg p-8 hover:border-blue-500/50 hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] transition-all duration-300">
           <div class="border-b border-blue-400/20 pb-6 mb-6">
             <div class="text-xl font-bold text-white mb-2">Premium</div>
             <div class="flex items-baseline gap-2 mb-2">
@@ -1686,14 +1686,12 @@ ${getHTMLHead('Clouded Basement Hosting - Fast, Simple Cloud Hosting')}
       </div>
     </section>
 
-    <!-- Unified Gradient Section: How It Works → What You Get → Pricing -->
-    <section class="py-0 relative overflow-hidden" style="background: linear-gradient(to bottom, #0a0812 0%, #1a1535 10%, #2a2555 20%, #3a3570 30%, #4a4585 40%, #5a5595 50%, #4a4585 60%, #3a3570 70%, #2a2555 80%, #1a1535 90%, #0a0812 100%);">
-      <!-- Rainbow ray colors as subtle overlay -->
+    <!-- Unified Section: How It Works → What You Get → Pricing -->
+    <section class="py-0 relative overflow-hidden bg-black">
+      <!-- Subtle gradient overlay -->
       <div class="absolute inset-0 pointer-events-none">
         <div class="absolute inset-0" style="background-image: 
-          radial-gradient(ellipse 1400px 500px at 30% 20%, rgba(96, 165, 250, 0.06) 0%, transparent 50%),
-          radial-gradient(ellipse 1400px 500px at 70% 50%, rgba(232, 121, 249, 0.05) 0%, transparent 50%),
-          radial-gradient(ellipse 1400px 500px at 40% 80%, rgba(94, 234, 212, 0.04) 0%, transparent 50%);"></div>
+          radial-gradient(ellipse 800px 400px at 50% 30%, rgba(96, 165, 250, 0.04) 0%, transparent 60%);"></div>
       </div>
 
       <!-- How It Works -->
