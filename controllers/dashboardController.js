@@ -350,11 +350,6 @@ const buildDashboardTemplate = (data) => {
         </nav>
     </aside>
 
-    <!-- Mobile Sidebar Toggle Button -->
-    <button id="sidebar-toggle" class="md:hidden fixed left-4 top-20 z-50 w-10 h-10 bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg flex items-center justify-center text-gray-400 hover:text-brand hover:border-brand transition-all shadow-lg">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-    </button>
-
     <!-- Mobile Sidebar Overlay -->
     <div id="sidebar-overlay" class="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-30 hidden"></div>
 
@@ -362,14 +357,20 @@ const buildDashboardTemplate = (data) => {
     <main class="dashboard-content">
         <!-- Dashboard Header -->
         <header class="flex flex-col gap-4 mb-8">
-            <div>
-                <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand text-opacity-70 mb-2">
-                    <span class="w-1.5 h-1.5 bg-brand rounded-full animate-pulse"></span>
-                    Live Connection Established
+            <div class="flex items-center gap-4">
+                <!-- Mobile Sidebar Toggle - inline in header -->
+                <button id="sidebar-toggle" class="md:hidden w-10 h-10 bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg flex items-center justify-center text-gray-400 hover:text-brand hover:border-brand transition-all shadow-lg flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+                <div>
+                    <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand text-opacity-70 mb-2">
+                        <span class="w-1.5 h-1.5 bg-brand rounded-full animate-pulse"></span>
+                        Live Connection Established
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-white uppercase tracking-tight">
+                        Dashboard
+                    </h2>
                 </div>
-                <h2 class="text-2xl md:text-3xl font-bold text-white uppercase tracking-tight">
-                    Dashboard
-                </h2>
             </div>
             <div class="flex items-center gap-4">
                 <div class="border-r border-white border-opacity-5 pr-4 mr-4">
