@@ -277,13 +277,27 @@ ${getHTMLHead('Terms of Service - Basement')}
   `);
 };
 
-exports.showPricing = (req, res) => {
-  res.send(`
-${getHTMLHead('Pricing - Basement')}
-    ${getResponsiveNav(req)}
-    
-    <main class="bg-black min-h-screen pt-24 pb-16">
-      <!-- Free Trial Banner -->
+exports.showPricing = async (req, res) => {
+  // Check if user is logged in and has used trial
+  let trialUsed = false;
+  let isLoggedIn = !!req.session.userId;
+  
+  if (isLoggedIn) {
+    try {
+      const result = await pool.query('SELECT trial_used FROM users WHERE id = $1', [req.session.userId]);
+      if (result.rows.length > 0) {
+        trialUsed = result.rows[0].trial_used;
+      }
+    } catch (err) {
+      console.error('Error checking trial status:', err);
+    }
+  }
+  
+  // Build trial banner based on state
+  let trialBanner = '';
+  if (!isLoggedIn) {
+    // Not logged in - show register link
+    trialBanner = `
       <div class="max-w-2xl mx-auto mb-8 px-4">
         <div class="bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border border-blue-500/40 rounded-xl p-6 text-center">
           <div class="flex items-center justify-center gap-2 mb-2">
@@ -295,7 +309,32 @@ ${getHTMLHead('Pricing - Basement')}
             <svg class="ml-2 w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
           </a>
         </div>
-      </div>
+      </div>`;
+  } else if (!trialUsed) {
+    // Logged in but hasn't used trial - link to dashboard to start trial
+    trialBanner = `
+      <div class="max-w-2xl mx-auto mb-8 px-4">
+        <div class="bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border border-blue-500/40 rounded-xl p-6 text-center">
+          <div class="flex items-center justify-center gap-2 mb-2">
+            <span class="text-xl font-bold text-white">Try Free for 3 Days</span>
+          </div>
+          <p class="text-gray-300 text-sm mb-4">No credit card required. Get a real server instantly.</p>
+          <a href="/dashboard" class="inline-flex items-center px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-500 hover:scale-105 transition-all">
+            Start Free Trial
+            <svg class="ml-2 w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+          </a>
+        </div>
+      </div>`;
+  }
+  // If logged in AND trial used - no banner shown
+  
+  res.send(`
+${getHTMLHead('Pricing - Basement')}
+    ${getResponsiveNav(req)}
+    
+    <main class="bg-black min-h-screen pt-24 pb-16">
+      <!-- Free Trial Banner -->
+      ${trialBanner}
       
       <section class="py-12 px-4 text-center">
         <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4">Simple, Transparent Pricing</h1>
