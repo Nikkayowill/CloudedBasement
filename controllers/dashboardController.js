@@ -270,8 +270,9 @@ module.exports = { showDashboard: exports.showDashboard, submitSupportTicket, ch
 const buildDashboardTemplate = (data) => {
   return `
 <!-- Dashboard Sidebar (Tablet+: fixed left, Mobile: slide-out drawer) -->
-<aside id="dashboard-sidebar" class="fixed left-0 top-16 h-[calc(100vh-4rem)] w-48 bg-gray-900/95 backdrop-blur-md border-r border-gray-700/50 z-40 transform -translate-x-full sm:translate-x-0 transition-transform duration-300 shadow-xl shadow-black/20">
-    <nav class="flex flex-col py-6 h-full px-3">
+<aside id="dashboard-sidebar" class="fixed left-0 top-[4.5rem] h-[calc(100vh-4.5rem)] w-56 bg-gray-900/95 backdrop-blur-md border-r border-gray-700/50 z-40 transform -translate-x-full sm:translate-x-0 transition-transform duration-300 shadow-xl shadow-black/20">
+    <nav class="flex flex-col py-4 h-full px-3">
+        <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-3">Navigation</div>
         <ul class="space-y-1 flex flex-col flex-1">
             <li>
                 <a href="#server-status" class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-brand transition-all">
@@ -320,7 +321,7 @@ const buildDashboardTemplate = (data) => {
 </aside>
 
 <!-- Mobile Sidebar Toggle Button (only on phones) -->
-<button id="sidebar-toggle" class="sm:hidden fixed left-4 top-20 z-50 w-10 h-10 bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg flex items-center justify-center text-gray-400 hover:text-brand hover:border-brand transition-all shadow-lg">
+<button id="sidebar-toggle" class="sm:hidden fixed left-4 top-[4.75rem] z-50 w-10 h-10 bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg flex items-center justify-center text-gray-400 hover:text-brand hover:border-brand transition-all shadow-lg">
     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
 </button>
 
@@ -328,9 +329,9 @@ const buildDashboardTemplate = (data) => {
 <div id="sidebar-overlay" class="sm:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-30 hidden"></div>
 
 <!-- Main Content -->
-<main class="flex-1 sm:ml-48 px-4 sm:px-6 md:px-8 lg:px-12 pt-24 pb-12 bg-black">
+<main class="flex-1 sm:ml-56 px-2 sm:px-4 md:px-6 lg:px-10 pt-20 sm:pt-24 pb-12 bg-black">
     <!-- Header -->
-    <div class="max-w-6xl mx-auto px-8 md:px-12 lg:px-16">
+    <div class="max-w-6xl mx-auto px-2 sm:px-4 md:px-8 lg:px-12">
     <header class="flex flex-col gap-6 mb-12">
         <div>
             <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand text-opacity-70 mb-2">
