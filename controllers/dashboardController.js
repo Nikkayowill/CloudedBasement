@@ -436,30 +436,26 @@ const buildDashboardTemplate = (data) => {
     
     ${data.hasServer && !data.dismissedNextSteps ? `
     <!-- Next Steps Banner -->
-    <div id="nextStepsBanner" class="bg-gradient-to-r from-brand to-cyan-600 rounded-lg p-4 md:p-6 mb-6 border border-brand shadow-lg">
-        <div class="flex flex-col sm:flex-row items-start justify-between gap-4">
+    <div id="nextStepsBanner" class="bg-gradient-to-r from-brand to-cyan-600 rounded-lg p-4 md:p-6 mb-6 border border-brand shadow-lg" data-csrf="${data.csrfToken}">
+        <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
-                <h3 class="text-lg md:text-xl font-bold text-white mb-4">Server Online - Ready to Deploy!</h3>
+                <h3 class="text-lg font-bold text-white mb-3">🚀 Server Online - Ready to Deploy!</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div class="bg-gray-900 bg-opacity-40 rounded-lg p-3 backdrop-blur border border-white border-opacity-10">
+                    <div class="bg-black bg-opacity-30 rounded-lg p-3 border border-white border-opacity-10">
                         <div class="text-white font-bold mb-1 text-sm">1. Deploy with Git</div>
-                        <p class="text-white text-opacity-80 text-xs">Paste your repo URL below for automatic setup</p>
+                        <p class="text-white text-opacity-70 text-xs">Paste your repo URL below for automatic setup</p>
                     </div>
-                    <div class="bg-gray-900 bg-opacity-40 rounded-lg p-4 backdrop-blur border border-white border-opacity-10">
-                        <div class="text-white font-bold mb-2 flex items-center gap-2">
-                            <span class="text-xl">2️⃣</span> Connect via SSH
-                    </div>
-                    <div class="bg-gray-900 bg-opacity-40 rounded-lg p-3 backdrop-blur border border-white border-opacity-10">
+                    <div class="bg-black bg-opacity-30 rounded-lg p-3 border border-white border-opacity-10">
                         <div class="text-white font-bold mb-1 text-sm">2. Connect via SSH</div>
-                        <p class="text-white text-opacity-80 text-xs">See SSH Access section for credentials</p>
+                        <p class="text-white text-opacity-70 text-xs">See SSH Access section for credentials</p>
                     </div>
-                    <div class="bg-gray-900 bg-opacity-40 rounded-lg p-3 backdrop-blur border border-white border-opacity-10">
+                    <div class="bg-black bg-opacity-30 rounded-lg p-3 border border-white border-opacity-10">
                         <div class="text-white font-bold mb-1 text-sm">3. Add Domain + SSL</div>
-                        <p class="text-white text-opacity-80 text-xs">Point DNS → one-click free SSL certificate</p>
+                        <p class="text-white text-opacity-70 text-xs">Point DNS → one-click free SSL certificate</p>
                     </div>
                 </div>
             </div>
-            <button onclick="dismissNextSteps()" class="text-white hover:text-gray-200 text-2xl font-bold leading-none px-2 shrink-0">&times;</button>
+            <button onclick="dismissNextSteps()" class="text-white hover:text-white hover:bg-black hover:bg-opacity-20 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold shrink-0 transition-colors" title="Dismiss">&times;</button>
         </div>
     </div>
     ` : ''}
