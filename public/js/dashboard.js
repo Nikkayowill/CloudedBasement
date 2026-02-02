@@ -60,12 +60,18 @@ function toggleDeploymentLog(deploymentId) {
 // Dismiss next steps banner
 async function dismissNextSteps() {
     try {
+        const banner = document.getElementById('nextStepsBanner');
+        const csrfToken = banner?.dataset.csrf;
+        
         const response = await fetch('/dashboard/dismiss-next-steps', { 
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 
+                'Content-Type': 'application/json',
+                'CSRF-Token': csrfToken
+            },
+            body: JSON.stringify({ _csrf: csrfToken })
         });
         if (response.ok) {
-            const banner = document.getElementById('nextStepsBanner');
             if (banner) {
                 banner.style.transition = 'opacity 0.3s';
                 banner.style.opacity = '0';
@@ -74,6 +80,9 @@ async function dismissNextSteps() {
         }
     } catch (error) {
         console.error('Error dismissing banner:', error);
+        // Still hide it visually even if API fails
+        const banner = document.getElementById('nextStepsBanner');
+        if (banner) banner.remove();
     }
 }
 
