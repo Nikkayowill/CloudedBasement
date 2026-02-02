@@ -30,6 +30,7 @@ const pool = require('./db');
 const { getHTMLHead, getDashboardHead, getScripts, getFooter, getAuthLinks, getResponsiveNav } = require('./helpers');
 const { createRealServer: createRealServerService, syncDigitalOceanDroplets: syncDigitalOceanDropletsService } = require('./services/digitalocean');
 const { monitorSubscriptions } = require('./services/subscriptionMonitor');
+const { checkAndProvisionSSL } = require('./services/autoSSL');
 const { sendServerRequestEmail } = require('./services/email');
 const { requireAuth, requireAdmin } = require('./middleware/auth');
 const { generalLimiter, contactLimiter, paymentLimiter, emailVerifyLimiter, deploymentLimiter } = require('./middleware/rateLimiter');
@@ -505,6 +506,12 @@ setInterval(monitorSubscriptions, 6 * 60 * 60 * 1000);
 
 // Run subscription monitor on startup (after 60 seconds)
 setTimeout(monitorSubscriptions, 60000);
+
+// Auto-SSL: Check every 5 minutes for domains ready for SSL
+setInterval(checkAndProvisionSSL, 5 * 60 * 1000);
+
+// Run auto-SSL check on startup (after 2 minutes to let server initialize)
+setTimeout(checkAndProvisionSSL, 2 * 60 * 1000);
 
 // Global error handler (must be last)
 app.use(errorHandler);

@@ -1235,26 +1235,48 @@ async function triggerSSLCertificateForCustomer(serverId, domain, server) {
         let stderr = '';
         
         stream.on('close', async (code) => {
-          conn.end();
-          
           console.log(`[SSL] Certbot finished for ${domain}, exit code: ${code}`);
           console.log(`[SSL] stdout: ${stdout.substring(0, 500)}`);
           console.log(`[SSL] stderr: ${stderr.substring(0, 500)}`);
           
           try {
             if (stdout.includes('Congratulations') || stderr.includes('Congratulations') || stdout.includes('Successfully received certificate') || stderr.includes('Successfully received certificate')) {
-              // Certificate generated successfully - update domains table
-              await pool.query(
-                'UPDATE domains SET ssl_enabled = true WHERE domain = $1',
-                [domain]
-              );
-              console.log(`[SSL] Certificate activated for ${domain} on server ${serverId}`);
-              resolve();
+              // Certificate generated successfully - now configure reverse proxy for the domain
+              console.log(`[SSL] Certificate success, configuring reverse proxy for ${domain}`);
+              
+              // Simple sed: replace "location / {" with proxy config in the SSL block for this domain
+              // Certbot adds a server block, we need to replace its location / with our proxy
+              const fixProxyCmd = `sed -i '/${domain}/,/location \\/ {/{ s|location / {|location / {\\n        proxy_pass http://127.0.0.1:3000;\\n        proxy_http_version 1.1;\\n        proxy_set_header Host \\$host;\\n        proxy_set_header X-Real-IP \\$remote_addr;\\n        proxy_set_header X-Forwarded-For \\$proxy_add_x_forwarded_for;\\n        proxy_set_header X-Forwarded-Proto \\$scheme;\\n        proxy_cache_bypass \\$http_upgrade;| }' /etc/nginx/sites-available/default && nginx -t && systemctl reload nginx`;
+              
+              conn.exec(fixProxyCmd, { timeout: 30000 }, (proxyErr, proxyStream) => {
+                let proxyOut = '';
+                let proxyErrOut = '';
+                
+                proxyStream.on('close', async (proxyCode) => {
+                  conn.end();
+                  
+                  if (proxyCode === 0) {
+                    console.log(`[SSL] Reverse proxy configured for ${domain}`);
+                  } else {
+                    console.error(`[SSL] Reverse proxy config may have failed (code ${proxyCode}): ${proxyErrOut}`);
+                  }
+                  
+                  // Update domains table - SSL cert is working
+                  await pool.query('UPDATE domains SET ssl_enabled = true WHERE domain = $1', [domain]);
+                  console.log(`[SSL] Certificate activated for ${domain} on server ${serverId}`);
+                  resolve();
+                });
+                
+                proxyStream.on('data', (data) => { proxyOut += data.toString(); });
+                proxyStream.stderr.on('data', (data) => { proxyErrOut += data.toString(); });
+              });
             } else {
+              conn.end();
               console.error(`[SSL] Certbot did not succeed. Code: ${code}, stdout: ${stdout}, stderr: ${stderr}`);
               throw new Error('Certbot command did not complete successfully');
             }
           } catch (dbError) {
+            conn.end();
             reject(dbError);
           }
         });
