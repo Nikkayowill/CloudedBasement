@@ -860,3 +860,193 @@ input:focus, textarea:focus, select:focus {
     position: relative;
     z-index: 2;
 }
+/* ============================================
+   DASHBOARD - CSS GRID LAYOUT
+   Template-inspired grid with 300px sidebar
+   ============================================ */
+
+.dashboard-grid {
+    display: grid;
+    width: 100%;
+    min-height: 100vh;
+    grid-gap: 0;
+    grid-template-columns: 300px 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas: 
+        'sidebar header'
+        'sidebar content';
+    background: #000;
+}
+
+/* Mobile: stack vertically */
+@media (max-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+        grid-template-areas: 
+            'header'
+            'content';
+    }
+}
+
+.dashboard-sidebar {
+    grid-area: sidebar;
+    background: linear-gradient(180deg, rgba(17, 17, 24, 0.98) 0%, rgba(10, 10, 15, 0.99) 100%);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 80px; /* Account for fixed nav */
+    overflow-y: auto;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+}
+
+@media (max-width: 768px) {
+    .dashboard-sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 300px;
+        height: 100vh;
+        z-index: 40;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+    
+    .dashboard-sidebar.open {
+        transform: translateX(0);
+    }
+}
+
+.dashboard-header {
+    grid-area: header;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 80px;
+    margin-top: 60px; /* Account for fixed nav */
+}
+
+.dashboard-content {
+    grid-area: content;
+    padding: 2rem;
+    overflow-y: auto;
+    background: #000;
+}
+
+@media (max-width: 768px) {
+    .dashboard-content {
+        padding: 1rem;
+    }
+}
+
+/* Sidebar Navigation Sections */
+.sidebar-section {
+    display: block;
+    padding: 1.5rem 1.5rem 0;
+}
+
+.sidebar-section-title {
+    margin: 0 0 0.75rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--brand-blue);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+}
+
+.sidebar-nav-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-nav-list li {
+    margin: 0.25rem 0;
+}
+
+.sidebar-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 0.75rem;
+    color: #99a0b0;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.875rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.sidebar-nav-link svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.sidebar-nav-link:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-nav-link:hover svg {
+    opacity: 1;
+}
+
+.sidebar-nav-link.active {
+    color: var(--brand-blue);
+    background: rgba(135, 206, 250, 0.1);
+}
+
+.sidebar-nav-link.active svg {
+    opacity: 1;
+    color: var(--brand-blue);
+}
+
+/* Sidebar User Section */
+.sidebar-user {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--brand-blue), #60a5fa);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.sidebar-user-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.sidebar-user-name {
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-user-plan {
+    color: #99a0b0;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
