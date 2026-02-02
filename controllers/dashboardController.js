@@ -351,7 +351,7 @@ const buildDashboardTemplate = (data) => {
     </aside>
 
     <!-- Mobile Sidebar Toggle Button -->
-    <button id="sidebar-toggle" class="md:hidden fixed left-4 top-[4.75rem] z-50 w-10 h-10 bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg flex items-center justify-center text-gray-400 hover:text-brand hover:border-brand transition-all shadow-lg">
+    <button id="sidebar-toggle" class="md:hidden fixed left-4 top-20 z-50 w-10 h-10 bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg flex items-center justify-center text-gray-400 hover:text-brand hover:border-brand transition-all shadow-lg">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
     </button>
 
