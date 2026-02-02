@@ -268,93 +268,122 @@ module.exports = { showDashboard: exports.showDashboard, submitSupportTicket, ch
  * Advanced glassmorphic dashboard with resource monitoring
  */
 const buildDashboardTemplate = (data) => {
+  // Get user initial for avatar
+  const userInitial = data.userEmail ? data.userEmail.charAt(0).toUpperCase() : 'U';
+  const planDisplay = (data.plan || 'basic').toUpperCase();
+  
   return `
-<!-- Dashboard Sidebar (Tablet+: fixed left, Mobile: slide-out drawer) -->
-<aside id="dashboard-sidebar" class="fixed left-0 top-[4.5rem] h-[calc(100vh-4.5rem)] w-56 bg-gray-900/95 backdrop-blur-md border-r border-gray-700/50 z-40 transform -translate-x-full sm:translate-x-0 transition-transform duration-300 shadow-xl shadow-black/20">
-    <nav class="flex flex-col py-4 h-full px-3">
-        <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-3">Navigation</div>
-        <ul class="space-y-1 flex flex-col flex-1">
-            <li>
-                <a href="#server-status" class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-brand transition-all">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
-                    <span class="text-sm font-medium">Server</span>
-                </a>
-            </li>
-            <li>
-                <a href="#ssh-access" class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-brand transition-all">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                    <span class="text-sm font-medium">SSH Access</span>
-                </a>
-            </li>
-            <li>
-                <a href="#deploy" class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-brand transition-all">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                    <span class="text-sm font-medium">Deploy</span>
-                </a>
-            </li>
-            <li>
-                <a href="#databases" class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-brand transition-all">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
-                    <span class="text-sm font-medium">Databases</span>
-                </a>
-            </li>
-            <li>
-                <a href="#domains" class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-brand transition-all">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
-                    <span class="text-sm font-medium">Domains</span>
-                </a>
-            </li>
-            <li>
-                <a href="#support" class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-brand transition-all">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                    <span class="text-sm font-medium">Support</span>
-                </a>
-            </li>
-            <li>
-                <a href="#settings" class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-brand transition-all">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    <span class="text-sm font-medium">Settings</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-</aside>
-
-<!-- Mobile Sidebar Toggle Button (only on phones) -->
-<button id="sidebar-toggle" class="sm:hidden fixed left-4 top-[4.75rem] z-50 w-10 h-10 bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg flex items-center justify-center text-gray-400 hover:text-brand hover:border-brand transition-all shadow-lg">
-    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-</button>
-
-<!-- Mobile Sidebar Overlay (only on phones) -->
-<div id="sidebar-overlay" class="sm:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-30 hidden"></div>
-
-<!-- Main Content -->
-<main class="flex-1 sm:ml-56 px-2 sm:px-4 md:px-6 lg:px-10 pt-20 sm:pt-24 pb-12 bg-black">
-    <!-- Header -->
-    <div class="max-w-6xl mx-auto px-2 sm:px-4 md:px-8 lg:px-12">
-    <header class="flex flex-col gap-6 mb-12">
-        <div>
-            <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand text-opacity-70 mb-2">
-                <span class="w-1.5 h-1.5 bg-brand rounded-full animate-pulse"></span>
-                Live Connection Established
-            </div>
-            <h2 class="text-3xl font-bold text-white uppercase tracking-tight">
-                Dashboard
-            </h2>
-        </div>
-        <div class="flex items-center gap-4">
-            <div class="border-r border-white border-opacity-5 pr-4 mr-4">
-                <p class="text-xs text-gray-500 uppercase">Local Time</p>
-                <p class="text-sm font-bold text-white font-mono" id="clock">00:00:00</p>
+<!-- Dashboard Grid Layout -->
+<div class="dashboard-grid">
+    <!-- Sidebar -->
+    <aside id="dashboard-sidebar" class="dashboard-sidebar">
+        <!-- User Section -->
+        <div class="sidebar-user">
+            <div class="sidebar-user-avatar">${userInitial}</div>
+            <div class="sidebar-user-info">
+                <div class="sidebar-user-name">${escapeHtml(data.userEmail || 'User')}</div>
+                <div class="sidebar-user-plan">${planDisplay} Plan</div>
             </div>
         </div>
-    </header>
+        
+        <!-- Server Section -->
+        <nav class="sidebar-section">
+            <h3 class="sidebar-section-title">Server</h3>
+            <ul class="sidebar-nav-list">
+                <li>
+                    <a href="#server-status" class="sidebar-nav-link">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
+                        Overview
+                    </a>
+                </li>
+                <li>
+                    <a href="#ssh-access" class="sidebar-nav-link">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        SSH Access
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <!-- Deploy Section -->
+        <nav class="sidebar-section">
+            <h3 class="sidebar-section-title">Deploy</h3>
+            <ul class="sidebar-nav-list">
+                <li>
+                    <a href="#deploy" class="sidebar-nav-link">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                        Git Deploy
+                    </a>
+                </li>
+                <li>
+                    <a href="#databases" class="sidebar-nav-link">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
+                        Databases
+                    </a>
+                </li>
+                <li>
+                    <a href="#domains" class="sidebar-nav-link">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                        Domains & SSL
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <!-- Account Section -->
+        <nav class="sidebar-section">
+            <h3 class="sidebar-section-title">Account</h3>
+            <ul class="sidebar-nav-list">
+                <li>
+                    <a href="#support" class="sidebar-nav-link">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                        Support
+                    </a>
+                </li>
+                <li>
+                    <a href="#settings" class="sidebar-nav-link">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        Settings
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Mobile Sidebar Toggle Button -->
+    <button id="sidebar-toggle" class="md:hidden fixed left-4 top-[4.75rem] z-50 w-10 h-10 bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg flex items-center justify-center text-gray-400 hover:text-brand hover:border-brand transition-all shadow-lg">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebar-overlay" class="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-30 hidden"></div>
+
+    <!-- Main Content Area -->
+    <main class="dashboard-content">
+        <!-- Dashboard Header -->
+        <header class="flex flex-col gap-4 mb-8">
+            <div>
+                <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand text-opacity-70 mb-2">
+                    <span class="w-1.5 h-1.5 bg-brand rounded-full animate-pulse"></span>
+                    Live Connection Established
+                </div>
+                <h2 class="text-2xl md:text-3xl font-bold text-white uppercase tracking-tight">
+                    Dashboard
+                </h2>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="border-r border-white border-opacity-5 pr-4 mr-4">
+                    <p class="text-xs text-gray-500 uppercase">Local Time</p>
+                    <p class="text-sm font-bold text-white font-mono" id="clock">00:00:00</p>
+                </div>
+            </div>
+        </header>
 
     ${!data.emailConfirmed ? `
     <!-- Email Verification Top Bar -->
-    <div class="bg-gradient-to-r from-yellow-600 to-orange-500 border-b border-yellow-700 shadow-lg">
-      <div class="max-w-6xl mx-auto px-8 py-3">
-        <div class="flex items-center justify-between gap-4">
+    <div class="bg-gradient-to-r from-yellow-600 to-orange-500 border-b border-yellow-700 shadow-lg rounded-lg mb-6">
+      <div class="px-4 py-3">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div class="flex items-center gap-3">
             <svg class="w-5 h-5 text-white flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
@@ -366,7 +395,7 @@ const buildDashboardTemplate = (data) => {
           <form id="verifyForm" action="/verify-email" method="POST" class="flex items-center gap-2">
             <input type="text" name="code" maxlength="6" pattern="[0-9]{6}" required
               placeholder="000000"
-              class="w-32 px-3 py-1.5 bg-white bg-opacity-20 backdrop-blur border border-white border-opacity-30 rounded text-white font-mono text-center text-sm tracking-wider placeholder-white placeholder-opacity-50 focus:bg-opacity-30 focus:border-white focus:outline-none">
+              class="w-24 px-3 py-1.5 bg-white bg-opacity-20 backdrop-blur border border-white border-opacity-30 rounded text-white font-mono text-center text-sm tracking-wider placeholder-white placeholder-opacity-50 focus:bg-opacity-30 focus:border-white focus:outline-none">
             <button type="submit" class="px-4 py-1.5 bg-white text-orange-600 font-bold text-sm rounded hover:bg-opacity-90 transition-colors whitespace-nowrap">
               Verify
             </button>
@@ -385,7 +414,7 @@ const buildDashboardTemplate = (data) => {
           const res = await fetch('/resend-code', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
           const data = await res.json();
           if (data.success) {
-            this.textContent = '✓ Sent!';
+            this.textContent = 'Sent!';
             setTimeout(() => { this.textContent = 'Resend'; this.disabled = false; }, 3000);
           } else {
             this.textContent = 'Failed';
@@ -399,67 +428,61 @@ const buildDashboardTemplate = (data) => {
     </script>
     ` : ''}
 
+
     <!-- Alerts -->
-    ${data.flashSuccess ? `<div class="bg-green-900 border border-green-700 text-green-300 px-6 py-4 rounded-lg mb-6 flex items-center justify-between">${data.flashSuccess}<button onclick="this.parentElement.style.display='none'" class="ml-4 text-green-300 hover:text-green-100 font-bold text-xl">&times;</button></div>` : ''}
-    ${data.flashError ? `<div class="bg-red-900 border border-red-700 text-red-300 px-6 py-4 rounded-lg mb-6 flex items-center justify-between">${data.flashError}<button onclick="this.parentElement.style.display='none'" class="ml-4 text-red-300 hover:text-red-100 font-bold text-xl">&times;</button></div>` : ''}
+    ${data.flashSuccess ? `<div class="bg-green-900 border border-green-700 text-green-300 px-4 py-3 rounded-lg mb-6 flex items-center justify-between text-sm">${data.flashSuccess}<button onclick="this.parentElement.style.display='none'" class="ml-4 text-green-300 hover:text-green-100 font-bold text-xl">&times;</button></div>` : ''}
+    ${data.flashError ? `<div class="bg-red-900 border border-red-700 text-red-300 px-4 py-3 rounded-lg mb-6 flex items-center justify-between text-sm">${data.flashError}<button onclick="this.parentElement.style.display='none'" class="ml-4 text-red-300 hover:text-red-100 font-bold text-xl">&times;</button></div>` : ''}
     
     ${data.hasServer && !data.dismissedNextSteps ? `
     <!-- Next Steps Banner -->
-    <div id="nextStepsBanner" class="bg-gradient-to-r from-brand to-cyan-600 rounded-lg p-6 mb-8 border-2 border-brand shadow-lg">
+    <div id="nextStepsBanner" class="bg-gradient-to-r from-brand to-cyan-600 rounded-lg p-4 md:p-6 mb-6 border border-brand shadow-lg">
         <div class="flex flex-col sm:flex-row items-start justify-between gap-4">
             <div class="flex-1">
-                <div class="flex items-center gap-3 mb-4">
-                    <h3 class="text-xl sm:text-2xl font-bold text-white">Server Online - Ready to Deploy!</h3>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div class="bg-gray-900 bg-opacity-40 rounded-lg p-4 backdrop-blur border border-white border-opacity-10">
-                        <div class="text-white font-bold mb-2 flex items-center gap-2">
-                            <span class="text-xl">1️⃣</span> Deploy with Git
-                        </div>
-                        <p class="text-white text-opacity-90 text-sm">Scroll down to Deployment section → paste your repo URL → automatic setup</p>
+                <h3 class="text-lg md:text-xl font-bold text-white mb-4">Server Online - Ready to Deploy!</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div class="bg-gray-900 bg-opacity-40 rounded-lg p-3 backdrop-blur border border-white border-opacity-10">
+                        <div class="text-white font-bold mb-1 text-sm">1. Deploy with Git</div>
+                        <p class="text-white text-opacity-80 text-xs">Paste your repo URL below for automatic setup</p>
                     </div>
                     <div class="bg-gray-900 bg-opacity-40 rounded-lg p-4 backdrop-blur border border-white border-opacity-10">
                         <div class="text-white font-bold mb-2 flex items-center gap-2">
                             <span class="text-xl">2️⃣</span> Connect via SSH
-                        </div>
-                        <p class="text-white text-opacity-90 text-sm">See SSH Access section below for credentials and connection command</p>
                     </div>
-                    <div class="bg-gray-900 bg-opacity-40 rounded-lg p-4 backdrop-blur border border-white border-opacity-10">
-                        <div class="text-white font-bold mb-2 flex items-center gap-2">
-                            <span class="text-xl">3️⃣</span> Add Domain + SSL
-                        </div>
-                        <p class="text-white text-opacity-90 text-sm">Custom Domains section → point DNS → one-click free SSL certificate</p>
+                    <div class="bg-gray-900 bg-opacity-40 rounded-lg p-3 backdrop-blur border border-white border-opacity-10">
+                        <div class="text-white font-bold mb-1 text-sm">2. Connect via SSH</div>
+                        <p class="text-white text-opacity-80 text-xs">See SSH Access section for credentials</p>
+                    </div>
+                    <div class="bg-gray-900 bg-opacity-40 rounded-lg p-3 backdrop-blur border border-white border-opacity-10">
+                        <div class="text-white font-bold mb-1 text-sm">3. Add Domain + SSL</div>
+                        <p class="text-white text-opacity-80 text-xs">Point DNS → one-click free SSL certificate</p>
                     </div>
                 </div>
-                <p class="text-white text-sm font-medium">First time? Git deployment is the easiest way to get started!</p>
             </div>
-            <button onclick="dismissNextSteps()" class="text-white hover:text-gray-200 text-3xl font-bold leading-none px-2 shrink-0">×</button>
+            <button onclick="dismissNextSteps()" class="text-white hover:text-gray-200 text-2xl font-bold leading-none px-2 shrink-0">&times;</button>
         </div>
     </div>
     ` : ''}
 
-    <!-- Main Content Grid -->
-    <div class="max-w-6xl mx-auto px-8 md:px-12 lg:px-16 space-y-6">
+    <!-- Content Sections -->
+    <div class="space-y-6">
         ${(data.hasServer || data.isProvisioning) ? `
         <div id="server-status" class="bg-gray-800 rounded-lg overflow-hidden scroll-mt-24" data-server-status="${data.serverStatus}">
-            <div class="px-6 py-4 border-b border-gray-700 bg-gray-900 bg-opacity-40">
+            <div class="px-4 py-3 border-b border-gray-700 bg-gray-900 bg-opacity-40">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        ${data.serverStatus === 'running' ? '<svg class="w-5 h-5 text-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>' : data.serverStatus === 'provisioning' ? '<svg class="animate-spin h-5 w-5 text-brand drop-shadow-[0_0_10px_rgba(45,167,223,0.8)]" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><circle class="opacity-75" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" stroke-dasharray="32" stroke-dashoffset="16"></circle></svg>' : '<div class="w-2 h-2 rounded-full bg-gray-500 shadow-lg"></div>'}
+                        ${data.serverStatus === 'running' ? '<svg class="w-4 h-4 text-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>' : data.serverStatus === 'provisioning' ? '<svg class="animate-spin h-4 w-4 text-brand drop-shadow-[0_0_10px_rgba(45,167,223,0.8)]" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><circle class="opacity-75" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" stroke-dasharray="32" stroke-dashoffset="16"></circle></svg>' : '<div class="w-2 h-2 rounded-full bg-gray-500 shadow-lg"></div>'}
                         <h4 class="text-sm font-bold uppercase tracking-wide text-white">
-                            Instance Core: <span class="text-brand">${data.serverName}</span>
+                            Instance: <span class="text-brand">${data.serverName}</span>
                         </h4>
                     </div>
-                    <div class="flex gap-2">
-                        <button onclick="refreshDashboard()" class="p-2 border border-white border-opacity-5 bg-transparent hover:bg-white hover:bg-opacity-5 text-brand rounded transition-transform hover:rotate-180" title="Refresh Dashboard">⟳</button>
-                    </div>
+                    <button onclick="refreshDashboard()" class="p-2 border border-white border-opacity-5 bg-transparent hover:bg-white hover:bg-opacity-5 text-brand rounded transition-transform hover:rotate-180 text-sm" title="Refresh">&#8635;</button>
                 </div>
             </div>
-            <div class="p-6">
+            <div class="p-4">
                 ${data.isProvisioning && !data.hasServer ? `
                 <!-- Provisioning Banner -->
-                <div class="bg-brand bg-opacity-10 border-2 border-brand rounded-lg p-6 mb-6 text-center">
-                    <svg class="animate-spin h-12 w-12 text-brand mx-auto mb-4" fill="none" viewBox="0 0 24 24">
+                <div class="bg-brand bg-opacity-10 border border-brand rounded-lg p-4 mb-4 text-center">
+                    <svg class="animate-spin h-10 w-10 text-brand mx-auto mb-3" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <circle class="opacity-75" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" stroke-dasharray="32" stroke-dashoffset="16"></circle>
                     </svg>
@@ -1088,7 +1111,9 @@ db = client['${data.mongodbCredentials.dbName}']</code></pre>
         </div>
     </div>
     </div>
-</main>
+    </main>
+</div><!-- End dashboard-grid -->
+
 
 <!-- Cancel Plan Confirmation Modal -->
 <div id="terminate-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 z-50 flex justify-center items-center">
@@ -1263,31 +1288,31 @@ const sidebarToggle = document.getElementById('sidebar-toggle');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
 
 function openSidebar() {
-    sidebar.classList.remove('-translate-x-full');
+    sidebar.classList.add('open');
     sidebarOverlay.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 }
 
 function closeSidebar() {
-    sidebar.classList.add('-translate-x-full');
+    sidebar.classList.remove('open');
     sidebarOverlay.classList.add('hidden');
     document.body.style.overflow = '';
 }
 
 sidebarToggle?.addEventListener('click', () => {
-    if (sidebar.classList.contains('-translate-x-full')) {
-        openSidebar();
-    } else {
+    if (sidebar.classList.contains('open')) {
         closeSidebar();
+    } else {
+        openSidebar();
     }
 });
 
 sidebarOverlay?.addEventListener('click', closeSidebar);
 
 // Close sidebar on link click (mobile)
-document.querySelectorAll('.sidebar-link').forEach(link => {
+document.querySelectorAll('.sidebar-nav-link').forEach(link => {
     link.addEventListener('click', () => {
-        if (window.innerWidth < 640) { // sm breakpoint
+        if (window.innerWidth < 768) { // md breakpoint
             closeSidebar();
         }
     });
@@ -1295,7 +1320,7 @@ document.querySelectorAll('.sidebar-link').forEach(link => {
 
 // Scroll-spy: highlight active section
 const sections = ['server-status', 'ssh-access', 'deploy', 'databases', 'domains', 'support', 'settings'];
-const sidebarLinks = document.querySelectorAll('.sidebar-link');
+const sidebarLinks = document.querySelectorAll('.sidebar-nav-link');
 
 function updateActiveSection() {
     let current = '';
@@ -1311,11 +1336,9 @@ function updateActiveSection() {
     sidebarLinks.forEach(link => {
         const href = link.getAttribute('href');
         if (href === '#' + current) {
-            link.classList.add('bg-gray-800', 'text-brand');
-            link.classList.remove('text-gray-400');
+            link.classList.add('active');
         } else {
-            link.classList.remove('bg-gray-800', 'text-brand');
-            link.classList.add('text-gray-400');
+            link.classList.remove('active');
         }
     });
 }
