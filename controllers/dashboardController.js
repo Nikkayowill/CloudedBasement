@@ -461,15 +461,16 @@ const buildDashboardTemplate = (data) => {
     ` : ''}
 
     <!-- Content Sections -->
-    <div class="space-y-6">
+    <div class="space-y-8">
         ${(data.hasServer || data.isProvisioning) ? `
+        <!-- OVERVIEW SECTION -->
         <div id="server-status" class="bg-gray-800 rounded-lg overflow-hidden scroll-mt-24" data-server-status="${data.serverStatus}">
             <div class="px-4 py-3 border-b border-gray-700 bg-gray-900 bg-opacity-40">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         ${data.serverStatus === 'running' ? '<svg class="w-4 h-4 text-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>' : data.serverStatus === 'provisioning' ? '<svg class="animate-spin h-4 w-4 text-brand drop-shadow-[0_0_10px_rgba(45,167,223,0.8)]" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><circle class="opacity-75" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" stroke-dasharray="32" stroke-dashoffset="16"></circle></svg>' : '<div class="w-2 h-2 rounded-full bg-gray-500 shadow-lg"></div>'}
                         <h4 class="text-sm font-bold uppercase tracking-wide text-white">
-                            Instance: <span class="text-brand">${data.serverName}</span>
+                            Overview — <span class="text-brand">${data.serverName}</span>
                         </h4>
                     </div>
                     <button onclick="refreshDashboard()" class="p-2 border border-white border-opacity-5 bg-transparent hover:bg-white hover:bg-opacity-5 text-brand rounded transition-transform hover:rotate-180 text-sm" title="Refresh">&#8635;</button>
@@ -533,8 +534,9 @@ const buildDashboardTemplate = (data) => {
 
         ${data.hasServer ? `
         <!-- SSH Access Card -->
+        <!-- SSH ACCESS SECTION -->
         <div id="ssh-access" class="bg-gray-800 rounded-lg p-6 scroll-mt-24">
-            <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-6">🔒 SSH Access</h4>
+            <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-6">SSH Access</h4>
             <p class="text-xs text-gray-500 mb-4">Use these credentials to connect to your server via SSH:</p>
             
             <div class="space-y-4">
@@ -595,8 +597,9 @@ const buildDashboardTemplate = (data) => {
         `}
 
         <!-- Deploy from GitHub -->
+        <!-- GIT DEPLOY SECTION -->
         <div id="deploy" class="bg-gray-800 rounded-lg p-6 scroll-mt-24">
-            <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-6">Deploy from GitHub</h4>
+            <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-6">Git Deploy</h4>
             ${data.hasServer ? `
             <form action="/deploy" method="POST" class="mb-4">
                 <input type="hidden" name="_csrf" value="${data.csrfToken}">
@@ -737,6 +740,7 @@ const buildDashboardTemplate = (data) => {
         ` : ''}
 
         <!-- Database Status -->
+        <!-- DATABASES SECTION -->
         <div id="databases" class="bg-gray-800 rounded-lg p-6 scroll-mt-24">
             <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-6">Databases</h4>
             ${data.hasServer ? `
@@ -933,8 +937,9 @@ db = client['${data.mongodbCredentials.dbName}']</code></pre>
         </div>
 
         <!-- Custom Domains -->
+        <!-- DOMAINS & SSL SECTION -->
         <div id="domains" class="bg-gray-800 rounded-lg p-6 scroll-mt-24">
-            <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-6">Custom Domains</h4>
+            <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-6">Domains & SSL</h4>
             
             ${data.ipAddress ? `
             <!-- DNS Configuration Instructions (Collapsible) -->
@@ -1061,9 +1066,10 @@ db = client['${data.mongodbCredentials.dbName}']</code></pre>
         </div>
 
         <!-- Support Tickets -->
+        <!-- SUPPORT SECTION -->
         <div id="support" class="bg-gray-800 rounded-lg p-6 scroll-mt-24">
             <div class="flex justify-between items-center mb-6">
-                <h4 class="text-sm font-bold uppercase tracking-wide text-white">Support Tickets</h4>
+                <h4 class="text-sm font-bold uppercase tracking-wide text-white">Support</h4>
                 <button onclick="openSubmitTicketModal()" class="px-4 py-2 bg-brand bg-opacity-90 text-black font-bold text-xs rounded-lg hover:bg-brand transition-colors">+ New</button>
             </div>
             ${data.tickets.length > 0 ? `
@@ -1086,9 +1092,9 @@ db = client['${data.mongodbCredentials.dbName}']</code></pre>
             ` : '<p class="text-gray-500 text-xs italic">No support tickets. Click "New" to create one.</p>'}
         </div>
 
-        <!-- Account Settings -->
+        <!-- SETTINGS SECTION -->
         <div id="settings" class="bg-gray-800 rounded-lg p-6 scroll-mt-24">
-            <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-6">Account Settings</h4>
+            <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-6">Settings</h4>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                     <p class="text-xs text-gray-500 uppercase font-bold mb-2">Email</p>
