@@ -151,6 +151,7 @@ exports.showDashboard = async (req, res) => {
             sshPassword: server?.ssh_password || '',
             dropletName: server?.droplet_name || `basement-${userId}-unknown`,
             userId: userId,
+            serverId: server?.id || null,
             csrfToken,
             deployments: deploymentsResult.rows || [],
             domains: domains,
@@ -168,7 +169,10 @@ exports.showDashboard = async (req, res) => {
             mongodbCredentials,
             siteCount,
             siteLimit,
-            trialAvailable
+            trialAvailable,
+            // Auto-deploy fields
+            autoDeployEnabled: server?.auto_deploy_enabled === true,
+            githubWebhookSecret: server?.github_webhook_secret || null
         });
 
         res.send(`
@@ -313,6 +317,12 @@ const buildDashboardTemplate = (data) => {
                     <a href="#deploy" class="sidebar-nav-link">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                         Git Deploy
+                    </a>
+                </li>
+                <li>
+                    <a href="#auto-deploy" class="sidebar-nav-link">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        Auto-Deploy
                     </a>
                 </li>
                 <li>
@@ -665,6 +675,88 @@ const buildDashboardTemplate = (data) => {
             </div>
             `}
         </div>
+
+        <!-- Auto-Deploy Section (GitHub Webhooks) -->
+        ${data.hasServer ? `
+        <div id="auto-deploy" class="bg-gray-800 rounded-lg p-6 scroll-mt-24">
+            <div class="flex items-center justify-between mb-4">
+                <h4 class="text-sm font-bold uppercase tracking-wide text-white">Auto-Deploy</h4>
+                ${data.autoDeployEnabled ? 
+                    `<span class="px-2 py-1 bg-green-600 text-white text-xs font-bold rounded">ENABLED</span>` : 
+                    `<span class="px-2 py-1 bg-gray-600 text-white text-xs font-bold rounded">DISABLED</span>`
+                }
+            </div>
+            
+            ${data.autoDeployEnabled && data.githubWebhookSecret ? `
+            <!-- Enabled State: Show webhook details -->
+            <div class="bg-gray-900 rounded-lg p-4 mb-4">
+                <p class="text-gray-400 text-xs mb-3">Add this webhook to your GitHub repository to auto-deploy on every push to main/master:</p>
+                
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Webhook URL</label>
+                        <div class="flex items-center gap-2">
+                            <code class="flex-1 bg-black p-2 rounded text-green-400 text-xs font-mono break-all">https://cloudedbasement.ca/webhook/github/${data.serverId}</code>
+                            <button onclick="navigator.clipboard.writeText('https://cloudedbasement.ca/webhook/github/${data.serverId}')" class="px-3 py-2 bg-blue-600 text-white text-xs font-bold rounded hover:bg-blue-500">Copy</button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Secret</label>
+                        <div class="flex items-center gap-2">
+                            <code id="webhookSecret" class="flex-1 bg-black p-2 rounded text-green-400 text-xs font-mono">••••••••••••••••</code>
+                            <button onclick="toggleWebhookSecret()" class="px-3 py-2 bg-gray-700 text-white text-xs rounded hover:bg-gray-600">Show</button>
+                            <button onclick="navigator.clipboard.writeText('${data.githubWebhookSecret}')" class="px-3 py-2 bg-blue-600 text-white text-xs font-bold rounded hover:bg-blue-500">Copy</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4 p-3 bg-blue-900 bg-opacity-30 border border-blue-600 rounded text-xs text-blue-300">
+                    <strong>Setup Instructions:</strong>
+                    <ol class="list-decimal list-inside mt-2 space-y-1">
+                        <li>Go to your GitHub repo → Settings → Webhooks → Add webhook</li>
+                        <li>Paste the Webhook URL above</li>
+                        <li>Set Content type to <code class="bg-black px-1 rounded">application/json</code></li>
+                        <li>Paste the Secret above</li>
+                        <li>Select "Just the push event"</li>
+                        <li>Click "Add webhook"</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <form action="/disable-auto-deploy" method="POST">
+                <input type="hidden" name="_csrf" value="${data.csrfToken}">
+                <button type="submit" class="px-4 py-2 bg-red-600 text-white text-sm font-bold rounded hover:bg-red-700 transition-colors">Disable Auto-Deploy</button>
+            </form>
+            
+            <script>
+                function toggleWebhookSecret() {
+                    const el = document.getElementById('webhookSecret');
+                    if (el.textContent.includes('•')) {
+                        el.textContent = '${data.githubWebhookSecret}';
+                    } else {
+                        el.textContent = '••••••••••••••••';
+                    }
+                }
+            </script>
+            ` : `
+            <!-- Disabled State: Show enable button -->
+            <div class="bg-gray-900 rounded-lg p-4 mb-4">
+                <p class="text-gray-400 text-sm mb-3">🚀 <strong>Auto-deploy on git push</strong> — Every time you push to main/master, your site automatically redeploys.</p>
+                <ul class="text-gray-500 text-xs space-y-1 mb-4">
+                    <li>✓ No manual clicking "Redeploy"</li>
+                    <li>✓ Deploys in seconds after push</li>
+                    <li>✓ Secure webhook signature verification</li>
+                </ul>
+            </div>
+            
+            <form action="/enable-auto-deploy" method="POST">
+                <input type="hidden" name="_csrf" value="${data.csrfToken}">
+                <button type="submit" class="px-6 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-500 hover:shadow-[0_0_20px_rgba(34,197,94,0.6)] transition-all duration-300">Enable Auto-Deploy</button>
+            </form>
+            `}
+        </div>
+        ` : ''}
 
         <!-- Sites & Deployments - Clean Card Layout -->
         ${data.hasServer && data.deployments.length > 0 ? `
