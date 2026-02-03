@@ -1876,6 +1876,224 @@ exports.deleteDeployment = async (req, res) => {
   }
 };
 
+// ============================================
+// GITHUB AUTO-DEPLOY FUNCTIONS
+// Called by githubWebhookController when a push event is received
+// ============================================
+
+/**
+ * Trigger auto-deploy from GitHub webhook (server-wide, legacy)
+ * 
+ * Flow:
+ * 1. GitHub push event → webhook controller verifies signature
+ * 2. Webhook controller calls this function
+ * 3. Creates deployment record with 'pending' status
+ * 4. Triggers performDeployment asynchronously
+ * 5. Returns immediately so GitHub doesn't timeout
+ * 
+ * @param {Object} server - Server row from database
+ * @param {string} gitUrl - Repository URL to deploy
+ * @param {string} reason - Human-readable reason for deploy log
+ * @returns {Object} { deploymentId }
+ */
+exports.triggerAutoDeploy = async (server, gitUrl, reason = 'Auto-deploy') => {
+  const repoName = gitUrl.split('/').pop().replace('.git', '');
+  
+  // Create deployment record with pending status
+  const deployResult = await pool.query(
+    'INSERT INTO deployments (server_id, user_id, git_url, status, output) VALUES ($1, $2, $3, $4, $5) RETURNING id',
+    [server.id, server.user_id, gitUrl, 'pending', `🚀 ${reason}\nStarting deployment...`]
+  );
+
+  const deploymentId = deployResult.rows[0].id;
+  console.log(`[AUTO-DEPLOY] Deployment #${deploymentId} triggered: ${gitUrl}`);
+
+  // Perform deployment asynchronously (don't await - return immediately for GitHub)
+  setImmediate(() => {
+    performDeployment(server, gitUrl, repoName, deploymentId).catch(async (err) => {
+      console.error(`[AUTO-DEPLOY] Deployment #${deploymentId} failed:`, err);
+      try {
+        await pool.query(
+          'UPDATE deployments SET status = $1, output = $2, deployed_at = NOW() WHERE id = $3',
+          ['failed', `❌ Auto-deploy failed: ${err.message}`, deploymentId]
+        );
+      } catch (dbErr) {
+        console.error(`[AUTO-DEPLOY] Failed to update deployment status:`, dbErr);
+      }
+    });
+  });
+
+  return { deploymentId };
+};
+
+/**
+ * Trigger auto-deploy for a specific domain from GitHub webhook
+ * 
+ * This is for multi-site setups where each domain has its own repo.
+ * 
+ * Flow:
+ * 1. GitHub push → webhook with domainId in URL
+ * 2. Webhook controller verifies domain-specific secret
+ * 3. Calls this function with domain info
+ * 4. Deploys to /var/www/sites/{linked_subdomain}/
+ * 
+ * @param {Object} server - Server row from database  
+ * @param {Object} domain - Domain row from database (must have linked_subdomain)
+ * @param {string} gitUrl - Repository URL to deploy
+ * @param {string} reason - Human-readable reason for deploy log
+ * @returns {Object} { deploymentId }
+ */
+exports.triggerDomainAutoDeploy = async (server, domain, gitUrl, reason = 'Domain auto-deploy') => {
+  const repoName = gitUrl.split('/').pop().replace('.git', '');
+  
+  // Domain MUST have linked_subdomain to know where to deploy
+  if (!domain.linked_subdomain) {
+    throw new Error(`Domain ${domain.domain} has no linked subdomain - cannot determine deploy path`);
+  }
+  
+  // Create deployment record with domain_id
+  const deployResult = await pool.query(
+    `INSERT INTO deployments (server_id, user_id, git_url, status, output, subdomain, domain_id) 
+     VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+    [server.id, server.user_id, gitUrl, 'pending', 
+     `🚀 ${reason}\nDeploying to ${domain.domain} (${domain.linked_subdomain})...`,
+     domain.linked_subdomain, domain.id]
+  );
+
+  const deploymentId = deployResult.rows[0].id;
+  console.log(`[DOMAIN-AUTO-DEPLOY] Deployment #${deploymentId} for ${domain.domain}: ${gitUrl}`);
+
+  // Update domain deployment status
+  await pool.query(
+    'UPDATE domains SET deployment_status = $1, last_deployed_at = NOW() WHERE id = $2',
+    ['deploying', domain.id]
+  );
+
+  // Perform deployment asynchronously to the domain's subdomain directory
+  setImmediate(() => {
+    performDeployment(server, gitUrl, repoName, deploymentId, domain.linked_subdomain)
+      .then(async () => {
+        // Mark domain deploy as success
+        await pool.query(
+          'UPDATE domains SET deployment_status = $1 WHERE id = $2',
+          ['success', domain.id]
+        );
+      })
+      .catch(async (err) => {
+        console.error(`[DOMAIN-AUTO-DEPLOY] Deployment #${deploymentId} failed:`, err);
+        try {
+          await pool.query(
+            'UPDATE deployments SET status = $1, output = $2, deployed_at = NOW() WHERE id = $3',
+            ['failed', `❌ Auto-deploy to ${domain.domain} failed: ${err.message}`, deploymentId]
+          );
+          await pool.query(
+            'UPDATE domains SET deployment_status = $1 WHERE id = $2',
+            ['failed', domain.id]
+          );
+        } catch (dbErr) {
+          console.error(`[DOMAIN-AUTO-DEPLOY] Failed to update status:`, dbErr);
+        }
+      });
+  });
+
+  return { deploymentId };
+};
+
+/**
+ * POST /enable-domain-autodeploy
+ * Enable auto-deploy for a specific domain and generate webhook secret
+ */
+exports.enableDomainAutoDeploy = async (req, res) => {
+  try {
+    const { domainId } = req.body;
+    const userId = req.session.userId;
+    
+    if (!domainId) {
+      return res.json({ success: false, error: 'Domain ID required' });
+    }
+    
+    // Verify domain belongs to user and has linked_subdomain
+    const domainResult = await pool.query(
+      `SELECT d.*, s.id as server_id 
+       FROM domains d 
+       JOIN servers s ON d.server_id = s.id 
+       WHERE d.id = $1 AND d.user_id = $2`,
+      [domainId, userId]
+    );
+    
+    if (domainResult.rows.length === 0) {
+      return res.json({ success: false, error: 'Domain not found' });
+    }
+    
+    const domain = domainResult.rows[0];
+    
+    if (!domain.linked_subdomain) {
+      return res.json({ success: false, error: 'Domain must be linked to a deployment first' });
+    }
+    
+    // Generate webhook secret
+    const crypto = require('crypto');
+    const webhookSecret = crypto.randomBytes(32).toString('hex');
+    
+    // Enable auto-deploy for this domain
+    await pool.query(
+      `UPDATE domains 
+       SET auto_deploy_enabled = true, webhook_secret = $1 
+       WHERE id = $2`,
+      [webhookSecret, domainId]
+    );
+    
+    // Construct webhook URL
+    const webhookUrl = `https://cloudedbasement.ca/webhook/github/${domain.server_id}/${domainId}`;
+    
+    console.log(`[AUTO-DEPLOY] Enabled for domain ${domain.domain} (ID: ${domainId})`);
+    
+    return res.json({ 
+      success: true, 
+      webhookUrl,
+      webhookSecret,
+      message: 'Add this webhook URL to your GitHub repository settings'
+    });
+    
+  } catch (error) {
+    console.error('[AUTO-DEPLOY] Enable domain error:', error);
+    return res.json({ success: false, error: 'Failed to enable auto-deploy' });
+  }
+};
+
+/**
+ * POST /disable-domain-autodeploy
+ * Disable auto-deploy for a specific domain
+ */
+exports.disableDomainAutoDeploy = async (req, res) => {
+  try {
+    const { domainId } = req.body;
+    const userId = req.session.userId;
+    
+    // Verify ownership
+    const result = await pool.query(
+      'SELECT id FROM domains WHERE id = $1 AND user_id = $2',
+      [domainId, userId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.json({ success: false, error: 'Domain not found' });
+    }
+    
+    await pool.query(
+      'UPDATE domains SET auto_deploy_enabled = false WHERE id = $1',
+      [domainId]
+    );
+    
+    console.log(`[AUTO-DEPLOY] Disabled for domain ID: ${domainId}`);
+    
+    return res.json({ success: true });
+    
+  } catch (error) {
+    console.error('[AUTO-DEPLOY] Disable domain error:', error);
+    return res.json({ success: false, error: 'Failed to disable auto-deploy' });
+  }
+};
 
 
 module.exports = {
@@ -1886,5 +2104,10 @@ module.exports = {
   deleteDomain: exports.deleteDomain,
   enableSSL: exports.enableSSL,
   setupDatabase: exports.setupDatabase,
-  deleteDeployment: exports.deleteDeployment
+  deleteDeployment: exports.deleteDeployment,
+  // Auto-deploy exports
+  triggerAutoDeploy: exports.triggerAutoDeploy,
+  triggerDomainAutoDeploy: exports.triggerDomainAutoDeploy,
+  enableDomainAutoDeploy: exports.enableDomainAutoDeploy,
+  disableDomainAutoDeploy: exports.disableDomainAutoDeploy
 };

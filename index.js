@@ -42,6 +42,7 @@ const paymentController = require('./controllers/paymentController');
 const serverController = require('./controllers/serverController');
 const adminController = require('./controllers/adminController');
 const domainController = require('./controllers/domainController');
+const githubWebhookController = require('./controllers/githubWebhookController');
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./middleware/logger');
 const { runMigrations } = require('./migrations/run-migrations');
@@ -71,6 +72,20 @@ app.use(express.urlencoded({ extended: false }));
 // Stripe webhook endpoint must be registered BEFORE express.json()
 // to preserve the raw request body for signature verification
 app.post('/webhook/stripe', express.raw({type: 'application/json'}), paymentController.stripeWebhook);
+
+// GitHub webhook endpoint - needs raw body for signature verification
+// Use custom middleware to capture raw body while also parsing JSON
+const githubWebhookMiddleware = express.json({
+  verify: (req, res, buf) => {
+    req.rawBody = buf.toString('utf8');
+  }
+});
+
+// Server-wide webhook (legacy)
+app.post('/webhook/github/:serverId', githubWebhookMiddleware, githubWebhookController.githubWebhook);
+
+// Per-domain webhook (multi-site)
+app.post('/webhook/github/:serverId/:domainId', githubWebhookMiddleware, githubWebhookController.githubWebhook);
 
 app.use(express.json()); // Parse JSON request bodies
 
@@ -250,6 +265,12 @@ app.post('/delete-domain', requireAuth, csrfProtection, serverController.deleteD
 
 // Enable SSL route
 app.post('/enable-ssl', requireAuth, csrfProtection, serverController.enableSSL);
+
+// Auto-deploy routes
+app.post('/enable-auto-deploy', requireAuth, csrfProtection, githubWebhookController.enableAutoDeploy);
+app.post('/disable-auto-deploy', requireAuth, csrfProtection, githubWebhookController.disableAutoDeploy);
+app.post('/enable-domain-autodeploy', requireAuth, csrfProtection, serverController.enableDomainAutoDeploy);
+app.post('/disable-domain-autodeploy', requireAuth, csrfProtection, serverController.disableDomainAutoDeploy);
 
 // Dashboard route
 app.get('/dashboard', requireAuth, csrfProtection, dashboardController.showDashboard);
