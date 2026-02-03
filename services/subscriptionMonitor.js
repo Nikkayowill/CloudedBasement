@@ -184,7 +184,7 @@ async function destroyStoppedServers() {
 // Check for trials ending soon and send warning emails
 async function checkTrialWarnings() {
   try {
-    // Find servers in trial (no payment) that are 1 or 2 days old
+    // Find servers in trial (no payment) that are 1 or 2 days old and haven't been warned yet
     const result = await pool.query(`
       SELECT s.*, u.email,
         EXTRACT(DAY FROM (INTERVAL '3 days' - (NOW() - s.created_at))) as days_left
@@ -196,6 +196,7 @@ async function checkTrialWarnings() {
         AND s.droplet_id IS NOT NULL
         AND s.created_at >= NOW() - INTERVAL '2 days 23 hours'
         AND s.created_at < NOW() - INTERVAL '1 day'
+        AND (s.trial_warning_sent IS NULL OR s.trial_warning_sent = FALSE)
     `);
 
     console.log(`[Subscription Monitor] Found ${result.rows.length} trials needing warning emails`);
@@ -206,6 +207,9 @@ async function checkTrialWarnings() {
       
       try {
         await sendTrialEndingEmail(server.email, daysLeft, server.droplet_name || server.name);
+        
+        // Mark as warned so we don't send again
+        await pool.query('UPDATE servers SET trial_warning_sent = TRUE WHERE id = $1', [server.id]);
       } catch (emailError) {
         console.error('[Subscription Monitor] Failed to send trial warning:', emailError.message);
       }
