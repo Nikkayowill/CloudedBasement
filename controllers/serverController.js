@@ -1256,6 +1256,7 @@ async function updateDeploymentOutput(deploymentId, output, status) {
 exports.addDomain = async (req, res) => {
   try {
     const domain = req.body.domain.toLowerCase().trim();
+    const linkedSubdomain = req.body.linked_subdomain || null; // Optional: link to existing deployment
     const userId = req.session.userId;
 
     // Validate domain format
@@ -1275,6 +1276,17 @@ exports.addDomain = async (req, res) => {
     }
 
     const serverId = serverResult.rows[0].id;
+    
+    // If linked_subdomain provided, verify it belongs to this user
+    if (linkedSubdomain) {
+      const depCheck = await pool.query(
+        'SELECT id FROM deployments WHERE subdomain = $1 AND user_id = $2',
+        [linkedSubdomain, userId]
+      );
+      if (depCheck.rows.length === 0) {
+        return res.redirect('/dashboard?error=Invalid deployment selected');
+      }
+    }
 
     // Check if domain already exists
     const existingDomain = await pool.query(
@@ -1286,10 +1298,10 @@ exports.addDomain = async (req, res) => {
       return res.redirect('/dashboard?error=Domain already in use');
     }
 
-    // Store domain in database
+    // Store domain in database with optional linked_subdomain
     await pool.query(
-      'INSERT INTO domains (server_id, user_id, domain, ssl_enabled) VALUES ($1, $2, $3, $4)',
-      [serverId, userId, domain, false]
+      'INSERT INTO domains (server_id, user_id, domain, ssl_enabled, linked_subdomain) VALUES ($1, $2, $3, $4, $5)',
+      [serverId, userId, domain, false, linkedSubdomain]
     );
 
     // In real implementation, this would:
@@ -1326,21 +1338,23 @@ exports.enableSSL = async (req, res) => {
 
     const server = serverResult.rows[0];
 
-    // SECURITY: Verify domain belongs to this user
+    // SECURITY: Verify domain belongs to this user and get linked_subdomain
     const domainCheck = await pool.query(
-      'SELECT id FROM domains WHERE domain = $1 AND user_id = $2',
+      'SELECT id, linked_subdomain FROM domains WHERE domain = $1 AND user_id = $2',
       [domain, userId]
     );
 
     if (domainCheck.rows.length === 0) {
       return res.redirect('/dashboard?error=Domain not found or access denied');
     }
+    
+    const linkedSubdomain = domainCheck.rows[0].linked_subdomain;
 
     // Send response immediately - process SSL in background
     res.redirect('/dashboard?message=SSL certificate generation started! This may take a minute.');
 
     // Background process - trigger SSL certificate generation
-    triggerSSLCertificateForCustomer(server.id, domain, server).catch(err => {
+    triggerSSLCertificateForCustomer(server.id, domain, server, linkedSubdomain).catch(err => {
       console.error('[SSL] Failed to trigger certificate for server', server.id, ':', err);
     });
 
@@ -1351,11 +1365,11 @@ exports.enableSSL = async (req, res) => {
 };
 
 // Background function to trigger SSL via SSH2 library (secure, no command injection)
-async function triggerSSLCertificateForCustomer(serverId, domain, server) {
+async function triggerSSLCertificateForCustomer(serverId, domain, server, linkedSubdomain = null) {
   return new Promise((resolve, reject) => {
     const conn = new Client();
     
-    conn.on('ready', () => {
+    conn.on('ready', async () => {
       console.log(`[SSL] SSH connected to server ${serverId}`);
       
       // Security: Strict domain validation (prevents command injection)
@@ -1365,55 +1379,99 @@ async function triggerSSLCertificateForCustomer(serverId, domain, server) {
         return reject(new Error('Invalid domain format'));
       }
       
-      // Use --nginx plugin which works with nginx running (no need to stop services)
-      const certbotCmd = `certbot --nginx -d ${domain} --email admin@${domain} --non-interactive --agree-tos --redirect`;
-      
-      conn.exec(certbotCmd, { timeout: 60000 }, (err, stream) => {
-        if (err) {
-          conn.end();
-          return reject(err);
-        }
+      try {
+        // Step 1: Create nginx config for this custom domain
+        // Use linked deployment's directory if specified, otherwise default
+        const siteDir = linkedSubdomain ? `/var/www/sites/${linkedSubdomain}` : '/var/www/html';
+        console.log(`[SSL] Setting up ${domain} to serve from ${siteDir}`);
         
-        let stdout = '';
-        let stderr = '';
+        // Create the nginx config file with proper root
+        const nginxConfig = `server {
+    listen 80;
+    listen [::]:80;
+    server_name ${domain};
+    root ${siteDir};
+    index index.html index.htm;
+
+    location / {
+        try_files \\$uri \\$uri/ /index.html;
+    }
+}`;
         
-        stream.on('close', async (code) => {
-          console.log(`[SSL] Certbot finished for ${domain}, exit code: ${code}`);
-          console.log(`[SSL] stdout: ${stdout.substring(0, 500)}`);
-          console.log(`[SSL] stderr: ${stderr.substring(0, 500)}`);
-          
-          try {
-            if (stdout.includes('Congratulations') || stderr.includes('Congratulations') || stdout.includes('Successfully received certificate') || stderr.includes('Successfully received certificate')) {
-              // Certificate generated successfully
-              // Note: certbot --nginx --redirect already configures SSL properly
-              // No need to modify nginx config - it preserves the existing location block
-              console.log(`[SSL] Certificate success for ${domain}`);
-              
-              conn.end();
-              
-              // Update domains table - SSL cert is working
-              await pool.query('UPDATE domains SET ssl_enabled = true WHERE domain = $1', [domain]);
-              console.log(`[SSL] Certificate activated for ${domain} on server ${serverId}`);
-              resolve();
-            } else {
-              conn.end();
-              console.error(`[SSL] Certbot did not succeed. Code: ${code}, stdout: ${stdout}, stderr: ${stderr}`);
-              reject(new Error('Certbot command did not complete successfully'));
-            }
-          } catch (dbError) {
+        // Write nginx config
+        await new Promise((res, rej) => {
+          const writeCmd = `cat > /etc/nginx/sites-available/${domain.replace(/\./g, '-')} << 'NGINXEOF'\n${nginxConfig}\nNGINXEOF`;
+          conn.exec(writeCmd, (err, stream) => {
+            if (err) return rej(err);
+            stream.on('close', () => res());
+            stream.on('data', () => {});
+            stream.stderr.on('data', () => {});
+          });
+        });
+        
+        // Enable the site
+        await new Promise((res, rej) => {
+          conn.exec(`ln -sf /etc/nginx/sites-available/${domain.replace(/\./g, '-')} /etc/nginx/sites-enabled/ && nginx -t && systemctl reload nginx`, (err, stream) => {
+            if (err) return rej(err);
+            stream.on('close', (code) => code === 0 ? res() : rej(new Error('Nginx reload failed')));
+            stream.on('data', () => {});
+            stream.stderr.on('data', () => {});
+          });
+        });
+        
+        console.log(`[SSL] Nginx config created for ${domain}`);
+        
+        // Step 2: Run certbot to get SSL certificate
+        const certbotCmd = `certbot --nginx -d ${domain} --email admin@${domain} --non-interactive --agree-tos --redirect`;
+        
+        conn.exec(certbotCmd, { timeout: 60000 }, (err, stream) => {
+          if (err) {
             conn.end();
-            reject(dbError);
+            return reject(err);
           }
+          
+          let stdout = '';
+          let stderr = '';
+          
+          stream.on('close', async (code) => {
+            console.log(`[SSL] Certbot finished for ${domain}, exit code: ${code}`);
+            console.log(`[SSL] stdout: ${stdout.substring(0, 500)}`);
+            console.log(`[SSL] stderr: ${stderr.substring(0, 500)}`);
+            
+            try {
+              if (stdout.includes('Congratulations') || stderr.includes('Congratulations') || stdout.includes('Successfully received certificate') || stderr.includes('Successfully received certificate')) {
+                // Certificate generated successfully
+                console.log(`[SSL] Certificate success for ${domain}`);
+                
+                conn.end();
+                
+                // Update domains table - SSL cert is working
+                await pool.query('UPDATE domains SET ssl_enabled = true WHERE domain = $1', [domain]);
+                console.log(`[SSL] Certificate activated for ${domain} on server ${serverId}`);
+                resolve();
+              } else {
+                conn.end();
+                console.error(`[SSL] Certbot did not succeed. Code: ${code}, stdout: ${stdout}, stderr: ${stderr}`);
+                reject(new Error('Certbot command did not complete successfully'));
+              }
+            } catch (dbError) {
+              conn.end();
+              reject(dbError);
+            }
+          });
+          
+          stream.on('data', (data) => {
+            stdout += data.toString();
+          });
+          
+          stream.stderr.on('data', (data) => {
+            stderr += data.toString();
+          });
         });
-        
-        stream.on('data', (data) => {
-          stdout += data.toString();
-        });
-        
-        stream.stderr.on('data', (data) => {
-          stderr += data.toString();
-        });
-      });
+      } catch (nginxErr) {
+        conn.end();
+        reject(nginxErr);
+      }
     });
     
     conn.on('error', (err) => {
