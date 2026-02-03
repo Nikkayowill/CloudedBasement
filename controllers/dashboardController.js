@@ -1045,16 +1045,26 @@ db = client['${data.mongodbCredentials.dbName}']</code></pre>
             
             <form action="/add-domain" method="POST" class="mb-6">
                 <input type="hidden" name="_csrf" value="${data.csrfToken}">
-                <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
-                    <input type="text" name="domain" placeholder="example.com" required class="w-full px-4 py-3 bg-gray-900 rounded-lg text-white focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none">
-                    <button type="submit" class="px-6 py-3 bg-blue-600 text-white font-bold">Add Domain</button>
+                <div class="grid grid-cols-1 gap-3">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <input type="text" name="domain" placeholder="example.com" required class="w-full px-4 py-3 bg-gray-900 rounded-lg text-white focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none">
+                        <select name="linked_subdomain" class="w-full px-4 py-3 bg-gray-900 rounded-lg text-white focus:border-brand focus:ring-2 focus:ring-brand focus:outline-none">
+                            <option value="">-- Link to deployment (optional) --</option>
+                            ${data.deployments.filter(d => d.subdomain && d.status === 'success').map(d => `
+                                <option value="${escapeHtml(d.subdomain)}">${escapeHtml(d.subdomain)}.cloudedbasement.ca</option>
+                            `).join('')}
+                        </select>
+                    </div>
+                    <button type="submit" class="px-6 py-3 bg-blue-600 text-white font-bold w-full md:w-auto">Add Domain</button>
                 </div>
+                <p class="text-xs text-gray-500 mt-2">Link to a deployment to serve that site on your custom domain.</p>
             </form>
             ${data.domains.length > 0 ? `
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     ${data.domains.map(dom => `
                     <div class="bg-black bg-opacity-30 border border-gray-700 rounded-lg p-3">
                         <p class="text-sm text-white font-medium mb-2">${escapeHtml(dom.domain)}</p>
+                        ${dom.linked_subdomain ? `<p class="text-xs text-blue-400 mb-2">→ ${escapeHtml(dom.linked_subdomain)}.cloudedbasement.ca</p>` : ''}
                         <div class="flex items-center gap-2">
                             ${dom.ssl_enabled 
                                 ? '<span class="px-2 py-1 text-xs font-bold uppercase rounded bg-green-900 text-green-300">🔒 SSL Active</span>' 
