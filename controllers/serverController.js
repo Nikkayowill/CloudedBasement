@@ -606,6 +606,7 @@ async function setupSubdomainSSL(conn, subdomain, output, deploymentId) {
   if (!subdomain) return output;
   
   const fullDomain = `${subdomain}.cloudedbasement.ca`;
+  const siteDir = `/var/www/sites/${subdomain}`;
   output += `\n[SSL] Setting up HTTPS for ${fullDomain}...\n`;
   await updateDeploymentOutput(deploymentId, output, 'deploying');
   
@@ -620,7 +621,7 @@ server {
     listen 80;
     listen [::]:80;
     server_name ${fullDomain};
-    root /var/www/html;
+    root ${siteDir};
     index index.html index.htm;
 
     location / {
@@ -723,6 +724,11 @@ async function deployStaticSite(conn, repoName, output, deploymentId, serverId, 
   await updateDeploymentOutput(deploymentId, output, 'in-progress');
 
   output += `\n[5/5] Deploying to web server...\n`;
+  
+  // Multi-site: Each subdomain gets its own directory
+  const siteDir = subdomain ? `/var/www/sites/${subdomain}` : '/var/www/html';
+  await execSSH(conn, `mkdir -p ${siteDir}`);
+  
   // Detect build directory (dist, build, out)
   const hasDist = await fileExists(conn, `/root/${repoName}/dist`);
   const hasBuild = await fileExists(conn, `/root/${repoName}/build`);
@@ -734,11 +740,11 @@ async function deployStaticSite(conn, repoName, output, deploymentId, serverId, 
   // If no build directory found, try deploying source directly
   if (!buildDir) {
     output += `⚠️ No build directory found. Deploying source files directly...\n`;
-    await execSSH(conn, `rm -rf /var/www/html/* && cp -r /root/${repoName}/* /var/www/html/`);
-    output += `✓ Source files deployed to Nginx\n`;
+    await execSSH(conn, `rm -rf ${siteDir}/* && cp -r /root/${repoName}/* ${siteDir}/`);
+    output += `✓ Source files deployed to ${siteDir}\n`;
   } else {
-    await execSSH(conn, `rm -rf /var/www/html/* && cp -r /root/${repoName}/${buildDir}/* /var/www/html/`);
-    output += `✓ Site deployed to Nginx (from ${buildDir}/)\n`;
+    await execSSH(conn, `rm -rf ${siteDir}/* && cp -r /root/${repoName}/${buildDir}/* ${siteDir}/`);
+    output += `✓ Site deployed to ${siteDir} (from ${buildDir}/)\n`;
   }
   
   // Show URLs (subdomain is primary, IP is backup)
@@ -764,8 +770,12 @@ async function deployStaticHTML(conn, repoName, output, deploymentId, subdomain 
   output += `\n[3/5] Skipping dependencies (static HTML)\n`;
   output += `[4/5] Skipping build (static HTML)\n`;
   output += `\n[5/5] Deploying to web server...\n`;
-  await execSSH(conn, `rm -rf /var/www/html/* && cp -r /root/${repoName}/* /var/www/html/`);
-  output += `✓ Site deployed to Nginx\n`;
+  
+  // Multi-site: Each subdomain gets its own directory
+  const siteDir = subdomain ? `/var/www/sites/${subdomain}` : '/var/www/html';
+  await execSSH(conn, `mkdir -p ${siteDir}`);
+  await execSSH(conn, `rm -rf ${siteDir}/* && cp -r /root/${repoName}/* ${siteDir}/`);
+  output += `✓ Site deployed to ${siteDir}\n`;
   
   // Show URLs (subdomain is primary, IP is backup)
   if (subdomain) {
@@ -991,16 +1001,20 @@ async function deployRustApp(conn, repoName, output, deploymentId, serverId, sub
 
   output += `\n[4/5] Deploying to Nginx...\n`;
   
+  // Multi-site: Each subdomain gets its own directory
+  const siteDir = subdomain ? `/var/www/sites/${subdomain}` : '/var/www/html';
+  await execSSH(conn, `mkdir -p ${siteDir}`);
+  
   // Check for static files or WASM output
   const hasStaticDir = await fileExists(conn, `/root/${repoName}/static`);
   const hasPkgDir = await fileExists(conn, `/root/${repoName}/pkg`);
   
   if (hasStaticDir) {
-    await execSSH(conn, `cp -r /root/${repoName}/static/* /var/www/html/`);
-    output += `✓ Deployed static files\n`;
+    await execSSH(conn, `cp -r /root/${repoName}/static/* ${siteDir}/`);
+    output += `✓ Deployed static files to ${siteDir}\n`;
   } else if (hasPkgDir) {
-    await execSSH(conn, `cp -r /root/${repoName}/pkg/* /var/www/html/`);
-    output += `✓ Deployed WASM package\n`;
+    await execSSH(conn, `cp -r /root/${repoName}/pkg/* ${siteDir}/`);
+    output += `✓ Deployed WASM package to ${siteDir}\n`;
   } else {
     // Deploy binary as systemd service
     const binPath = `/root/${repoName}/target/release/${repoName}`;
