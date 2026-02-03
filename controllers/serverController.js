@@ -607,7 +607,7 @@ async function setupSubdomainSSL(conn, subdomain, output, deploymentId) {
   
   const fullDomain = `${subdomain}.cloudedbasement.ca`;
   output += `\n[SSL] Setting up HTTPS for ${fullDomain}...\n`;
-  await updateDeploymentOutput(deploymentId, output, 'in-progress');
+  await updateDeploymentOutput(deploymentId, output, 'deploying');
   
   try {
     // Step 1: Update nginx config with subdomain as server_name
@@ -628,7 +628,7 @@ async function setupSubdomainSSL(conn, subdomain, output, deploymentId) {
     await execSSH(conn, `ln -sf /etc/nginx/sites-available/${subdomain} /etc/nginx/sites-enabled/`);
     await execSSH(conn, `nginx -t && systemctl reload nginx`);
     output += `✓ Nginx configured for ${fullDomain}\n`;
-    await updateDeploymentOutput(deploymentId, output, 'in-progress');
+    await updateDeploymentOutput(deploymentId, output, 'deploying');
     
     // Step 2: Wait a moment for DNS propagation (usually instant since we control DO DNS)
     output += `Waiting for DNS propagation...\n`;
@@ -636,7 +636,7 @@ async function setupSubdomainSSL(conn, subdomain, output, deploymentId) {
     
     // Step 3: Run certbot
     output += `Requesting SSL certificate from Let's Encrypt...\n`;
-    await updateDeploymentOutput(deploymentId, output, 'in-progress');
+    await updateDeploymentOutput(deploymentId, output, 'deploying');
     
     const certbotResult = await execSSH(conn, 
       `certbot --nginx -d ${fullDomain} --non-interactive --agree-tos --email support@cloudedbasement.ca --redirect 2>&1 || echo "CERTBOT_FAILED"`
@@ -656,7 +656,7 @@ async function setupSubdomainSSL(conn, subdomain, output, deploymentId) {
     output += `   Your site is still accessible via HTTP.\n`;
   }
   
-  await updateDeploymentOutput(deploymentId, output, 'in-progress');
+  await updateDeploymentOutput(deploymentId, output, 'deploying');
   return output;
 }
 
