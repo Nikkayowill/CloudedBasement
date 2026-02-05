@@ -46,6 +46,7 @@ const githubWebhookController = require('./controllers/githubWebhookController')
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./middleware/logger');
 const { runMigrations } = require('./migrations/run-migrations');
+const { passport, initializeGoogleAuth } = require('./services/googleAuth');
 
 const app = express();
 
@@ -109,6 +110,11 @@ app.use(session({
   name: 'sessionId', // Rename from default 'connect.sid' for obscurity
   rolling: true // Reset expiry on each request (sliding session)
 }));
+
+// Initialize Passport for Google OAuth
+initializeGoogleAuth();
+app.use(passport.initialize());
+app.use(passport.session());
 
 // CSRF protection
 const csrfProtection = csrf({ cookie: true });
@@ -192,6 +198,29 @@ app.post('/login',
     body('password').notEmpty()
   ],
   authController.handleLogin
+);
+
+// Google OAuth routes
+app.get('/auth/google', passport.authenticate('google', { 
+  scope: ['profile', 'email'] 
+}));
+
+app.get('/auth/google/callback', 
+  passport.authenticate('google', { failureRedirect: '/login?error=Google authentication failed' }),
+  (req, res) => {
+    // Successful authentication - set session from passport user
+    req.session.userId = req.user.id;
+    req.session.userEmail = req.user.email;
+    req.session.userRole = req.user.role;
+    req.session.emailConfirmed = req.user.email_confirmed;
+    
+    // Redirect based on role
+    if (req.user.role === 'admin') {
+      res.redirect('/admin');
+    } else {
+      res.redirect('/dashboard');
+    }
+  }
 );
 
 // Email confirmation route
