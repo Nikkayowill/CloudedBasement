@@ -7,6 +7,7 @@ const pool = require('../db');
 const { createRealServer, destroyDroplet } = require('../services/digitalocean');
 const { getHTMLHead, getScripts, getFooter, getResponsiveNav, escapeHtml } = require('../helpers');
 const { sendEmail } = require('../services/email');
+const { getNonce } = require('../utils/nonce');
 
 // Pricing plans configuration (monthly and yearly prices in CENTS for Stripe)
 // Yearly = 10% discount (monthly × 12 × 0.90)
@@ -14,7 +15,7 @@ const PRICING_PLANS = {
   basic: { name: 'Basic', monthly: 1500, yearly: 16200, was: 25, description: 'Perfect for side projects', features: ['1GB RAM', '1 CPU', '25GB Storage', '2 sites'] },
   pro: { name: 'Pro', monthly: 3500, yearly: 37800, was: 60, description: 'Best Value • For production apps', features: ['2GB RAM', '2 CPUs', '60GB Storage', '5 sites'] },
   priority: { name: 'Pro', monthly: 3500, yearly: 37800, was: 60, description: 'Best Value • For production apps', features: ['2GB RAM', '2 CPUs', '60GB Storage', '5 sites'] }, // legacy
-  premium: { name: 'Premium', monthly: 5500, yearly: 59400, was: 90, description: 'For serious projects', features: ['4GB RAM', '2 CPUs', '80GB Storage', '10 sites'] }
+  premium: { name: 'Premium', monthly: 6500, yearly: 70200, was: 90, description: 'For serious projects', features: ['4GB RAM', '2 CPUs', '80GB Storage', '10 sites'] }
 };
 
 // GET /pay
@@ -52,7 +53,7 @@ ${getHTMLHead('Processing Payment - Clouded Basement')}
       ${getFooter()}
       ${getScripts('nav.js')}
       
-      <script>
+      <script nonce="${getNonce()}">
         // Auto-redirect to provisioning after 3 seconds
         setTimeout(() => {
           window.location.href = '/dashboard?demo=true&state=provisioning&demoPlan=${plan}';
@@ -157,8 +158,8 @@ ${getHTMLHead('Checkout - Clouded  Basement')}
     
     ${getFooter()}
     ${getScripts('nav.js')}
-    <script src="https://js.stripe.com/v3/"></script>
-    <script>
+    <script nonce="${getNonce()}" src="https://js.stripe.com/v3/"></script>
+    <script nonce="${getNonce()}">
       // Initialize Stripe with publishable key
       const stripe = Stripe('${process.env.STRIPE_PUBLISHABLE_KEY}');
       const elements = stripe.elements();

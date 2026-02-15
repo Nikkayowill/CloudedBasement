@@ -1,4 +1,6 @@
 // HTML escaping to prevent XSS attacks
+const { getNonce } = require('./utils/nonce');
+
 function escapeHtml(unsafe) {
   if (unsafe === null || unsafe === undefined) return '';
   return String(unsafe)
@@ -55,12 +57,13 @@ function getDashboardHead(title) {
 
 // Scripts footer
 function getScripts(...scripts) {
-  const scriptTags = scripts.map(script => `<script src="/js/${script}"></script>`).join('\n    ');
+  const nonce = getNonce();
+  const scriptTags = scripts.map(script => `<script nonce="${nonce}" src="/js/${script}"></script>`).join('\n    ');
   const cacheBuster = Date.now(); // Force browser to reload JS files
   return `
-    <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js" integrity="sha384-1kLJYX46ZnwQlslYwA2oUgv/EzbmdyB4kkcJ7y1lTUYKb8kIKDM0o8JAUE0iBnii" crossorigin="anonymous"></script>
-    <script src="/js/cookie-consent.js?v=${cacheBuster}"></script>
-    <script src="/js/spotlight.js"></script>
+    <script nonce="${nonce}" src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js" integrity="sha384-1kLJYX46ZnwQlslYwA2oUgv/EzbmdyB4kkcJ7y1lTUYKb8kIKDM0o8JAUE0iBnii" crossorigin="anonymous"></script>
+    <script nonce="${nonce}" src="/js/cookie-consent.js?v=${cacheBuster}"></script>
+    <script nonce="${nonce}" src="/js/spotlight.js"></script>
     ${scriptTags}
 </body>
 </html>
@@ -269,7 +272,7 @@ function getDashboardLayoutEnd() {
       </main>
     </div>
     
-    <script>
+    <script nonce="${getNonce()}">
     // Sidebar toggle - inline for reliability
     (function() {
       const toggle = document.getElementById('sidebar-toggle');

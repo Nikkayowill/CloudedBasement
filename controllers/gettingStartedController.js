@@ -1,5 +1,6 @@
 const pool = require('../db');
 const { getDashboardHead, getFooter, getScripts, getResponsiveNav } = require('../helpers');
+const { getNonce } = require('../utils/nonce');
 
 exports.showGettingStarted = async (req, res) => {
   // Check payment and server status
@@ -120,7 +121,7 @@ ${getDashboardHead('Getting Started - Clouded Basement')}
               Auto-refreshing in <span id="countdown">60</span> seconds | Questions? <a href="mailto:support@cloudedbasement.ca" class="text-brand hover:text-cyan-400">support@cloudedbasement.ca</a>
             </p>
             
-            <script>
+            <script nonce="${getNonce()}">
               let seconds = 60;
               const countdownEl = document.getElementById('countdown');
               const interval = setInterval(() => {
