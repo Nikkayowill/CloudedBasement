@@ -7,6 +7,7 @@ const { getHTMLHead, getFooter, getScripts, getResponsiveNav, escapeHtml } = req
 const { createConfirmationCode, isCodeValid } = require('../utils/emailToken');
 const { sendConfirmationEmail, sendWelcomeEmail } = require('../services/email');
 const { isDisposableEmail } = require('../utils/emailValidation');
+const { getNonce } = require('../utils/nonce');
 
 // Helper function to generate random verification code
 function generateBotCode() {
@@ -110,7 +111,7 @@ ${getHTMLHead('Register - Basement')}
     
     ${getFooter()}
     ${getScripts('nav.js', 'fingerprint.js')}
-    <script>
+    <script nonce="${getNonce()}">
       const botInput = document.getElementById('botCode');
       const submitBtn = document.getElementById('submitBtn');
       const correctCode = '${botCode}';
@@ -292,7 +293,7 @@ ${getHTMLHead('Login - Basement')}
         <button onclick="dismissFlash()" class="ml-4 text-gray-900 hover:text-gray-700 font-bold text-xl">&times;</button>
       </div>
     </div>
-    <script>
+    <script nonce="${getNonce()}">
       function dismissFlash() {
         const msg = document.getElementById('flashMessage');
         msg.style.opacity = '0';
@@ -702,7 +703,7 @@ ${getHTMLHead('Verify Email - Basement')}
     ${getFooter()}
     ${getScripts('nav.js')}
     
-    <script>
+    <script nonce="${getNonce()}">
       document.getElementById('resendBtn')?.addEventListener('click', async () => {
         const btn = document.getElementById('resendBtn');
         btn.textContent = 'Sending...';

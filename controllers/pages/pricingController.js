@@ -141,8 +141,8 @@ ${getHTMLHead('Pricing - Basement')}
             </div>
             
             <div class="mb-6">
-              <div class="pricing-amount" data-monthly="55" data-yearly="594">
-                <span class="text-4xl font-bold text-white price-value">$55</span>
+              <div class="pricing-amount" data-monthly="65" data-yearly="702">
+                <span class="text-4xl font-bold text-white price-value">$65</span>
                 <span class="text-gray-400 price-interval">/mo</span>
               </div>
             </div>
@@ -154,7 +154,7 @@ ${getHTMLHead('Pricing - Basement')}
               <div class="flex justify-between"><span class="text-gray-400">Bandwidth</span><span class="text-white">4 TB/mo</span></div>
               <div class="flex justify-between"><span class="text-gray-400">Sites</span><span class="text-white">10</span></div>
               <div class="flex justify-between"><span class="text-gray-400">Support</span><span class="text-purple-400">Direct access</span></div>
-              <div class="flex justify-between"><span class="text-gray-400">Backups</span><span class="text-purple-400">Weekly</span></div>
+              <div class="flex justify-between"><span class="text-gray-400">Backups</span><span class="text-purple-400">Daily</span></div>
             </div>
             
             <a href="/pay?plan=premium&interval=monthly" class="plan-cta block w-full py-3 border border-gray-600 text-gray-300 text-center font-medium rounded-lg hover:bg-gray-800 hover:border-gray-500 transition-all" data-plan="premium">Get Started</a>
@@ -190,6 +190,7 @@ ${getHTMLHead('Pricing - Basement')}
                 <tr class="border-b border-gray-800"><td class="py-2 px-4">Environment Variables</td><td class="text-center text-green-400">✓</td><td class="text-center text-green-400">✓</td><td class="text-center text-green-400">✓</td></tr>
                 <tr class="border-b border-gray-800"><td class="py-2 px-4">Managed Security Updates</td><td class="text-center text-green-400">✓</td><td class="text-center text-green-400">✓</td><td class="text-center text-green-400">✓</td></tr>
                 <tr class="border-b border-gray-800"><td class="py-2 px-4">Weekly Backups</td><td class="text-center text-gray-500">—</td><td class="text-center text-green-400">✓</td><td class="text-center text-green-400">✓</td></tr>
+                <tr class="border-b border-gray-800"><td class="py-2 px-4">Daily Backups</td><td class="text-center text-gray-500">—</td><td class="text-center text-gray-500">—</td><td class="text-center text-green-400">✓</td></tr>
                 <tr class="border-b border-gray-800"><td class="py-2 px-4">Priority Support</td><td class="text-center text-gray-500">—</td><td class="text-center text-green-400">✓</td><td class="text-center text-green-400">✓</td></tr>
                 <tr><td class="py-2 px-4">Direct Developer Access</td><td class="text-center text-gray-500">—</td><td class="text-center text-gray-500">—</td><td class="text-center text-green-400">✓</td></tr>
               </tbody>

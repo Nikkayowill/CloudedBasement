@@ -1,6 +1,7 @@
 const pool = require('../db');
 const { getHTMLHead, getFooter, getScripts, getResponsiveNav } = require('../helpers');
 const { logAdminAction } = require('../services/auditLog');
+const { getNonce } = require('../utils/nonce');
 
 // GET /admin/domains - Render domain management page
 const showDomainManagement = async (req, res) => {
@@ -181,7 +182,7 @@ ${getHTMLHead('Domain Management - Admin')}
     ${getFooter()}
     ${getScripts('nav.js')}
     
-    <script>
+    <script nonce="${getNonce()}">
       let currentAction = null;
       let currentDomainId = null;
 

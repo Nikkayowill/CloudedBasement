@@ -31,6 +31,7 @@ const pool = require('./db');
 const { createRealServer: createRealServerService, syncDigitalOceanDroplets: syncDigitalOceanDropletsService } = require('./services/digitalocean');
 const { monitorSubscriptions } = require('./services/subscriptionMonitor');
 const { checkAndProvisionSSL } = require('./services/autoSSL');
+const { runDailyBackups } = require('./services/dailyBackups');
 const { sendServerRequestEmail } = require('./services/email');
 const { requireAuth, requireAdmin } = require('./middleware/auth');
 const { generalLimiter, contactLimiter, paymentLimiter, emailVerifyLimiter, deploymentLimiter, loginLimiter, registrationLimiter } = require('./middleware/rateLimiter');
@@ -48,6 +49,7 @@ const errorHandler = require('./middleware/errorHandler');
 const logger = require('./middleware/logger');
 const { runMigrations } = require('./migrations/run-migrations');
 const { passport, initializeGoogleAuth } = require('./services/googleAuth');
+const { nonceMiddleware } = require('./utils/nonce');
 
 const app = express();
 
@@ -61,12 +63,15 @@ app.use(generalLimiter);
 // Request logger
 app.use(logger);
 
+// Generate CSP nonce per request (must be before Helmet)
+app.use(nonceMiddleware);
+
 // Security headers
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://js.stripe.com", "https://unpkg.com"],
+      scriptSrc: ["'self'", (req, res) => `'nonce-${res.locals.nonce}'`, "https://cdn.jsdelivr.net", "https://js.stripe.com", "https://unpkg.com"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:"],
@@ -595,6 +600,12 @@ setInterval(reconcileAllSSLStates, 30 * 60 * 1000);
 
 // Run SSL verification on startup (after 3 minutes)
 setTimeout(reconcileAllSSLStates, 3 * 60 * 1000);
+
+// Daily backups: Snapshot Premium droplets every 24 hours
+setInterval(runDailyBackups, 24 * 60 * 60 * 1000);
+
+// Run daily backup check on startup (after 5 minutes)
+setTimeout(runDailyBackups, 5 * 60 * 1000);
 
 // Global error handler (must be last)
 app.use(errorHandler);

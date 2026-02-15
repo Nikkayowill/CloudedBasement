@@ -4,6 +4,7 @@ const { getUserServer, hasSuccessfulPayment } = require('../utils/db-helpers');
 const { PAYMENT_STATUS, SERVER_STATUS } = require('../constants');
 const serverUpdates = require('../services/serverUpdates');
 const { sendEmail } = require('../services/email');
+const { getNonce } = require('../utils/nonce');
 
 // Dashboard navigation items - centralized for consistency
 const DASHBOARD_NAV_ITEMS = [
@@ -541,7 +542,7 @@ ${getDashboardLayoutStart(layoutOptions)}
         </div>
       </div>
     </div>
-    <script>
+    <script nonce="${getNonce()}">
       document.getElementById('resendCodeBtn')?.addEventListener('click', async function() {
         this.textContent = 'Sending...';
         this.disabled = true;
@@ -778,7 +779,7 @@ ${getDashboardLayoutStart(layoutOptions)}
                 </div>
             </div>
             
-            <script>
+            <script nonce="${getNonce()}">
                 function showTrialModal() {
                     document.getElementById('trialModal').classList.remove('hidden');
                     document.getElementById('trialModal').classList.add('flex');
@@ -857,7 +858,7 @@ ${getDashboardLayoutStart(layoutOptions)}
                 <button type="submit" class="dash-btn dash-btn-danger">Disable Auto-Deploy</button>
             </form>
             
-            <script>
+            <script nonce="${getNonce()}">
                 function toggleWebhookSecret() {
                     const el = document.getElementById('webhookSecret');
                     if (el.textContent.includes('•')) {
@@ -1346,7 +1347,7 @@ ${getDashboardLayoutEnd()}
     </div>
 </div>
 
-<script>
+<script nonce="${getNonce()}">
 function openSubmitTicketModal() { document.getElementById('submitTicketModal').classList.remove('hidden'); document.getElementById('submitTicketModal').classList.add('flex'); }
 function closeSubmitTicketModal() { document.getElementById('submitTicketModal').classList.remove('flex'); document.getElementById('submitTicketModal').classList.add('hidden'); }
 document.addEventListener('click', (e) => {
