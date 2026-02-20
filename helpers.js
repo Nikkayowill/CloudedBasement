@@ -73,57 +73,53 @@ function getScripts(...scripts) {
 // Footer
 function getFooter() {
   return `
-    <footer class="mt-12 md:mt-20 relative overflow-hidden">
+    <footer class="mt-16 md:mt-24 relative overflow-hidden">
         <!-- Gradient reflection -->
         <div class="absolute inset-0 pointer-events-none">
           <div class="absolute inset-0" style="background-image: radial-gradient(circle 600px at 50% 0%, rgba(96, 165, 250, 0.12) 0%, rgba(232, 121, 249, 0.07) 35%, rgba(94, 234, 212, 0.05) 65%, transparent 100%);"></div>
         </div>
 
         <!-- Top border -->
-        <div class="max-w-2xl mx-auto px-5 sm:px-8">
+        <div class="max-w-5xl mx-auto px-6 sm:px-10">
           <div class="border-t border-gray-800"></div>
         </div>
 
-        <!-- Main footer columns — center-aligned -->
-        <div class="max-w-2xl mx-auto px-5 sm:px-8 pt-10 pb-6 relative z-10">
-            <div class="flex flex-wrap justify-center gap-12 sm:gap-16 text-center">
-
+        <!-- Main footer columns -->
+        <div class="max-w-5xl mx-auto px-6 sm:px-10 pt-12 pb-8 relative z-10">
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-10 sm:gap-16 text-center">
                 <!-- Product -->
                 <div>
-                    <h4 class="text-white text-xs font-bold tracking-wide uppercase mb-3">Product</h4>
-                    <ul class="space-y-2">
-                        <li><a href="/pricing" class="text-gray-400 text-sm hover:text-white transition-colors">Pricing</a></li>
-                        <li><a href="/compare" class="text-gray-400 text-sm hover:text-white transition-colors">Compare</a></li>
-                        <li><a href="/docs" class="text-gray-400 text-sm hover:text-white transition-colors">Docs</a></li>
-                        <li><a href="/faq" class="text-gray-400 text-sm hover:text-white transition-colors">FAQ</a></li>
+                    <h4 class="text-white text-xs font-bold tracking-widest uppercase mb-4">Product</h4>
+                    <ul class="space-y-3">
+                        <li><a href="/pricing" class="text-gray-500 text-sm hover:text-white transition-colors">Pricing</a></li>
+                        <li><a href="/compare" class="text-gray-500 text-sm hover:text-white transition-colors">Compare</a></li>
+                        <li><a href="/docs" class="text-gray-500 text-sm hover:text-white transition-colors">Docs</a></li>
+                        <li><a href="/faq" class="text-gray-500 text-sm hover:text-white transition-colors">FAQ</a></li>
                     </ul>
                 </div>
-
                 <!-- Company -->
                 <div>
-                    <h4 class="text-white text-xs font-bold tracking-wide uppercase mb-3">Company</h4>
-                    <ul class="space-y-2">
-                        <li><a href="/about" class="text-gray-400 text-sm hover:text-white transition-colors">About</a></li>
-                        <li><a href="/contact" class="text-gray-400 text-sm hover:text-white transition-colors">Contact</a></li>
-                        <li><a href="/is-this-safe" class="text-gray-400 text-sm hover:text-white transition-colors">Security</a></li>
+                    <h4 class="text-white text-xs font-bold tracking-widest uppercase mb-4">Company</h4>
+                    <ul class="space-y-3">
+                        <li><a href="/about" class="text-gray-500 text-sm hover:text-white transition-colors">About</a></li>
+                        <li><a href="/contact" class="text-gray-500 text-sm hover:text-white transition-colors">Contact</a></li>
+                        <li><a href="/is-this-safe" class="text-gray-500 text-sm hover:text-white transition-colors">Security</a></li>
                     </ul>
                 </div>
-
                 <!-- Legal -->
                 <div>
-                    <h4 class="text-white text-xs font-bold tracking-wide uppercase mb-3">Legal</h4>
-                    <ul class="space-y-2">
-                        <li><a href="/terms" class="text-gray-400 text-sm hover:text-white transition-colors">Terms</a></li>
-                        <li><a href="/privacy" class="text-gray-400 text-sm hover:text-white transition-colors">Privacy</a></li>
+                    <h4 class="text-white text-xs font-bold tracking-widest uppercase mb-4">Legal</h4>
+                    <ul class="space-y-3">
+                        <li><a href="/terms" class="text-gray-500 text-sm hover:text-white transition-colors">Terms</a></li>
+                        <li><a href="/privacy" class="text-gray-500 text-sm hover:text-white transition-colors">Privacy</a></li>
                     </ul>
                 </div>
-
             </div>
         </div>
 
         <!-- Bottom bar -->
-        <div class="max-w-2xl mx-auto px-5 sm:px-8 pb-8 relative z-10">
-            <div class="border-t border-gray-800/60 pt-6 flex flex-col items-center gap-3 text-center">
+        <div class="max-w-5xl mx-auto px-6 sm:px-10 pb-10 relative z-10">
+            <div class="border-t border-gray-800/60 pt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
                 <p class="text-gray-600 text-xs">&copy; ${new Date().getFullYear()} Clouded Basement. All rights reserved.</p>
                 <a href="/is-this-safe" class="text-blue-400 text-xs font-medium hover:text-blue-300 transition-colors">Is Clouded Basement safe? &rarr;</a>
             </div>
@@ -131,6 +127,7 @@ function getFooter() {
     </footer>
 `;
 }
+
 
 // Auth Links
 function getAuthLinks(req) {

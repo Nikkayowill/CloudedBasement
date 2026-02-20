@@ -42,6 +42,7 @@ const dashboardController = require('./controllers/dashboardController');
 const paymentController = require('./controllers/paymentController');
 const serverController = require('./controllers/serverController');
 const adminController = require('./controllers/adminController');
+
 const adminUpdatesController = require('./controllers/adminUpdatesController');
 const domainController = require('./controllers/domainController');
 const githubWebhookController = require('./controllers/githubWebhookController');

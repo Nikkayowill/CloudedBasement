@@ -1,3 +1,68 @@
+// 2FA dependencies
+const speakeasy = require('speakeasy');
+const qrcode = require('qrcode');
+
+// GET /2fa/setup - Generate TOTP secret and QR code
+exports.show2FASetup = async (req, res) => {
+  const userId = req.session.userId;
+  if (!userId) return res.redirect('/login');
+  // Generate secret
+  const secret = speakeasy.generateSecret({ name: 'Clouded Basement' });
+  // Store temp secret in session (not DB until verified)
+  req.session.temp2FASecret = secret.base32;
+  // Generate QR code data URL
+  const otpauth = secret.otpauth_url;
+  const qr = await qrcode.toDataURL(otpauth);
+  res.json({ qr, secret: secret.base32 });
+};
+
+// POST /2fa/verify - Verify TOTP code and enable 2FA
+exports.verify2FASetup = async (req, res) => {
+  const userId = req.session.userId;
+  const { code } = req.body;
+  const tempSecret = req.session.temp2FASecret;
+  if (!userId || !tempSecret) return res.status(400).json({ success: false, error: 'No secret in session' });
+  const verified = speakeasy.totp.verify({
+    secret: tempSecret,
+    encoding: 'base32',
+    token: code,
+    window: 1
+  });
+  if (!verified) return res.status(400).json({ success: false, error: 'Invalid code' });
+  // Save secret to DB and enable 2FA
+  await pool.query('UPDATE users SET twofa_enabled = TRUE, twofa_secret = $1 WHERE id = $2', [tempSecret, userId]);
+  delete req.session.temp2FASecret;
+  res.json({ success: true });
+};
+
+// POST /2fa/disable - Disable 2FA for user
+exports.disable2FA = async (req, res) => {
+  const userId = req.session.userId;
+  if (!userId) return res.status(401).json({ success: false });
+  await pool.query('UPDATE users SET twofa_enabled = FALSE, twofa_secret = NULL WHERE id = $1', [userId]);
+  res.json({ success: true });
+};
+
+// POST /2fa/verify-login - Verify TOTP code at login
+exports.verify2FALogin = async (req, res) => {
+  const userId = req.session.pending2FAUserId;
+  const { code } = req.body;
+  if (!userId) return res.status(400).json({ success: false, error: 'No pending 2FA' });
+  const result = await pool.query('SELECT twofa_secret FROM users WHERE id = $1', [userId]);
+  const secret = result.rows[0]?.twofa_secret;
+  if (!secret) return res.status(400).json({ success: false, error: 'No 2FA secret' });
+  const verified = speakeasy.totp.verify({
+    secret,
+    encoding: 'base32',
+    token: code,
+    window: 1
+  });
+  if (!verified) return res.status(400).json({ success: false, error: 'Invalid code' });
+  // Mark session as 2FA-verified
+  req.session.userId = userId;
+  delete req.session.pending2FAUserId;
+  res.json({ success: true });
+};
 const bcrypt = require('bcrypt');
 const path = require('path');
 const crypto = require('crypto');
@@ -25,36 +90,36 @@ const showRegister = (req, res) => {
   const botCode = generateBotCode();
   req.session.botCode = botCode;
   
+  const error = escapeHtml(req.query.error || '');
+  const success = escapeHtml(req.query.success || '');
+  const userEmail = escapeHtml(req.query.email || '');
   res.send(`
 ${getHTMLHead('Register - Basement')}
     ${getResponsiveNav(req)}
-    
     <main class="bg-black min-h-screen flex items-center justify-center py-12 px-4">
       <div class="max-w-md w-full bg-gray-900/80 backdrop-blur-xl border border-blue-500/30 rounded mt-20 p-6 shadow-[0_0_70px_rgba(0,102,255,0.25),0_0_110px_rgba(0,102,255,0.12),inset_0_0_35px_rgba(0,102,255,0.03)]">
         <h1 class="text-2xl font-bold text-white text-center mb-6">CREATE ACCOUNT</h1>
-        
+        ${error ? `<div class="bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-2.5 rounded mb-5 text-sm flex items-center gap-2"><svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>${error}</div>` : ''}
+        ${success ? `<div class="bg-green-500/10 border border-green-500/30 text-green-300 px-4 py-2.5 rounded mb-5 text-sm flex items-center gap-2"><svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>${success}</div>` : ''}
         <form method="POST" action="/register" class="space-y-4">
           <input type="hidden" name="_csrf" value="${req.csrfToken()}">
           <input type="hidden" name="fingerprint" value="">
-          
           <div>
             <label class="block text-sm font-medium text-gray-300 mb-1.5">Email</label>
             <input type="email" name="email" required 
+              value="${userEmail}"
               class="w-full px-4 py-2.5 bg-black/40 border border-blue-500/30 rounded text-white placeholder-gray-500 focus:border-blue-500 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-blue-500/50 transition-all">
           </div>
-          
           <div>
             <label class="block text-sm font-medium text-gray-300 mb-1.5">Password</label>
             <input type="password" name="password" minlength="8" required 
               class="w-full px-4 py-2.5 bg-black/40 border border-blue-500/30 rounded text-white placeholder-gray-500 focus:border-blue-500 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-blue-500/50 transition-all">
           </div>
-          
           <div>
             <label class="block text-sm font-medium text-gray-300 mb-1.5">Confirm Password</label>
             <input type="password" name="confirmPassword" minlength="8" required 
               class="w-full px-4 py-2.5 bg-black/40 border border-blue-500/30 rounded text-white placeholder-gray-500 focus:border-blue-500 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-blue-500/50 transition-all">
           </div>
-          
           <div>
             <label class="block text-sm font-medium text-gray-300 mb-1.5">Verify you're human</label>
             <p class="text-xs text-gray-400 mb-2">Type this code exactly as shown</p>
@@ -65,7 +130,6 @@ ${getHTMLHead('Register - Basement')}
               class="w-full px-4 py-2.5 bg-black/40 border border-red-500/50 rounded text-white text-center font-mono text-lg tracking-[0.3em] uppercase placeholder-gray-500 focus:outline-none focus:ring-1 transition-all"
               placeholder="TYPE CODE HERE">
           </div>
-          
           <div class="flex items-start gap-2.5">
             <input type="checkbox" id="acceptTerms" name="acceptTerms" required 
               class="mt-0.5 w-4 h-4 cursor-pointer accent-blue-500">
@@ -73,19 +137,16 @@ ${getHTMLHead('Register - Basement')}
               I agree to the <a href="/terms" target="_blank" class="text-blue-400 hover:text-blue-300 underline">Terms of Service</a>
             </label>
           </div>
-          
           <button type="submit" id="submitBtn" disabled class="w-full py-2.5 bg-gray-600 text-white font-bold rounded cursor-not-allowed opacity-50 transition-all">
             Register
           </button>
         </form>
-        
         <!-- OAuth Divider -->
         <div class="flex items-center my-5">
           <div class="flex-1 border-t border-blue-500/20"></div>
           <span class="px-4 text-sm text-gray-500">or</span>
           <div class="flex-1 border-t border-blue-500/20"></div>
         </div>
-        
         <!-- Google Sign Up -->
         <a href="/auth/google" class="w-full flex items-center justify-center gap-3 py-2.5 bg-white text-gray-800 font-medium rounded hover:bg-gray-100 transition-all">
           <svg class="w-5 h-5" viewBox="0 0 24 24">
@@ -96,11 +157,9 @@ ${getHTMLHead('Register - Basement')}
           </svg>
           Sign up with Google
         </a>
-        
         <p class="text-center text-gray-400 mt-5 text-sm">
           Already have an account? <a href="/login" class="text-blue-400 hover:text-blue-300 font-medium">Login</a>
         </p>
-        
         <div class="mt-5 pt-5 border-t border-blue-500/20 text-center">
           <p class="text-xs text-gray-500">
             By registering, you agree to our <a href="/terms" class="text-blue-400 hover:text-blue-300 underline">Terms</a> and <a href="/privacy" class="text-blue-400 hover:text-blue-300 underline">Privacy Policy</a>
@@ -108,27 +167,24 @@ ${getHTMLHead('Register - Basement')}
         </div>
       </div>
     </main>
-    
     ${getFooter()}
+    <script src="/js/form-validation.js"></script>
+    <script src="/js/password-generator.js"></script>
     ${getScripts('nav.js', 'fingerprint.js')}
     <script nonce="${getNonce()}">
       const botInput = document.getElementById('botCode');
       const submitBtn = document.getElementById('submitBtn');
       const correctCode = '${botCode}';
-      
       botInput.addEventListener('input', function() {
         const value = this.value.toUpperCase();
         this.value = value;
-        
         if (value === correctCode) {
-          // Correct code - green border, enable submit
           this.classList.remove('border-red-500/50');
           this.classList.add('border-green-500/50', 'focus:ring-green-500/50');
           submitBtn.disabled = false;
           submitBtn.classList.remove('bg-gray-600', 'cursor-not-allowed', 'opacity-50');
           submitBtn.classList.add('bg-blue-600', 'hover:bg-blue-500', 'hover:shadow-[0_0_30px_rgba(0,102,255,0.6)]', 'cursor-pointer');
         } else {
-          // Incorrect code - red border, disable submit
           this.classList.remove('border-green-500/50', 'focus:ring-green-500/50');
           this.classList.add('border-red-500/50');
           submitBtn.disabled = true;
@@ -144,11 +200,8 @@ ${getHTMLHead('Register - Basement')}
 const handleRegister = async (req, res) => {
   // Validate bot verification code first
   if (!req.body.botCode || req.body.botCode.toUpperCase() !== req.session.botCode) {
-    return res.status(400).send(`
-      <h1 style="color: #ff4444;">Verification Failed</h1>
-      <p>The verification code you entered is incorrect. Bots are not allowed.</p>
-      <a href="/register" style="color: #88FE00;">Try again</a>
-    `);
+    return res.redirect('/register?error=' + encodeURIComponent('The verification code you entered is incorrect. Bots are not allowed.') +
+      (req.body.email ? ('&email=' + encodeURIComponent(req.body.email)) : ''));
   }
   
   // Clear the bot code so it can't be reused
@@ -156,33 +209,31 @@ const handleRegister = async (req, res) => {
   
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    const errorMessages = errors.array().map(err => escapeHtml(err.msg));
-    return res.status(400).send(`
-      <h1 style="color: #88FE00;">Validation Error</h1>
-      <ul>${errorMessages.map(msg => `<li>${msg}</li>`).join('')}</ul>
-      <a href="/register" style="color: #88FE00;">Go back</a>
-    `);
+    const errorMessages = errors.array().map(err => err.msg).join(' ');
+    return res.redirect('/register?error=' + encodeURIComponent(errorMessages) +
+      (req.body.email ? ('&email=' + encodeURIComponent(req.body.email)) : ''));
   }
 
   try {
     const { email, password, acceptTerms } = req.body;
+    // Password strength enforcement (backend)
+    const zxcvbn = require('zxcvbn');
+    const pwStrength = zxcvbn(password);
+    if (pwStrength.score < 3) {
+      return res.redirect('/register?error=' + encodeURIComponent('Your password is too weak. ' + pwStrength.feedback.suggestions.join(' ')) +
+        (email ? ('&email=' + encodeURIComponent(email)) : ''));
+    }
     
     // Validate terms acceptance
     if (acceptTerms !== 'on') {
-      return res.status(400).send(`
-        <h1 style="color: #22d3ee;">Terms Required</h1>
-        <p style="color: #e2e8f0;">You must accept the Terms of Service to register.</p>
-        <a href="/register" style="color: #22d3ee;">Go back</a>
-      `);
+      return res.redirect('/register?error=' + encodeURIComponent('You must accept the Terms of Service to register.') +
+        (email ? ('&email=' + encodeURIComponent(email)) : ''));
     }
     
     // Block disposable email addresses
     if (isDisposableEmail(email)) {
-      return res.status(400).send(`
-        <h1 style="color: #22d3ee;">Invalid Email</h1>
-        <p style="color: #e2e8f0;">Temporary/disposable email addresses are not allowed. Please use a permanent email address.</p>
-        <a href="/register" style="color: #22d3ee;">Go back</a>
-      `);
+      return res.redirect('/register?error=' + encodeURIComponent('Temporary/disposable email addresses are not allowed. Please use a permanent email address.') +
+        (email ? ('&email=' + encodeURIComponent(email)) : ''));
     }
     
     // Get client IP address (handles proxy/load balancer)
@@ -205,7 +256,8 @@ const handleRegister = async (req, res) => {
     // Check if user exists
     const userCheck = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
     if (userCheck.rows.length > 0) {
-      return res.status(400).send('Email already registered. <a href="/login">Login</a>');
+      return res.redirect('/register?error=' + encodeURIComponent('Email already registered. Please log in.') +
+        (email ? ('&email=' + encodeURIComponent(email)) : ''));
     }
 
     // Hash password
@@ -270,7 +322,8 @@ const handleRegister = async (req, res) => {
     });
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).send('Registration failed');
+    res.redirect('/register?error=' + encodeURIComponent('Registration failed. Please try again.') +
+      (email ? ('&email=' + encodeURIComponent(email)) : ''));
   }
 };
 
@@ -375,6 +428,8 @@ ${getHTMLHead('Login - Basement')}
     </main>
     
     ${getFooter()}
+    <script src="https://cdn.jsdelivr.net/npm/zxcvbn@4.4.2/dist/zxcvbn.js"></script>
+    <script src="/js/password-strength.js"></script>
     ${getScripts('nav.js')}
   `);
 };
@@ -415,6 +470,15 @@ const handleLogin = async (req, res) => {
         return res.redirect('/login?error=An error occurred. Please try again.');
       }
 
+      // If 2FA is enabled, require TOTP code
+      if (user.twofa_enabled) {
+        req.session.pending2FAUserId = user.id;
+        req.session.userEmail = user.email;
+        req.session.userRole = user.role;
+        req.session.emailConfirmed = user.email_confirmed;
+        return res.redirect('/auth/2fa/prompt');
+      }
+
       // Set session (allow login even without email confirmation)
       req.session.userId = user.id;
       req.session.userEmail = user.email;
@@ -428,6 +492,43 @@ const handleLogin = async (req, res) => {
         return res.redirect('/dashboard');
       }
     });
+  // GET /auth/2fa/prompt - Show 2FA code entry page
+  exports.show2FAPrompt = (req, res) => {
+    if (!req.session.pending2FAUserId) return res.redirect('/login');
+    res.send(`
+      ${getHTMLHead('2FA Verification - Basement')}
+      <main class="bg-black min-h-screen flex items-center justify-center py-12 px-4">
+        <div class="max-w-md w-full bg-gray-900/80 backdrop-blur-xl border border-blue-500/30 rounded p-6 shadow">
+          <h1 class="text-2xl font-bold text-white text-center mb-6">TWO-FACTOR AUTHENTICATION</h1>
+          <form id="2faLoginForm" class="space-y-4">
+            <input type="text" id="2faLoginCode" maxlength="6" placeholder="Enter 6-digit code" class="w-full px-4 py-2 rounded-lg text-white bg-black border border-gray-700 text-center font-mono" />
+            <button type="submit" class="w-full py-2.5 bg-blue-600 text-white font-bold rounded hover:bg-blue-500 transition-all">Verify</button>
+            <div id="2faLoginError" class="text-red-400 text-xs mt-2"></div>
+          </form>
+        </div>
+      </main>
+      <script nonce="${getNonce()}">
+        document.getElementById('2faLoginForm').addEventListener('submit', async function(e) {
+          e.preventDefault();
+          const code = document.getElementById('2faLoginCode').value.trim();
+          const errorDiv = document.getElementById('2faLoginError');
+          errorDiv.textContent = '';
+          if (!code) { errorDiv.textContent = 'Enter code.'; return; }
+          const res = await fetch('/auth/2fa/verify-login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code })
+          });
+          const result = await res.json();
+          if (result.success) {
+            window.location.href = '/dashboard';
+          } else {
+            errorDiv.textContent = result.error || 'Invalid code.';
+          }
+        });
+      </script>
+    `);
+  };
   } catch (error) {
     console.error('Login error:', error);
     return res.redirect('/login?error=An error occurred. Please try again.');
@@ -457,6 +558,8 @@ ${getHTMLHead('Invalid Token - Basement')}
       </div>
     </main>
     ${getFooter()}
+    <script src="https://cdn.jsdelivr.net/npm/zxcvbn@4.4.2/dist/zxcvbn.js"></script>
+    <script src="/js/password-strength.js"></script>
     ${getScripts('nav.js')}
       `);
     }
@@ -477,6 +580,8 @@ ${getHTMLHead('Token Expired - Basement')}
       </div>
     </main>
     ${getFooter()}
+    <script src="https://cdn.jsdelivr.net/npm/zxcvbn@4.4.2/dist/zxcvbn.js"></script>
+    <script src="/js/password-strength.js"></script>
     ${getScripts('nav.js')}
       `);
     }
@@ -838,7 +943,7 @@ const resendCode = async (req, res) => {
 const showForgotPassword = (req, res) => {
   const message = escapeHtml(req.query.message || '');
   const error = escapeHtml(req.query.error || '');
-  
+  const userEmail = escapeHtml(req.query.email || '');
   res.send(`
 ${getHTMLHead('Forgot Password - Basement')}
     ${getResponsiveNav(req)}
@@ -853,14 +958,13 @@ ${getHTMLHead('Forgot Password - Basement')}
         
         <form method="POST" action="/forgot-password" class="space-y-4">
           <input type="hidden" name="_csrf" value="${req.csrfToken()}">
-          
           <div>
             <label class="block text-sm font-medium text-gray-300 mb-1.5">Email Address</label>
             <input type="email" name="email" required 
+              value="${userEmail}"
               class="w-full px-4 py-2.5 bg-black/40 border border-blue-500/30 rounded text-white placeholder-gray-500 focus:border-blue-500 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-blue-500/50 transition-all"
               placeholder="your@email.com">
           </div>
-          
           <button type="submit" class="w-full py-2.5 bg-blue-600 text-white font-bold rounded hover:bg-blue-500 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all">
             Send Reset Link
           </button>
@@ -887,7 +991,7 @@ const handleForgotPassword = async (req, res) => {
     
     // Always show success message (security: don't reveal if email exists)
     if (result.rows.length === 0) {
-      return res.redirect('/forgot-password?message=If that email exists, you will receive a reset link shortly.');
+      return res.redirect('/forgot-password?message=' + encodeURIComponent('If that email exists, you will receive a reset link shortly.') + (email ? ('&email=' + encodeURIComponent(email)) : ''));
     }
     
     const user = result.rows[0];
@@ -908,10 +1012,10 @@ const handleForgotPassword = async (req, res) => {
       console.error('[FORGOT PASSWORD] Failed to send email:', err);
     });
     
-    res.redirect('/forgot-password?message=If that email exists, you will receive a reset link shortly.');
+    res.redirect('/forgot-password?message=' + encodeURIComponent('If that email exists, you will receive a reset link shortly.') + (email ? ('&email=' + encodeURIComponent(email)) : ''));
   } catch (error) {
     console.error('[FORGOT PASSWORD] Error:', error);
-    res.redirect('/forgot-password?error=An error occurred. Please try again.');
+    res.redirect('/forgot-password?error=An error occurred. Please try again.&email=' + encodeURIComponent(email));
   }
 };
 
@@ -958,48 +1062,41 @@ const showResetPassword = async (req, res) => {
     
     const errorMsg = escapeHtml(req.query.error || '');
     const successMsg = escapeHtml(req.query.message || '');
-    
     res.send(`
 ${getHTMLHead('Reset Password - Basement')}
     ${getResponsiveNav(req)}
-    
     <main class="bg-black min-h-screen flex items-center justify-center py-12 px-4">
       <div class="max-w-md w-full bg-gray-900/80 backdrop-blur-xl border border-blue-500/30 rounded p-6 shadow-[0_0_70px_rgba(0,102,255,0.25),0_0_110px_rgba(0,102,255,0.12),inset_0_0_35px_rgba(0,102,255,0.03)]">
         <h1 class="text-2xl font-bold text-white text-center mb-2">SET NEW PASSWORD</h1>
         <p class="text-center text-gray-400 text-sm mb-6">Enter your new password below</p>
-        
         ${errorMsg ? `<div class="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded text-red-300 text-sm flex items-center gap-2"><svg class="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>${errorMsg}</div>` : ''}
         ${successMsg ? `<div class="mb-4 p-3 bg-green-500/10 border border-green-500/30 rounded text-green-300 text-sm flex items-center gap-2"><svg class="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>${successMsg}</div>` : ''}
-        
         <form method="POST" action="/reset-password/${token}" class="space-y-4">
           <input type="hidden" name="_csrf" value="${req.csrfToken()}">
-          
           <div>
             <label class="block text-sm font-medium text-gray-300 mb-1.5">New Password</label>
             <input type="password" name="password" minlength="8" required 
               class="w-full px-4 py-2.5 bg-black/40 border border-blue-500/30 rounded text-white placeholder-gray-500 focus:border-blue-500 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-blue-500/50 transition-all"
               placeholder="Minimum 8 characters">
           </div>
-          
           <div>
             <label class="block text-sm font-medium text-gray-300 mb-1.5">Confirm Password</label>
             <input type="password" name="confirmPassword" minlength="8" required 
               class="w-full px-4 py-2.5 bg-black/40 border border-blue-500/30 rounded text-white placeholder-gray-500 focus:border-blue-500 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-blue-500/50 transition-all"
               placeholder="Re-enter password">
           </div>
-          
           <button type="submit" class="w-full py-2.5 bg-blue-600 text-white font-bold rounded hover:bg-blue-500 hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all">
             Reset Password
           </button>
         </form>
-        
         <p class="text-center text-gray-400 mt-5 text-sm">
           <a href="/login" class="text-blue-400 hover:text-blue-300 font-medium">Back to Login</a>
         </p>
       </div>
     </main>
-    
     ${getFooter()}
+    <script src="/js/form-validation.js"></script>
+    <script src="/js/password-generator.js"></script>
     ${getScripts('nav.js')}
     `);
   } catch (error) {
@@ -1025,6 +1122,12 @@ const handleResetPassword = async (req, res) => {
     // Validate password length
     if (password.length < 8) {
       return res.redirect(`/reset-password/${token}?error=Password must be at least 8 characters`);
+    }
+    // Password strength enforcement (backend)
+    const zxcvbn = require('zxcvbn');
+    const pwStrength = zxcvbn(password);
+    if (pwStrength.score < 3) {
+      return res.redirect(`/reset-password/${token}?error=Password is too weak. Suggestions: ${pwStrength.feedback.suggestions.join(' ')}`);
     }
     
     // Verify token exists and is not expired

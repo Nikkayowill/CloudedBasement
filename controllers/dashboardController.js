@@ -670,6 +670,7 @@ ${getDashboardLayoutStart(layoutOptions)}
         `}
         </section>
 
+
         <!-- SITES SECTION (Domains + SSL) -->
         <section id="section-sites" class="dash-section">
         <div class="dash-card">
@@ -1270,12 +1271,85 @@ client = MongoClient(os.environ['MONGODB_URL'])</code></pre>
             <div class="pt-6" style="border-top: 1px solid var(--dash-card-border)">
                 <a href="/logout" class="dash-btn dash-btn-danger inline-block">Logout</a>
             </div>
+
+            <!-- 2FA Card -->
+            <div class="pt-6" style="border-top: 1px solid var(--dash-card-border)">
+                <h5 class="text-xs font-bold uppercase tracking-wide mb-4" style="color: var(--dash-accent)">Two-Factor Authentication (2FA)</h5>
+                <div id="2fa-section">
+                    ${data.twofaEnabled ? `
+                        <div class="mb-4">
+                            <span class="text-green-400 font-bold">2FA Enabled</span>
+                            <button id="disable2faBtn" class="dash-btn dash-btn-danger ml-4">Disable 2FA</button>
+                        </div>
+                    ` : `
+                        <button id="enable2faBtn" class="dash-btn dash-btn-primary">Enable 2FA</button>
+                        <div id="2fa-setup" class="mt-4 hidden">
+                            <div class="mb-2 text-sm text-gray-400">Scan the QR code with Google Authenticator or similar app, then enter the code below:</div>
+                            <img id="2faQR" src="" alt="2FA QR" class="mb-3 w-40 h-40 mx-auto" style="display:none;" />
+                            <input type="text" id="2faCode" maxlength="6" placeholder="Enter 6-digit code" class="w-full px-4 py-2 rounded-lg text-white bg-black border border-gray-700 mb-2 text-center font-mono" />
+                            <button id="verify2faBtn" class="dash-btn dash-btn-primary w-full">Verify & Enable</button>
+                            <div id="2faError" class="text-red-400 text-xs mt-2"></div>
+                        </div>
+                    `}
+                </div>
+            </div>
+
         </div>
-        </section>
+        </div><!-- End sections-container -->
 
-    </div><!-- End sections-container -->
+        <script nonce="${getNonce()}">
+        // 2FA UI logic
+        document.addEventListener('DOMContentLoaded', function() {
+            const enableBtn = document.getElementById('enable2faBtn');
+            const setupDiv = document.getElementById('2fa-setup');
+            const qrImg = document.getElementById('2faQR');
+            const verifyBtn = document.getElementById('verify2faBtn');
+            const codeInput = document.getElementById('2faCode');
+            const errorDiv = document.getElementById('2faError');
+            const disableBtn = document.getElementById('disable2faBtn');
 
-${getDashboardLayoutEnd()}
+            if (enableBtn) {
+                enableBtn.addEventListener('click', async () => {
+                    setupDiv.classList.remove('hidden');
+                    enableBtn.disabled = true;
+                    // Fetch QR and secret
+                    const res = await fetch('/auth/2fa/setup');
+                    const data = await res.json();
+                    qrImg.src = data.qr;
+                    qrImg.style.display = 'block';
+                });
+            }
+            if (verifyBtn) {
+                verifyBtn.addEventListener('click', async () => {
+                    errorDiv.textContent = '';
+                    const code = codeInput.value.trim();
+                    if (!code) { errorDiv.textContent = 'Enter code.'; return; }
+                    const res = await fetch('/auth/2fa/verify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ code })
+                    });
+                    const result = await res.json();
+                    if (result.success) {
+                        location.reload();
+                    } else {
+                        errorDiv.textContent = result.error || 'Invalid code.';
+                    }
+                });
+            }
+            if (disableBtn) {
+                disableBtn.addEventListener('click', async () => {
+                    if (!confirm('Disable 2FA?')) return;
+                    const res = await fetch('/auth/2fa/disable', { method: 'POST' });
+                    const result = await res.json();
+                    if (result.success) location.reload();
+                });
+            }
+        });
+        </script>
+
+
+        ${getDashboardLayoutEnd()}
 
 
 <!-- Cancel Plan Confirmation Modal -->
@@ -1583,6 +1657,7 @@ async function confirmDeleteDomain() {
 document.addEventListener('click', (e) => {
     if (e.target.id === 'delete-domain-modal') closeDeleteDomainModal();
 });
+
 </script>
-  `;
+    `;
 };
