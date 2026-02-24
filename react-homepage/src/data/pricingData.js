@@ -3,8 +3,8 @@ export const pricingData = [
     id: 'basic',
     name: 'Basic',
     desc: 'Side projects & personal apps',
-    price: '$15',
-    period: '/mo',
+    monthly: { price: '$15', period: '/mo' },
+    yearly:  { price: '$162', period: '/yr', perMonth: '$13.50' },
     features: [
       '1 GB RAM · 1 vCPU',
       '25 GB NVMe SSD · 1 TB BW',
@@ -18,8 +18,8 @@ export const pricingData = [
     id: 'pro',
     name: 'Pro',
     desc: 'Production apps & growing projects',
-    price: '$35',
-    period: '/mo',
+    monthly: { price: '$35', period: '/mo' },
+    yearly:  { price: '$378', period: '/yr', perMonth: '$31.50' },
     features: [
       '2 GB RAM · 2 vCPUs',
       '60 GB NVMe SSD · 3 TB BW',
@@ -37,8 +37,8 @@ export const pricingData = [
     id: 'premium',
     name: 'Premium',
     desc: 'Established apps & high traffic',
-    price: '$65',
-    period: '/mo',
+    monthly: { price: '$65', period: '/mo' },
+    yearly:  { price: '$702', period: '/yr', perMonth: '$58.50' },
     features: [
       '4 GB RAM · 2 vCPUs',
       '80 GB NVMe SSD · 4 TB BW',
