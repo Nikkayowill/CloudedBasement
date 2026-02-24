@@ -11,20 +11,27 @@ const PALETTE = {
 };
 
 const LINES = [
-  { type: 'cmd',  prompt: { user: 'alex', host: 'macbook', dir: '~/my-app' }, text: 'git push cb main' },
-  { type: 'out',  text: '> Connecting to Clouded Basement...', color: PALETTE.dim },
-  { type: 'out',  text: '✓ Auth OK',                           color: PALETTE.green },
-  { type: 'out',  text: '> Uploading repository...',           color: PALETTE.dim },
-  { type: 'out',  text: '✓ Transfer complete (1.2 MB)',        color: PALETTE.green },
-  { type: 'out',  text: '> Installing dependencies...',        color: PALETTE.dim },
-  { type: 'out',  text: '✓ npm install complete',              color: PALETTE.green },
-  { type: 'out',  text: '> Building project...',               color: PALETTE.dim },
-  { type: 'out',  text: '✓ Build successful',                  color: PALETTE.green },
-  { type: 'out',  text: '> Starting server...',                color: PALETTE.dim },
-  { type: 'out',  text: '✓ Live at https://myapp.cb.dev',      color: PALETTE.blue },
-  { type: 'out',  text: '',                                     color: PALETTE.text },
-  { type: 'out',  text: '  Deploy time: 18s',                  color: PALETTE.dim },
-  { type: 'cmd',  prompt: { user: 'alex', host: 'macbook', dir: '~/my-app' }, text: '', final: true },
+  { type: 'cmd', prompt: { user: 'alex', host: 'vps-prod', dir: '~' }, text: 'bash deploy.sh' },
+  { type: 'out', text: '[1/5] Pulling latest code...',                       color: PALETTE.dim },
+  { type: 'out', text: '  ✓ Already up to date.',                            color: PALETTE.green },
+  { type: 'out', text: '[2/5] Installing dependencies...',                   color: PALETTE.dim },
+  { type: 'out', text: '  npm warn deprecated inflight@1.0.6',               color: PALETTE.yellow },
+  { type: 'out', text: '  npm warn deprecated rimraf@2.7.1',                 color: PALETTE.yellow },
+  { type: 'out', text: '  added 847 packages in 41s',                        color: PALETTE.dim },
+  { type: 'out', text: '[3/5] Building application...',                      color: PALETTE.dim },
+  { type: 'out', text: '  ✗ FATAL ERROR: CALL_AND_RETRY_LAST',               color: PALETTE.red },
+  { type: 'out', text: '    JavaScript heap out of memory',                  color: PALETTE.red },
+  { type: 'out', text: '  Retrying with --max-old-space-size=512...',        color: PALETTE.yellow },
+  { type: 'out', text: '  ✗ Build failed. Exit code 1',                      color: PALETTE.red },
+  { type: 'out', text: '[4/5] Reloading nginx...',                           color: PALETTE.dim },
+  { type: 'out', text: '  ✗ [emerg] unknown directive "ssl_stapling"',       color: PALETTE.red },
+  { type: 'out', text: '    /etc/nginx/sites-enabled/myapp.conf:23',         color: PALETTE.dim },
+  { type: 'out', text: '[5/5] Renewing SSL certificate...',                  color: PALETTE.dim },
+  { type: 'out', text: '  ✗ Challenge failed for myapp.com',                 color: PALETTE.red },
+  { type: 'out', text: '    Port 80 in use — is nginx running?',             color: PALETTE.yellow },
+  { type: 'out', text: '',                                                    color: PALETTE.dim },
+  { type: 'out', text: '❌ Deploy failed. See /var/log/deploy.log',           color: PALETTE.red },
+  { type: 'cmd', prompt: { user: 'alex', host: 'vps-prod', dir: '~' }, text: '', final: true },
 ];
 
 function rand(min, max) {
@@ -32,8 +39,9 @@ function rand(min, max) {
 }
 
 export default function TerminalCard() {
-  // lines[i] = { text: string, done: boolean }
-  const [lines, setLines] = useState([]);
+  // Pre-fill all slots — card height is fixed from first render
+  const [lines, setLines] = useState(LINES.map(() => ({ text: '', done: false })));
+  const [activeIdx, setActiveIdx] = useState(-1);
   const [blink, setBlink] = useState(true);
   const cancelled = useRef(false);
 
@@ -48,10 +56,8 @@ export default function TerminalCard() {
         if (cancelled.current) return;
         const full = LINES[i].text;
 
-        // Push empty line
-        setLines(prev => [...prev, { text: '', done: false }]);
+        setActiveIdx(i);
 
-        // Type each character
         for (let c = 0; c <= full.length; c++) {
           if (cancelled.current) return;
           const delay = LINES[i].type === 'cmd' ? rand(40, 90) : rand(12, 40);
@@ -63,24 +69,19 @@ export default function TerminalCard() {
           });
         }
 
-        // Mark done
         setLines(prev => {
           const next = [...prev];
           next[i] = { ...next[i], done: true };
           return next;
         });
 
-        // Pause between lines
         const pause = LINES[i].type === 'cmd' ? 350 : 60;
         await new Promise(r => { timer = setTimeout(r, pause); });
       }
     }
 
     run();
-    return () => {
-      cancelled.current = true;
-      clearTimeout(timer);
-    };
+    return () => { cancelled.current = true; clearTimeout(timer); };
   }, []);
 
   useEffect(() => {
@@ -89,10 +90,8 @@ export default function TerminalCard() {
   }, []);
 
   const showCursorOnLine = (i) => {
-    const isLastLine = i === lines.length - 1;
-    const lineNotDone = !lines[i]?.done;
-    const isFinalPrompt = LINES[i]?.final;
-    return isLastLine && (lineNotDone || isFinalPrompt);
+    if (i !== activeIdx) return false;
+    return !lines[i]?.done || LINES[i]?.final;
   };
 
   return (
@@ -114,17 +113,16 @@ export default function TerminalCard() {
         borderBottom: '1px solid rgba(255,255,255,0.05)',
         background: 'rgba(255,255,255,0.02)',
       }}>
-        <span style={{ width: 10, height: 10, borderRadius: '50%', background: PALETTE.red, flexShrink: 0 }} />
+        <span style={{ width: 10, height: 10, borderRadius: '50%', background: PALETTE.red,    flexShrink: 0 }} />
         <span style={{ width: 10, height: 10, borderRadius: '50%', background: PALETTE.yellow, flexShrink: 0 }} />
-        <span style={{ width: 10, height: 10, borderRadius: '50%', background: PALETTE.green, flexShrink: 0 }} />
-        <span style={{ marginLeft: 8, fontSize: 10, color: PALETTE.gray }}>deploy — bash</span>
+        <span style={{ width: 10, height: 10, borderRadius: '50%', background: PALETTE.green,  flexShrink: 0 }} />
+        <span style={{ marginLeft: 8, fontSize: 10, color: PALETTE.gray }}>vps-prod — bash</span>
       </div>
 
       {/* Body */}
-      <div style={{ padding: '14px 16px', minHeight: '200px' }}>
-        {lines.map((line, i) => {
-          const spec = LINES[i];
-          if (!spec) return null;
+      <div style={{ padding: '14px 16px' }}>
+        {LINES.map((spec, i) => {
+          const line = lines[i] || { text: '', done: false };
           const isCmd = spec.type === 'cmd';
           const color = isCmd ? PALETTE.text : (spec.color || PALETTE.text);
 
