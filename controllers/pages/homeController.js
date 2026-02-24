@@ -436,7 +436,7 @@ ${getHTMLHead('Clouded Basement — Fast, Simple Cloud Hosting')}
             </a>
             <a href="/is-this-safe" class="funnel-btn funnel-btn-ghost">Is this safe? →</a>
           </div>
-          <p class="mt-6 funnel-body-sm reveal"><a href="/docs" class="underline hover:text-white transition-colors" style="color: #60a5fa">See how it works? →</a></p>
+          <p class="mt-2 funnel-body-sm reveal"><a href="/docs" class="underline hover:text-white transition-colors" style="color: #60a5fa">See how it works? →</a></p>
         </div>
       </section>
 
