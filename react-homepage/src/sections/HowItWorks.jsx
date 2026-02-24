@@ -5,18 +5,18 @@ const CELL_BORDER = '0.5px solid rgba(255,255,255,0.07)';
 const STEPS = [
   {
     n: '01',
-    title: 'Connect your repo',
-    body: 'Link your GitHub repository from the dashboard. Takes 30 seconds — no config files, no YAML.',
+    title: 'Deploy from Git',
+    body: 'Paste your GitHub repo URL in the dashboard and hit Deploy. Your app is cloned, built, and served — no config files.',
   },
   {
     n: '02',
-    title: 'Push to main',
-    body: 'Every push to your main branch triggers a fresh build and deploys your app automatically.',
+    title: 'Enable auto-deploy',
+    body: 'We generate a webhook secret for you. Add it to your GitHub repo settings once — we walk you through it. Every push to main deploys automatically from then on.',
   },
   {
     n: '03',
     title: "You're live",
-    body: 'Your app is running behind Nginx with SSL and a custom domain. Check the dashboard for logs and status.',
+    body: 'Your app runs behind Nginx with free SSL. Add a custom domain from the dashboard and DNS propagation is all that\'s left.',
   },
 ];
 
