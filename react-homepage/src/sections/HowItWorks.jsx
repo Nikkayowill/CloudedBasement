@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 const CELL_BORDER = '0.5px solid rgba(255,255,255,0.07)';
+const STEP_DURATION = 3500; // ms per step
 
-// Dashboard design tokens (match real dashboard global.css vars)
+// Dashboard design tokens
 const BG     = '#0a0a0a';
 const CARD   = '#111111';
 const BORDER = '#262626';
@@ -20,38 +21,39 @@ const STEPS = [
   {
     n: '02',
     title: 'Watch it build',
-    body: 'Live deploy logs stream as your app is cloned, dependencies installed, and your server started. Enable auto-deploy once and every future push triggers this automatically.',
+    body: 'Live deploy logs stream as your app is cloned, dependencies installed, and your server started. Enable auto-deploy once — every future push triggers this automatically.',
   },
   {
     n: '03',
     title: "You're live",
-    body: 'Your app is running. Add a custom domain, we handle SSL automatically via Let\'s Encrypt. The dashboard shows status, sites, and deploy history.',
+    body: "Your app is running. Add a custom domain, we handle SSL automatically via Let's Encrypt. The dashboard shows status, sites, and deploy history.",
   },
 ];
 
 // ─── Panel 1: Deploy input ───────────────────────────────────────────────────
 function DeployPanel() {
-  const inputStyle = {
-    flex: 1, padding: '0.5rem 0.75rem',
-    background: BG, border: `1px solid ${BORDER}`,
-    borderRadius: '0.375rem', color: MUTED,
-    fontSize: '0.6875rem', fontFamily: 'monospace',
-    outline: 'none', minWidth: 0,
-  };
-  const btnStyle = {
-    padding: '0.5rem 1rem', flexShrink: 0,
-    background: ACCENT, border: 'none',
-    borderRadius: '0.375rem', color: '#fff',
-    fontSize: '0.75rem', fontWeight: 600, cursor: 'default',
-  };
   return (
     <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
       <p style={{ fontSize: '0.6875rem', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: DIM }}>
         Deploy from Git
       </p>
       <div style={{ display: 'flex', gap: '0.5rem' }}>
-        <input readOnly value="https://github.com/alex/my-saas-app.git" style={inputStyle} />
-        <button style={btnStyle}>Deploy</button>
+        <input
+          readOnly
+          value="https://github.com/alex/my-saas-app.git"
+          style={{
+            flex: 1, padding: '0.5rem 0.75rem', minWidth: 0,
+            background: BG, border: `1px solid ${BORDER}`,
+            borderRadius: '0.375rem', color: MUTED,
+            fontSize: '0.6875rem', fontFamily: 'monospace', outline: 'none',
+          }}
+        />
+        <button style={{
+          padding: '0.5rem 1rem', flexShrink: 0,
+          background: ACCENT, border: 'none',
+          borderRadius: '0.375rem', color: '#fff',
+          fontSize: '0.75rem', fontWeight: 600, cursor: 'default',
+        }}>Deploy</button>
       </div>
       <p style={{ fontSize: '0.6875rem', color: DIM }}>
         Works with GitHub, GitLab, and Bitbucket.
@@ -75,10 +77,7 @@ function LogsPanel() {
   return (
     <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <div style={{
-          width: '7px', height: '7px', borderRadius: '50%',
-          background: ACCENT, boxShadow: `0 0 5px ${ACCENT}`,
-        }} />
+        <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: ACCENT, boxShadow: `0 0 5px ${ACCENT}` }} />
         <p style={{ fontSize: '0.6875rem', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: DIM }}>
           Deploying my-saas-app
         </p>
@@ -87,7 +86,7 @@ function LogsPanel() {
         background: BG, border: `1px solid ${BORDER}`,
         borderRadius: '0.375rem', padding: '0.75rem',
         fontFamily: 'monospace', fontSize: '0.6875rem', lineHeight: 1.8,
-        display: 'flex', flexDirection: 'column', gap: 0,
+        display: 'flex', flexDirection: 'column',
       }}>
         {LOG_LINES.map((line, i) => (
           <span key={i} style={{ color: line.color }}>{line.text}</span>
@@ -105,7 +104,6 @@ function LivePanel() {
   };
   return (
     <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
-      {/* Status */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
           <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 6px #22c55e' }} />
@@ -113,8 +111,6 @@ function LivePanel() {
         </div>
         <span style={{ fontSize: '0.6875rem', color: DIM }}>my-saas-app</span>
       </div>
-
-      {/* Data rows */}
       <div style={{ borderTop: `1px solid ${BORDER}` }}>
         <div style={rowStyle}>
           <span style={{ fontSize: '0.6875rem', color: DIM }}>IPv4</span>
@@ -129,8 +125,6 @@ function LivePanel() {
           <span style={{ fontSize: '0.75rem', color: TEXT }}>1 / 5</span>
         </div>
       </div>
-
-      {/* Domain */}
       <div style={{
         background: BG, border: `1px solid ${BORDER}`,
         borderRadius: '0.375rem', padding: '0.5rem 0.75rem',
@@ -148,7 +142,6 @@ function LivePanel() {
 
 const PANELS = [DeployPanel, LogsPanel, LivePanel];
 
-// ─── Shared panel chrome ─────────────────────────────────────────────────────
 function PanelChrome({ activeIdx }) {
   const Panel = PANELS[activeIdx];
   return (
@@ -158,14 +151,13 @@ function PanelChrome({ activeIdx }) {
       borderRadius: '0.625rem', overflow: 'hidden',
       boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
     }}>
-      {/* Browser chrome */}
       <div style={{
-        padding: '0.5rem 0.875rem',
-        background: '#0d0d0d', borderBottom: `1px solid ${BORDER}`,
+        padding: '0.5rem 0.875rem', background: '#0d0d0d',
+        borderBottom: `1px solid ${BORDER}`,
         display: 'flex', alignItems: 'center', gap: '0.375rem',
       }}>
-        {['#3a3a3a', '#3a3a3a', '#3a3a3a'].map((c, i) => (
-          <span key={i} style={{ width: '9px', height: '9px', borderRadius: '50%', background: c }} />
+        {[0, 1, 2].map((i) => (
+          <span key={i} style={{ width: '9px', height: '9px', borderRadius: '50%', background: '#3a3a3a' }} />
         ))}
         <span style={{ marginLeft: '0.5rem', color: DIM, fontSize: '0.6875rem' }}>
           dashboard.cloudedbasement.ca
@@ -178,10 +170,52 @@ function PanelChrome({ activeIdx }) {
 
 // ─── Main section ────────────────────────────────────────────────────────────
 export default function HowItWorks() {
-  const [active, setActive] = useState(0);
+  const [active, setActive]   = useState(0);
+  const [tick, setTick]       = useState(0);    // changes → restarts progress bar CSS animation
+  const [started, setStarted] = useState(false);
+  const sectionRef = useRef(null);
+  const timerRef   = useRef(null);
+
+  const advance = useCallback((from) => {
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      setActive((from + 1) % STEPS.length);
+      setTick((t) => t + 1);
+    }, STEP_DURATION);
+  }, []);
+
+  // Kick off when section scrolls into view
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setStarted(true);
+          obs.disconnect();
+        }
+      },
+      { threshold: 0.25 },
+    );
+    if (sectionRef.current) obs.observe(sectionRef.current);
+    return () => obs.disconnect();
+  }, []);
+
+  // Schedule next step whenever active/started changes
+  useEffect(() => {
+    if (!started) return;
+    advance(active);
+    return () => clearTimeout(timerRef.current);
+  }, [active, started, advance]);
+
+  const handleClick = (i) => {
+    clearTimeout(timerRef.current);
+    setActive(i);
+    setTick((t) => t + 1);
+    if (!started) setStarted(true);
+    advance(i);
+  };
 
   return (
-    <section className="border-b-faint">
+    <section ref={sectionRef} className="border-b-faint">
       {/* Title row */}
       <div style={{ padding: '6rem 2.5rem 4rem', borderBottom: CELL_BORDER }}>
         <div style={{ maxWidth: '36rem' }}>
@@ -192,51 +226,66 @@ export default function HowItWorks() {
 
       {/* Two-col: steps + panel */}
       <div className="grid grid-cols-1 md:grid-cols-2">
-        {/* Steps — clickable */}
-        <div className="border-r-faint" style={{ padding: '3rem 2.5rem', display: 'flex', flexDirection: 'column', gap: 0 }}>
+        {/* Steps */}
+        <div className="border-r-faint" style={{ padding: '3rem 2.5rem', display: 'flex', flexDirection: 'column' }}>
           {STEPS.map((step, i) => {
             const isActive = active === i;
             return (
               <div
                 key={step.n}
-                onClick={() => setActive(i)}
+                onClick={() => handleClick(i)}
                 style={{
+                  position: 'relative',
                   display: 'flex', gap: '1.25rem',
                   padding: '1.5rem 0',
                   borderBottom: i < STEPS.length - 1 ? CELL_BORDER : 'none',
                   cursor: 'pointer',
-                  opacity: isActive ? 1 : 0.45,
-                  transition: 'opacity 200ms ease',
+                  opacity: isActive ? 1 : 0.4,
+                  transition: 'opacity 300ms ease',
                 }}
               >
-                {/* Step number */}
+                {/* Step number circle */}
                 <div style={{
                   width: '2.25rem', height: '2.25rem', borderRadius: '50%', flexShrink: 0,
-                  border: isActive ? `1px solid ${ACCENT}` : `1px solid rgba(255,255,255,0.1)`,
+                  border: isActive ? `1px solid ${ACCENT}` : '1px solid rgba(255,255,255,0.1)',
                   background: isActive ? `${ACCENT}18` : 'transparent',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '0.6875rem', fontWeight: 700,
                   color: isActive ? ACCENT : DIM,
-                  letterSpacing: '0.02em',
-                  transition: 'border-color 200ms ease, color 200ms ease, background 200ms ease',
+                  transition: 'all 300ms ease',
                 }}>
                   {step.n}
                 </div>
+
                 {/* Text */}
                 <div style={{ paddingTop: '0.3rem' }}>
                   <h3 className="funnel-heading-3 mb-2">{step.title}</h3>
                   <p className="funnel-body-sm" style={{ color: '#6b7280' }}>{step.body}</p>
                 </div>
+
+                {/* Progress bar — fills over STEP_DURATION, re-keyed on each tick to restart */}
+                {isActive && started && (
+                  <div style={{
+                    position: 'absolute', bottom: 0, left: 0, right: 0,
+                    height: '1.5px', overflow: 'hidden',
+                  }}>
+                    <div
+                      key={`${i}-${tick}`}
+                      style={{
+                        height: '100%',
+                        background: ACCENT,
+                        animation: `hiw-progress ${STEP_DURATION}ms linear forwards`,
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
 
         {/* Panel */}
-        <div style={{
-          padding: '3rem 2.5rem',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
+        <div style={{ padding: '3rem 2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <PanelChrome activeIdx={active} />
         </div>
       </div>
