@@ -4,12 +4,9 @@ import { featuresData } from '../data/featuresData';
 
 const CELL_BORDER = '0.5px solid rgba(255,255,255,0.07)';
 
-function FeatureCell({ Icon, title, body, isLast }) {
+function FeatureCell({ Icon, title, body }) {
   return (
-    <div style={{
-      padding: '2rem 2.5rem',
-      borderRight: isLast ? 'none' : CELL_BORDER,
-    }}>
+    <div className="feature-cell" style={{ padding: '2rem 2.5rem' }}>
       <div style={{
         width: '2rem', height: '2rem', borderRadius: '0.375rem',
         background: 'rgba(96,165,250,0.08)',
@@ -37,21 +34,25 @@ export default function Features() {
       </div>
 
       {/* 4-col feature grid with inline border-right dividers */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }}>
-        {featuresData.map((feat, i) => (
-          <FeatureCell
-            key={feat.title}
-            {...feat}
-            isLast={i === featuresData.length - 1}
-          />
+      <div className="features-grid">
+        {featuresData.map((feat) => (
+          <FeatureCell key={feat.title} {...feat} />
         ))}
       </div>
 
       {/* Integrations carousel strip */}
-      <div style={{
-        borderTop: CELL_BORDER,
-        padding: '1.25rem 0',
-      }}>
+      <div style={{ borderTop: CELL_BORDER, padding: '1.5rem 0 1.25rem' }}>
+        <p style={{
+          textAlign: 'center',
+          fontSize: '0.6875rem',
+          fontWeight: 600,
+          letterSpacing: '0.1em',
+          textTransform: 'uppercase',
+          color: 'rgba(255,255,255,0.3)',
+          marginBottom: '1rem',
+        }}>
+          Trusted integrations
+        </p>
         <IntegrationsCarousel />
       </div>
     </section>
