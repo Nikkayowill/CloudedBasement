@@ -122,6 +122,12 @@ body::-webkit-scrollbar {
   .feature-cell:last-child    { border-bottom: none; }
 }
 
+/* ── How it works: step progress bar ── */
+@keyframes hiw-progress {
+  from { width: 0%; }
+  to   { width: 100%; }
+}
+
 /* ── Hero text block: centered on mobile, left-aligned on md+ ── */
 @media (min-width: 768px) {
   .hero-text-block {
