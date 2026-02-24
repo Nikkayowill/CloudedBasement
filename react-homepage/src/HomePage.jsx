@@ -1,5 +1,6 @@
 import ResponsiveNav from './components/ResponsiveNav';
 import HeroSection  from './sections/HeroSection';
+import HowItWorks   from './sections/HowItWorks';
 import Features     from './sections/Features';
 import NewPricing   from './sections/NewPricing';
 import FaqSection   from './sections/FaqSection';
@@ -14,6 +15,7 @@ export default function HomePage() {
       <div className="cb">
         <main>
           <HeroSection />
+          <HowItWorks />
           <Features />
           <NewPricing />
           <FaqSection />
