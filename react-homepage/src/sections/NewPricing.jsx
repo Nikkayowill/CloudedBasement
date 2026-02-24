@@ -6,7 +6,7 @@ const CELL_BORDER = '0.5px solid rgba(255,255,255,0.07)';
 function PricingCell({ id, name, desc, price, period, features, popular, isLast }) {
   return (
     <div style={{
-      padding: '2.5rem 2rem',
+      padding: '3rem 2rem',
       borderRight: isLast ? 'none' : CELL_BORDER,
       display: 'flex', flexDirection: 'column',
       position: 'relative',
@@ -49,7 +49,7 @@ export default function NewPricing() {
   return (
     <section id="pricing" className="border-b-faint">
       {/* Section title row */}
-      <div style={{ padding: '4rem 2.5rem 3rem', borderBottom: CELL_BORDER }}>
+      <div style={{ padding: '6rem 2.5rem 4rem', borderBottom: CELL_BORDER }}>
         <SectionTitle
           text1="Pricing"
           text2="One price. No surprises."

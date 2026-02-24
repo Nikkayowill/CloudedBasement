@@ -45,7 +45,7 @@ export default function FaqSection() {
   return (
     <section id="faq" className="border-b-faint">
       {/* Section title row */}
-      <div style={{ padding: '4rem 2.5rem 3rem', borderBottom: CELL_BORDER }}>
+      <div style={{ padding: '6rem 2.5rem 4rem', borderBottom: CELL_BORDER }}>
         <SectionTitle
           text1="FAQ"
           text2="Common questions"

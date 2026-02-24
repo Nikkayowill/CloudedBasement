@@ -30,7 +30,7 @@ export default function HeroSection() {
             <div className="px-8 md:px-12 py-20 md:py-28 flex flex-col items-center justify-center md:justify-end w-full gap-3">
               <TerminalCard />
               <p className="funnel-mono text-[11px] text-center" style={{ color: 'rgba(255,255,255,0.25)' }}>
-                skip hours of server config — this just works
+                skip hours of server config
               </p>
             </div>
           </div>

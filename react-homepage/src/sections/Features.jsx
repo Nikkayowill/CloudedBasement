@@ -6,7 +6,7 @@ const CELL_BORDER = '0.5px solid rgba(255,255,255,0.07)';
 
 function FeatureCell({ Icon, title, body }) {
   return (
-    <div className="feature-cell" style={{ padding: '2rem 2.5rem' }}>
+    <div className="feature-cell" style={{ padding: '2.5rem' }}>
       <div style={{
         width: '2rem', height: '2rem', borderRadius: '0.375rem',
         background: 'rgba(96,165,250,0.08)',
@@ -25,7 +25,7 @@ export default function Features() {
   return (
     <section id="features" className="border-b-faint">
       {/* Section title row */}
-      <div style={{ padding: '4rem 2.5rem 3rem', borderBottom: CELL_BORDER }}>
+      <div style={{ padding: '6rem 2.5rem 4rem', borderBottom: CELL_BORDER }}>
         <SectionTitle
           text1="Features"
           text2="Everything you need, nothing you don't"
