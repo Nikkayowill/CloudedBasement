@@ -4,7 +4,7 @@ export default function CTASection() {
       <div
         className="reveal"
         style={{
-          padding: '6rem 2.5rem',
+          padding: '8rem 2.5rem',
           textAlign: 'center',
           maxWidth: '36rem',
           margin: '0 auto',
