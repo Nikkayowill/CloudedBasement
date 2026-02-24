@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+/* ── Layout container with visible rail borders ──
+   All page sections sit inside .cb. The border-left/right create
+   the vertical "rails" that communicate container boundaries. */
+.cb {
+  width: 100%;
+  max-width: 72rem;
+  margin-left: auto;
+  margin-right: auto;
+  border-left: 0.5px solid rgba(255, 255, 255, 0.07);
+  border-right: 0.5px solid rgba(255, 255, 255, 0.07);
+}
+
+/* Universal border utility classes */
+.border-b-faint {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+.border-r-faint {
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
+}
+.border-t-faint {
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+/* ── Terminal card cursor ── */
+@keyframes cb-blink {
+  0%, 49%  { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.cb-cursor {
+  display: inline-block;
+  width: 7px;
+  height: 0.88em;
+  background: #cdd6f4;
+  vertical-align: -0.08em;
+  animation: cb-blink 1000ms step-start infinite;
+}
+.cb-cursor--solid {
+  animation: none;
+}
+.cb-terminal-body {
+  scrollbar-width: none;
+}
+.cb-terminal-body::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Integrations carousel ── */
+@keyframes cb-carousel {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* ── Hero text block: centered on mobile, left-aligned on md+ ── */
+@media (min-width: 768px) {
+  .hero-text-block {
+    align-items: flex-start;
+    text-align: left;
+  }
+  .hero-cta-group {
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+}
