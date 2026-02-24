@@ -18,6 +18,7 @@ if (process.env.SENTRY_DSN) {
   console.log('[SENTRY] Error monitoring initialized');
 }
 
+const path = require('path');
 const express = require('express');
 // express-rate-limit used via middleware/rateLimiter, not directly
 const helmet = require('helmet');
@@ -86,6 +87,7 @@ app.use(helmet({
 }));
 
 app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'react-homepage/dist')));
 
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
@@ -170,7 +172,8 @@ app.get('/health', async (req, res) => {
   }
 });
 
-app.get('/', pagesController.showHome);
+// app.get('/', pagesController.showHome); // replaced by React SPA
+app.get('/', (_req, res) => res.sendFile(path.join(__dirname, 'react-homepage/dist/index.html')));
 app.get('/about', pagesController.showAbout);
 app.get('/is-this-safe', pagesController.showSafety);
 app.get('/compare', pagesController.showCompare);
