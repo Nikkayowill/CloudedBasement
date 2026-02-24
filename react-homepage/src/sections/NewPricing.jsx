@@ -14,7 +14,7 @@ function PricingCell({ id, name, desc, price, period, features, adds, popular, i
     }}>
       {popular && <span className="funnel-badge">Most Popular</span>}
 
-      <h3 className={`funnel-heading-3 mb-1${popular ? ' mt-3' : ''}`}>{name}</h3>
+      <h3 className="funnel-heading-3 mb-1">{name}</h3>
       <p className="funnel-body-sm mb-5" style={{ color: '#6b7280' }}>{desc}</p>
 
       <p className="mb-1">
