@@ -1,7 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const CELL_BORDER = '0.5px solid rgba(255,255,255,0.07)';
-const STEP_DURATION = 3500; // ms per step
 
 // Dashboard design tokens
 const BG     = '#0a0a0a';
@@ -170,123 +169,94 @@ function PanelChrome({ activeIdx }) {
 
 // ─── Main section ────────────────────────────────────────────────────────────
 export default function HowItWorks() {
-  const [active, setActive]   = useState(0);
-  const [tick, setTick]       = useState(0);    // changes → restarts progress bar CSS animation
-  const [started, setStarted] = useState(false);
+  const [active, setActive] = useState(0);
   const sectionRef = useRef(null);
-  const timerRef   = useRef(null);
 
-  const advance = useCallback((from) => {
-    clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
-      setActive((from + 1) % STEPS.length);
-      setTick((t) => t + 1);
-    }, STEP_DURATION);
-  }, []);
-
-  // Kick off when section scrolls into view
   useEffect(() => {
-    const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setStarted(true);
-          obs.disconnect();
-        }
-      },
-      { threshold: 0.25 },
-    );
-    if (sectionRef.current) obs.observe(sectionRef.current);
-    return () => obs.disconnect();
+    const handleScroll = () => {
+      if (!sectionRef.current) return;
+      // On mobile (< 768px) the section isn't sticky — skip scroll logic
+      if (window.innerWidth < 768) return;
+
+      const rect       = sectionRef.current.getBoundingClientRect();
+      const sectionH   = sectionRef.current.offsetHeight;
+      const vh         = window.innerHeight;
+      const scrolled   = -rect.top;          // px scrolled into this section
+      const scrollable = sectionH - vh;      // total scrollable distance
+      if (scrollable <= 0) return;
+
+      const progress = Math.max(0, Math.min(1, scrolled / scrollable));
+      const step     = Math.min(STEPS.length - 1, Math.floor(progress * STEPS.length));
+      setActive(step);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // run once on mount in case already scrolled
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  // Schedule next step whenever active/started changes
-  useEffect(() => {
-    if (!started) return;
-    advance(active);
-    return () => clearTimeout(timerRef.current);
-  }, [active, started, advance]);
-
-  const handleClick = (i) => {
-    clearTimeout(timerRef.current);
-    setActive(i);
-    setTick((t) => t + 1);
-    if (!started) setStarted(true);
-    advance(i);
-  };
 
   return (
-    <section ref={sectionRef} className="border-b-faint">
-      {/* Title row */}
-      <div style={{ padding: '6rem 2.5rem 4rem', borderBottom: CELL_BORDER }}>
-        <div style={{ maxWidth: '36rem' }}>
+    // hiw-section: height:350vh on md+, auto on mobile (from index.css)
+    <section ref={sectionRef} className="hiw-section">
+      {/* hiw-sticky: position:sticky top:0 height:100vh on md+, static on mobile */}
+      <div className="hiw-sticky border-b-faint" style={{ display: 'flex', flexDirection: 'column' }}>
+
+        {/* Title row */}
+        <div style={{ padding: '3.5rem 2.5rem 2.5rem', borderBottom: CELL_BORDER, flexShrink: 0 }}>
           <p className="funnel-kicker mb-3">How it works</p>
           <h2 className="funnel-heading-2">Three steps to live</h2>
         </div>
-      </div>
 
-      {/* Two-col: steps + panel */}
-      <div className="grid grid-cols-1 md:grid-cols-2">
-        {/* Steps */}
-        <div className="border-r-faint" style={{ padding: '3rem 2.5rem', display: 'flex', flexDirection: 'column' }}>
-          {STEPS.map((step, i) => {
-            const isActive = active === i;
-            return (
-              <div
-                key={step.n}
-                onClick={() => handleClick(i)}
-                style={{
-                  position: 'relative',
-                  display: 'flex', gap: '1.25rem',
-                  padding: '1.5rem 0',
-                  borderBottom: i < STEPS.length - 1 ? CELL_BORDER : 'none',
-                  cursor: 'pointer',
-                  opacity: isActive ? 1 : 0.4,
-                  transition: 'opacity 300ms ease',
-                }}
-              >
-                {/* Step number circle */}
-                <div style={{
-                  width: '2.25rem', height: '2.25rem', borderRadius: '50%', flexShrink: 0,
-                  border: isActive ? `1px solid ${ACCENT}` : '1px solid rgba(255,255,255,0.1)',
-                  background: isActive ? `${ACCENT}18` : 'transparent',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '0.6875rem', fontWeight: 700,
-                  color: isActive ? ACCENT : DIM,
-                  transition: 'all 300ms ease',
-                }}>
-                  {step.n}
-                </div>
+        {/* Two-col */}
+        <div className="grid grid-cols-1 md:grid-cols-2" style={{ flex: 1, minHeight: 0 }}>
 
-                {/* Text */}
-                <div style={{ paddingTop: '0.3rem' }}>
-                  <h3 className="funnel-heading-3 mb-2">{step.title}</h3>
-                  <p className="funnel-body-sm" style={{ color: '#6b7280' }}>{step.body}</p>
-                </div>
-
-                {/* Progress bar — fills over STEP_DURATION, re-keyed on each tick to restart */}
-                {isActive && started && (
+          {/* Steps */}
+          <div className="border-r-faint" style={{
+            padding: '2rem 2.5rem',
+            display: 'flex', flexDirection: 'column', justifyContent: 'center',
+          }}>
+            {STEPS.map((step, i) => {
+              const isActive = active === i;
+              return (
+                <div
+                  key={step.n}
+                  onClick={() => setActive(i)}
+                  style={{
+                    display: 'flex', gap: '1.25rem',
+                    padding: '1.5rem 0',
+                    borderBottom: i < STEPS.length - 1 ? CELL_BORDER : 'none',
+                    cursor: 'pointer',
+                    opacity: isActive ? 1 : 0.35,
+                    transition: 'opacity 400ms ease',
+                  }}
+                >
                   <div style={{
-                    position: 'absolute', bottom: 0, left: 0, right: 0,
-                    height: '1.5px', overflow: 'hidden',
+                    width: '2.25rem', height: '2.25rem', borderRadius: '50%', flexShrink: 0,
+                    border: isActive ? `1px solid ${ACCENT}` : '1px solid rgba(255,255,255,0.1)',
+                    background: isActive ? `${ACCENT}18` : 'transparent',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '0.6875rem', fontWeight: 700,
+                    color: isActive ? ACCENT : DIM,
+                    transition: 'all 400ms ease',
                   }}>
-                    <div
-                      key={`${i}-${tick}`}
-                      style={{
-                        height: '100%',
-                        background: ACCENT,
-                        animation: `hiw-progress ${STEP_DURATION}ms linear forwards`,
-                      }}
-                    />
+                    {step.n}
                   </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                  <div style={{ paddingTop: '0.3rem' }}>
+                    <h3 className="funnel-heading-3 mb-2">{step.title}</h3>
+                    <p className="funnel-body-sm" style={{ color: '#6b7280' }}>{step.body}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
 
-        {/* Panel */}
-        <div style={{ padding: '3rem 2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <PanelChrome activeIdx={active} />
+          {/* Panel */}
+          <div style={{
+            padding: '2rem 2.5rem',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <PanelChrome activeIdx={active} />
+          </div>
         </div>
       </div>
     </section>

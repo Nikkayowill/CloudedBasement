@@ -122,10 +122,10 @@ body::-webkit-scrollbar {
   .feature-cell:last-child    { border-bottom: none; }
 }
 
-/* ── How it works: step progress bar ── */
-@keyframes hiw-progress {
-  from { width: 0%; }
-  to   { width: 100%; }
+/* ── How it works: scroll-driven sticky section (desktop only) ── */
+@media (min-width: 768px) {
+  .hiw-section { height: 350vh; }
+  .hiw-sticky  { position: sticky; top: 0; height: 100vh; }
 }
 
 /* ── Hero text block: centered on mobile, left-aligned on md+ ── */
