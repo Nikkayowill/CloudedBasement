@@ -15,7 +15,7 @@
     }
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: none;
     }
 }
 
@@ -26,7 +26,7 @@
     }
     to {
         opacity: 1;
-        transform: scale(1);
+        transform: none;
     }
 }
 
@@ -542,6 +542,8 @@ section h2 {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    line-height: 1.25;
+    padding-bottom: 0.25em;
 }
 
 /* Card/sub headings - plain white, no gradient */
