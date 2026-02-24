@@ -36,7 +36,7 @@ export default function IntegrationsCarousel() {
               <img
                 src={logo.svg}
                 alt={logo.name}
-                style={{ height: '1.5rem', width: 'auto', opacity: 0.55, filter: 'brightness(0) invert(1)' }}
+                style={{ height: '1.5rem', width: 'auto', opacity: 0.75 }}
               />
             ) : (
               <span

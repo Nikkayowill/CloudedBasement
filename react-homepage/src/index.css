@@ -101,15 +101,20 @@ body::-webkit-scrollbar {
 .feature-cell {
   border-right: 0.5px solid rgba(255, 255, 255, 0.07);
 }
-/* 4-col: last item has no right border */
+/* 4-col: last column has no right border */
 .feature-cell:nth-child(4n) {
   border-right: none;
 }
-/* 2-col: every 2nd item has no right border; top row gets bottom border */
+/* 4-col: all rows except the last get a bottom border */
+.feature-cell:not(:nth-last-child(-n+4)) {
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.07);
+}
+/* 2-col: right and bottom dividers */
 @media (max-width: 1024px) {
-  .feature-cell:nth-child(4n)   { border-right: 0.5px solid rgba(255, 255, 255, 0.07); }
-  .feature-cell:nth-child(2n)   { border-right: none; }
-  .feature-cell:nth-child(-n+2) { border-bottom: 0.5px solid rgba(255, 255, 255, 0.07); }
+  .feature-cell:nth-child(4n)              { border-right: 0.5px solid rgba(255, 255, 255, 0.07); }
+  .feature-cell:nth-child(2n)              { border-right: none; }
+  .feature-cell:not(:nth-last-child(-n+4)) { border-bottom: none; }
+  .feature-cell:not(:nth-last-child(-n+2)) { border-bottom: 0.5px solid rgba(255, 255, 255, 0.07); }
 }
 /* 1-col: no right borders, divider between each row */
 @media (max-width: 640px) {

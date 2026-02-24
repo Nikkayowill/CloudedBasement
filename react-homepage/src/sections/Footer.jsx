@@ -1,13 +1,13 @@
 const LINKS = {
   Product: [
-    { label: 'Features',  href: '/#features' },
-    { label: 'Pricing',   href: '/#pricing'  },
-    { label: 'Docs',      href: '/docs'       },
-    { label: 'Changelog', href: '/changelog'  },
+    { label: 'Features',     href: '/#features'   },
+    { label: 'Pricing',      href: '/#pricing'    },
+    { label: 'Docs',         href: '/docs'         },
+    { label: 'Compare',      href: '/compare'      },
+    { label: 'Is this safe?', href: '/is-this-safe' },
   ],
   Company: [
     { label: 'About',   href: '/about'   },
-    { label: 'Blog',    href: '/blog'    },
     { label: 'Contact', href: '/contact' },
   ],
   Legal: [
