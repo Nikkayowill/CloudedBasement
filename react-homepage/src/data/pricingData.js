@@ -1,0 +1,48 @@
+export const pricingData = [
+  {
+    id: 'basic',
+    name: 'Basic',
+    desc: 'Side projects & experiments',
+    price: '$15',
+    period: '/mo',
+    features: [
+      '1 GB RAM · 1 vCPU',
+      '25 GB SSD',
+      '2 sites',
+      'GitHub auto-deploy',
+      '3-day free trial',
+    ],
+  },
+  {
+    id: 'pro',
+    name: 'Pro',
+    desc: 'Production apps & growing projects',
+    price: '$35',
+    period: '/mo',
+    features: [
+      '2 GB RAM · 2 vCPUs',
+      '50 GB SSD',
+      '5 sites',
+      'GitHub auto-deploy',
+      'Daily backups',
+      '3-day free trial',
+    ],
+    popular: true,
+  },
+  {
+    id: 'premium',
+    name: 'Premium',
+    desc: 'Established apps & high traffic',
+    price: '$55',
+    period: '/mo',
+    features: [
+      '4 GB RAM · 2 vCPUs',
+      '80 GB SSD',
+      '10 sites',
+      'GitHub auto-deploy',
+      'Daily backups',
+      '2FA security',
+      '3-day free trial',
+    ],
+  },
+];
