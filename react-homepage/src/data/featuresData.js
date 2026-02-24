@@ -1,24 +1,44 @@
-import { ZapIcon, GitBranchIcon, ServerIcon, ShieldIcon } from 'lucide-react';
+import { GitBranchIcon, LockIcon, DatabaseIcon, GlobeIcon, ArchiveIcon, TerminalIcon, CodeIcon, LayersIcon } from 'lucide-react';
 
 export const featuresData = [
   {
-    Icon: ZapIcon,
-    title: 'Deploy in minutes',
-    body: 'Push your code and your app goes live in seconds. No YAML configs, no ops expertise, no headaches.',
-  },
-  {
     Icon: GitBranchIcon,
-    title: 'GitHub auto-deploy',
-    body: 'Connect once. Every push to main triggers a fresh build and deploys your latest code automatically.',
+    title: 'Push to deploy',
+    body: 'Connect your GitHub repo once. Every push to main triggers a fresh deploy — no CI setup, no YAML files.',
   },
   {
-    Icon: ServerIcon,
-    title: 'Managed infrastructure',
-    body: 'We handle OS updates, patches, and scaling so you can focus entirely on shipping features.',
+    Icon: LockIcon,
+    title: 'Free SSL, automatic',
+    body: "Every domain gets a Let's Encrypt certificate, provisioned and renewed automatically by Certbot.",
   },
   {
-    Icon: ShieldIcon,
-    title: 'Secure by default',
-    body: 'HTTPS on every site, isolated containers, and built-in firewall rules — security baked in from day one.',
+    Icon: DatabaseIcon,
+    title: 'One-click databases',
+    body: 'Install PostgreSQL or MongoDB from the dashboard. Credentials generated, connection string ready.',
+  },
+  {
+    Icon: GlobeIcon,
+    title: 'Custom domains',
+    body: 'Point your DNS, we validate and configure Nginx. 2–10 custom domains per plan.',
+  },
+  {
+    Icon: ArchiveIcon,
+    title: 'Automatic backups',
+    body: 'Pro gets weekly snapshots. Premium gets daily. Retained for 7 days and restorable in one click.',
+  },
+  {
+    Icon: TerminalIcon,
+    title: 'SSH & root access',
+    body: "It's your server. Full root access via SSH — install anything, configure everything.",
+  },
+  {
+    Icon: CodeIcon,
+    title: 'Multi-language',
+    body: 'Node.js, Python, Go, and Rust are pre-installed on every server. Any framework that runs on Linux works.',
+  },
+  {
+    Icon: LayersIcon,
+    title: 'Multi-site hosting',
+    body: 'Run up to 10 sites on one server. Each domain gets its own Nginx config and SSL certificate.',
   },
 ];
