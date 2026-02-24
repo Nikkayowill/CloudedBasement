@@ -10,8 +10,8 @@ export const pricingData = [
       '25 GB NVMe SSD · 1 TB BW',
       '2 custom domains',
       'GitHub auto-deploy',
-      'Free SSL certificates',
-      'SSH & root access',
+      'Free SSL & SSH access',
+      'Email support',
     ],
   },
   {
@@ -25,7 +25,9 @@ export const pricingData = [
       '60 GB NVMe SSD · 3 TB BW',
       '5 custom domains',
       'GitHub auto-deploy',
-      'Free SSL certificates',
+      'Free SSL & SSH access',
+    ],
+    adds: [
       'Weekly automatic backups',
       'Priority support (12 hr)',
     ],
@@ -42,7 +44,9 @@ export const pricingData = [
       '80 GB NVMe SSD · 4 TB BW',
       '10 custom domains',
       'GitHub auto-deploy',
-      'Free SSL certificates',
+      'Free SSL & SSH access',
+    ],
+    adds: [
       'Daily automatic backups',
       'Direct developer support',
     ],

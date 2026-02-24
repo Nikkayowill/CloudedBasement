@@ -3,7 +3,7 @@ import { pricingData } from '../data/pricingData';
 
 const CELL_BORDER = '0.5px solid rgba(255,255,255,0.07)';
 
-function PricingCell({ id, name, desc, price, period, features, popular, isLast }) {
+function PricingCell({ id, name, desc, price, period, features, adds, popular, isLast }) {
   return (
     <div style={{
       padding: '3rem 2rem',
@@ -32,6 +32,25 @@ function PricingCell({ id, name, desc, price, period, features, popular, isLast 
             {f}
           </li>
         ))}
+
+        {adds && adds.length > 0 && (
+          <>
+            <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.375rem 0 0.125rem' }}>
+              <div style={{ flex: 1, height: '0.5px', background: 'rgba(255,255,255,0.07)' }} />
+              <span style={{
+                fontSize: '0.625rem', fontWeight: 600, letterSpacing: '0.08em',
+                textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap',
+              }}>also includes</span>
+              <div style={{ flex: 1, height: '0.5px', background: 'rgba(255,255,255,0.07)' }} />
+            </li>
+            {adds.map((f) => (
+              <li key={f} className="funnel-body-sm flex items-center gap-2" style={{ color: '#93c5fd' }}>
+                <span style={{ color: '#60a5fa', fontSize: '9px', flexShrink: 0 }}>●</span>
+                {f}
+              </li>
+            ))}
+          </>
+        )}
       </ul>
 
       <a
@@ -39,7 +58,7 @@ function PricingCell({ id, name, desc, price, period, features, popular, isLast 
         className={`funnel-btn ${popular ? 'funnel-btn-primary' : 'funnel-btn-subtle'} w-full`}
         style={{ textAlign: 'center' }}
       >
-        Deploy {name}
+        {name}
       </a>
     </div>
   );
