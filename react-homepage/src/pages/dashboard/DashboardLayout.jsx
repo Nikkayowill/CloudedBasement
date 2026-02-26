@@ -5,6 +5,7 @@ import OverviewSection  from './sections/OverviewSection';
 import SitesSection     from './sections/SitesSection';
 import DeploySection    from './sections/DeploySection';
 import DevToolsSection  from './sections/DevToolsSection';
+import EnvSection       from './sections/EnvSection';
 import SettingsSection  from './sections/SettingsSection';
 
 const NAV = [
@@ -49,6 +50,16 @@ const NAV = [
     ),
   },
   {
+    id: 'env',
+    label: 'Env Vars',
+    icon: (
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width={15} height={15}>
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+          d="M7 21l10-18M3 9h18M3 15h18"/>
+      </svg>
+    ),
+  },
+  {
     id: 'settings',
     label: 'Settings',
     icon: (
@@ -66,6 +77,7 @@ const SECTIONS = {
   sites:      SitesSection,
   deploy:     DeploySection,
   'dev-tools': DevToolsSection,
+  env:        EnvSection,
   settings:   SettingsSection,
 };
 
@@ -126,7 +138,7 @@ export default function DashboardLayout({ data, flashSuccess, flashError }) {
                 )}
               </div>
             )}
-            <ActiveSection data={data} />
+            <ActiveSection data={data} onNav={setActive} />
           </main>
         </div>
       </div>

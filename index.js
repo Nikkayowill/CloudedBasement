@@ -329,6 +329,10 @@ app.get('/dashboard', requireAuth, csrfProtection, (_req, res) =>
 app.get('/api/dashboard', requireAuth, csrfProtection, dashboardController.getDashboardData);
 // Sensitive credentials fetched on demand (never embedded in the main API response)
 app.get('/api/credentials', requireAuth, dashboardController.getCredentials);
+// Environment variable management
+app.get('/api/env-vars', requireAuth, csrfProtection, dashboardController.getEnvVars);
+app.post('/api/env-vars', requireAuth, csrfProtection, dashboardController.createEnvVar);
+app.delete('/api/env-vars/:id', requireAuth, csrfProtection, dashboardController.deleteEnvVar);
 // Classic server-rendered dashboard kept as fallback during migration
 app.get('/old-dashboard', requireAuth, csrfProtection, dashboardController.showDashboard);
 app.post('/submit-ticket', requireAuth, csrfProtection, dashboardController.submitSupportTicket);

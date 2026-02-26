@@ -24,10 +24,10 @@ const { UPDATE_STATUS } = serverUpdates;
 
 // Status badge styling
 const STATUS_BADGES = {
-  draft: { bg: 'bg-gray-500/20', text: 'text-gray-400', label: 'Draft' },
-  tested: { bg: 'bg-yellow-500/20', text: 'text-yellow-400', label: 'Tested' },
-  released: { bg: 'bg-green-500/20', text: 'text-green-400', label: 'Released' },
-  archived: { bg: 'bg-gray-500/20', text: 'text-gray-500', label: 'Archived' },
+  draft:    { cls: 'admin-badge admin-badge-gray',   label: 'Draft'    },
+  tested:   { cls: 'admin-badge admin-badge-yellow', label: 'Tested'   },
+  released: { cls: 'admin-badge admin-badge-green',  label: 'Released' },
+  archived: { cls: 'admin-badge admin-badge-gray',   label: 'Archived' },
 };
 
 const TYPE_STYLES = {
@@ -113,12 +113,9 @@ ${getHTMLHead('Server Updates - Admin')}
             <h3 class="sidebar-section-title">Safety</h3>
             <form method="POST" action="/admin/updates/kill-switch" class="px-3">
                 <input type="hidden" name="_csrf" value="${req.csrfToken()}">
-                <button type="submit" 
-                    class="w-full px-3 py-2 text-sm font-bold rounded transition-all ${
-                      killSwitchActive 
-                        ? 'bg-green-600 hover:bg-green-500 text-white' 
-                        : 'bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white border border-red-600/50'
-                    }"
+                <button type="submit"
+                    class="w-full admin-btn ${killSwitchActive ? 'admin-btn-green' : 'admin-btn-red'}"
+                    style="justify-content:center;font-size:0.8125rem;font-weight:600;padding:0.5rem 0.75rem"
                     onclick="return confirm('${killSwitchActive ? 'Resume update execution?' : 'STOP all update executions?'}')">
                     ${killSwitchActive ? '▶ Resume Executions' : '⏹ Emergency Stop'}
                 </button>
@@ -131,10 +128,10 @@ ${getHTMLHead('Server Updates - Admin')}
         <header class="flex flex-col gap-4 mb-8">
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-xl md:text-2xl font-bold text-white">Server Updates</h1>
-                    <p class="text-gray-500 text-xs">Secure push of patches, configs, and scripts</p>
+                    <h1 class="text-xl md:text-2xl font-bold" style="color:var(--dash-text-primary)">Server Updates</h1>
+                    <p class="text-xs" style="color:var(--dash-text-muted)">Secure push of patches, configs, and scripts</p>
                 </div>
-                <a href="/admin" class="text-sm text-gray-400 hover:text-white">← Admin</a>
+                <a href="/admin" style="color:var(--dash-text-secondary)" class="text-sm hover:text-white">← Admin</a>
             </div>
             
             ${killSwitchActive ? `
@@ -164,30 +161,28 @@ ${getHTMLHead('Server Updates - Admin')}
 
         <div class="space-y-8">
             <!-- CREATE UPDATE FORM -->
-            <div id="create" class="bg-gray-800 rounded-lg p-6 border border-gray-700 scroll-mt-24">
-                <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-4">Create New Update</h4>
-                <p class="text-gray-500 text-xs mb-4">Script is validated for dangerous commands and immutably hashed.</p>
-                
+            <div id="create" class="admin-card p-6 scroll-mt-24">
+                <h4 class="admin-section-title">Create New Update</h4>
+                <p class="text-xs mb-4" style="color:var(--dash-text-muted)">Script is validated for dangerous commands and immutably hashed.</p>
+
                 <form method="POST" action="/admin/updates/create" class="space-y-4">
                     <input type="hidden" name="_csrf" value="${req.csrfToken()}">
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-bold text-gray-400 mb-1">Title *</label>
-                            <input type="text" name="title" required placeholder="Security patch v1.0.2" 
-                                class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-white text-sm focus:border-blue-500 focus:outline-none">
+                            <label class="block text-xs font-bold mb-1" style="color:var(--dash-text-secondary)">Title *</label>
+                            <input type="text" name="title" required placeholder="Security patch v1.0.2" class="admin-input">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-400 mb-1">Version</label>
-                            <input type="text" name="version" placeholder="1.0.2" 
-                                class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-white text-sm focus:border-blue-500 focus:outline-none">
+                            <label class="block text-xs font-bold mb-1" style="color:var(--dash-text-secondary)">Version</label>
+                            <input type="text" name="version" placeholder="1.0.2" class="admin-input">
                         </div>
                     </div>
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-bold text-gray-400 mb-1">Type</label>
-                            <select name="type" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-white text-sm focus:border-blue-500 focus:outline-none">
+                            <label class="block text-xs font-bold mb-1" style="color:var(--dash-text-secondary)">Type</label>
+                            <select name="type" class="admin-input">
                                 <option value="security">🔴 Security (Critical)</option>
                                 <option value="config">🟡 Config</option>
                                 <option value="feature">🔵 Feature</option>
@@ -195,34 +190,33 @@ ${getHTMLHead('Server Updates - Admin')}
                             </select>
                         </div>
                         <div class="flex items-end gap-4">
-                            <label class="flex items-center gap-2 text-sm text-gray-400">
-                                <input type="checkbox" name="isCritical" class="rounded bg-gray-900 border-gray-700 text-red-500 focus:ring-red-500">
+                            <label class="flex items-center gap-2 text-sm" style="color:var(--dash-text-secondary)">
+                                <input type="checkbox" name="isCritical" class="rounded">
                                 Mark as Critical
                             </label>
                         </div>
                     </div>
-                    
+
                     <div>
-                        <label class="block text-xs font-bold text-gray-400 mb-1">Description</label>
-                        <input type="text" name="description" placeholder="Patches CVE-2026-1234 vulnerability" 
-                            class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-white text-sm focus:border-blue-500 focus:outline-none">
+                        <label class="block text-xs font-bold mb-1" style="color:var(--dash-text-secondary)">Description</label>
+                        <input type="text" name="description" placeholder="Patches CVE-2026-1234 vulnerability" class="admin-input">
                     </div>
-                    
+
                     <div>
-                        <label class="block text-xs font-bold text-gray-400 mb-1">Bash Script *</label>
+                        <label class="block text-xs font-bold mb-1" style="color:var(--dash-text-secondary)">Bash Script *</label>
                         <textarea name="script" required rows="8" placeholder="#!/bin/bash
 # Description of what this script does
 set -euo pipefail
 
 apt update
-apt upgrade -y" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-white text-sm font-mono focus:border-blue-500 focus:outline-none"></textarea>
-                        <p class="text-xs text-gray-500 mt-1">
+apt upgrade -y" class="admin-input" style="font-family:monospace;font-size:0.8125rem"></textarea>
+                        <p class="text-xs mt-1" style="color:var(--dash-text-muted)">
                             ⚠️ <code>set -euo pipefail</code> will be auto-added. Dangerous commands are blocked.
                         </p>
                     </div>
-                    
+
                     <div class="flex justify-end">
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded hover:bg-blue-500 transition-colors">
+                        <button type="submit" class="admin-btn admin-btn-primary" style="padding:0.5rem 1.125rem;font-size:0.875rem">
                             Create Draft
                         </button>
                     </div>
@@ -230,134 +224,130 @@ apt upgrade -y" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 round
             </div>
 
             <!-- ALL UPDATES -->
-            <div id="updates" class="bg-gray-800 rounded-lg p-6 border border-gray-700 scroll-mt-24">
-                <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-4">All Updates (${updates.length})</h4>
-                
+            <div id="updates" class="admin-card p-6 scroll-mt-24">
+                <h4 class="admin-section-title">All Updates (${updates.length})</h4>
+
                 ${updates.length === 0 ? `
-                <p class="text-gray-500 text-sm">No updates created yet. Create one above to get started.</p>
+                <p class="text-sm" style="color:var(--dash-text-muted)">No updates created yet. Create one above to get started.</p>
                 ` : `
                 <div class="overflow-x-auto">
-                    <table class="w-full">
-                        <thead class="bg-black/30">
+                    <table class="admin-table">
+                        <thead>
                             <tr>
-                                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Update</th>
-                                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Type</th>
-                                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Status</th>
-                                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Servers</th>
-                                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Actions</th>
+                                <th>Update</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Servers</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-700">
+                        <tbody>
                             ${updates.map(u => {
                               const status = STATUS_BADGES[u.status] || STATUS_BADGES.draft;
                               const type = TYPE_STYLES[u.type] || TYPE_STYLES.config;
                               return `
-                            <tr class="hover:bg-gray-900/50">
-                                <td class="px-4 py-3">
-                                    <a href="/admin/updates/${u.id}" class="text-white font-medium hover:text-blue-400">${escapeHtml(u.title)}</a>
-                                    <div class="text-gray-500 text-xs">${escapeHtml(u.description || 'No description')}</div>
-                                    ${u.version ? `<div class="text-gray-600 text-xs">v${escapeHtml(u.version)}</div>` : ''}
+                            <tr>
+                                <td>
+                                    <a href="/admin/updates/${u.id}" style="color:var(--dash-text-primary);font-weight:500" class="hover:text-blue-400">${escapeHtml(u.title)}</a>
+                                    <div style="color:var(--dash-text-muted);font-size:0.75rem;margin-top:0.125rem">${escapeHtml(u.description || 'No description')}</div>
+                                    ${u.version ? `<div style="color:var(--dash-text-muted);font-size:0.6875rem">v${escapeHtml(u.version)}</div>` : ''}
                                 </td>
-                                <td class="px-4 py-3">
+                                <td>
                                     <span class="inline-flex items-center gap-1.5 text-xs font-medium ${type.text}">
                                         <span class="w-2 h-2 rounded-full ${type.dot}"></span>
                                         ${u.type}
                                     </span>
                                     ${u.is_critical ? '<span class="ml-1 text-xs text-red-400">⚠️</span>' : ''}
                                 </td>
-                                <td class="px-4 py-3">
-                                    <span class="px-2 py-1 rounded text-xs font-medium ${status.bg} ${status.text}">
-                                        ${status.label}
-                                    </span>
+                                <td>
+                                    <span class="${status.cls}">${status.label}</span>
                                 </td>
-                                <td class="px-4 py-3 text-xs">
+                                <td style="font-size:0.75rem">
                                     ${u.status === 'released' ? `
-                                        <span class="text-green-400">${u.success_count || 0} ✓</span>
-                                        ${u.failure_count > 0 ? `<span class="text-red-400 ml-2">${u.failure_count} ✗</span>` : ''}
-                                        ${u.missing_count > 0 ? `<span class="text-yellow-400 ml-2">${u.missing_count} pending</span>` : ''}
-                                    ` : `<span class="text-gray-500">—</span>`}
+                                        <span style="color:#4ade80">${u.success_count || 0} ✓</span>
+                                        ${u.failure_count > 0 ? `<span style="color:#f87171;margin-left:0.5rem">${u.failure_count} ✗</span>` : ''}
+                                        ${u.missing_count > 0 ? `<span style="color:#fbbf24;margin-left:0.5rem">${u.missing_count} pending</span>` : ''}
+                                    ` : `<span style="color:var(--dash-text-muted)">—</span>`}
                                 </td>
-                                <td class="px-4 py-3">
+                                <td>
                                     <div class="flex gap-2 flex-wrap">
                                         ${u.status === 'draft' ? (testServers.length > 0 ? `
                                         <!-- Test Button with Server Selection -->
                                         <div class="relative inline-block" x-data="{ open: false }">
-                                            <button @click="open = !open" type="button" 
-                                                class="px-2 py-1 bg-yellow-600 text-white text-xs rounded hover:bg-yellow-500">
+                                            <button @click="open = !open" type="button" class="admin-btn admin-btn-orange">
                                                 Test
                                             </button>
-                                            <div x-show="open" @click.away="open = false" 
-                                                class="absolute z-50 mt-1 w-64 bg-gray-900 border border-gray-700 rounded-lg shadow-xl">
+                                            <div x-show="open" @click.away="open = false"
+                                                class="absolute z-50 mt-1 w-64 rounded-lg shadow-xl"
+                                                style="background:var(--dash-card-bg);border:1px solid var(--dash-card-border)">
                                                 <form method="POST" action="/admin/updates/${u.id}/test" class="p-3">
                                                     <input type="hidden" name="_csrf" value="${req.csrfToken()}">
-                                                    <label class="block text-xs text-gray-400 mb-2">Select test server:</label>
-                                                    <select name="serverId" required class="w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded text-white text-xs mb-2">
+                                                    <label class="block text-xs mb-2" style="color:var(--dash-text-secondary)">Select test server:</label>
+                                                    <select name="serverId" required class="admin-input text-xs mb-2" style="font-size:0.75rem;padding:0.25rem 0.5rem">
                                                         ${testServers.map(s => `<option value="${s.id}">${escapeHtml(s.hostname || s.ip_address)} (${escapeHtml(s.owner_email || 'unknown')})</option>`).join('')}
                                                     </select>
-                                                    <button type="submit" class="w-full px-2 py-1 bg-yellow-600 text-white text-xs rounded hover:bg-yellow-500">
+                                                    <button type="submit" class="admin-btn admin-btn-orange w-full" style="justify-content:center">
                                                         Run Test
                                                     </button>
                                                 </form>
                                             </div>
                                         </div>
                                         ` : `
-                                        <span class="px-2 py-1 text-xs text-yellow-500" title="No running servers available for testing">
+                                        <span class="text-xs" style="color:#fbbf24" title="No running servers available for testing">
                                             No test servers
                                         </span>
                                         `) : ''}
-                                        
+
                                         ${u.status === 'tested' ? `
                                         <form method="POST" action="/admin/updates/${u.id}/release" class="inline">
                                             <input type="hidden" name="_csrf" value="${req.csrfToken()}">
-                                            <button type="submit" class="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-500"
+                                            <button type="submit" class="admin-btn admin-btn-green"
                                                 onclick="return confirm('Release this update? Customers will be able to apply it.')">
                                                 Release
                                             </button>
                                         </form>
                                         ` : ''}
-                                        
+
                                         ${u.status === 'released' && u.missing_count > 0 ? `
                                         <form method="POST" action="/admin/updates/${u.id}/push" class="inline">
                                             <input type="hidden" name="_csrf" value="${req.csrfToken()}">
-                                            <button type="submit" class="px-2 py-1 bg-orange-600 text-white text-xs rounded hover:bg-orange-500"
+                                            <button type="submit" class="admin-btn admin-btn-orange"
                                                 onclick="return confirm('Push to ${u.missing_count} servers?')">
                                                 Push All
                                             </button>
                                         </form>
                                         ` : ''}
-                                        
+
                                         ${u.status === 'released' && u.failure_count > 0 ? `
                                         <form method="POST" action="/admin/updates/${u.id}/retry" class="inline">
                                             <input type="hidden" name="_csrf" value="${req.csrfToken()}">
-                                            <button type="submit" class="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-500">
+                                            <button type="submit" class="admin-btn admin-btn-primary">
                                                 Retry Failed
                                             </button>
                                         </form>
                                         ` : ''}
-                                        
+
                                         ${u.status === 'released' ? `
                                         <form method="POST" action="/admin/updates/${u.id}/archive" class="inline">
                                             <input type="hidden" name="_csrf" value="${req.csrfToken()}">
-                                            <button type="submit" class="px-2 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-500"
+                                            <button type="submit" class="admin-btn"
                                                 onclick="return confirm('Archive this update?')">
                                                 Archive
                                             </button>
                                         </form>
                                         ` : ''}
-                                        
+
                                         ${u.status === 'draft' || u.status === 'archived' ? `
                                         <form method="POST" action="/admin/updates/${u.id}/delete" class="inline">
                                             <input type="hidden" name="_csrf" value="${req.csrfToken()}">
-                                            <button type="submit" class="px-2 py-1 bg-red-600/20 text-red-400 text-xs rounded hover:bg-red-600/40"
+                                            <button type="submit" class="admin-btn admin-btn-red"
                                                 onclick="return confirm('Delete this update?')">
                                                 Delete
                                             </button>
                                         </form>
                                         ` : ''}
-                                        
-                                        <a href="/admin/updates/${u.id}" class="px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded hover:bg-gray-600">
-                                            View
-                                        </a>
+
+                                        <a href="/admin/updates/${u.id}" class="admin-btn">View</a>
                                     </div>
                                 </td>
                             </tr>
@@ -422,7 +412,7 @@ ${getHTMLHead(`Update: ${update.title} - Admin`)}
 
     <div class="max-w-4xl mx-auto px-4 py-8 pt-24">
         <div class="mb-6">
-            <a href="/admin/updates" class="text-sm text-gray-400 hover:text-white">← Back to Updates</a>
+            <a href="/admin/updates" class="text-sm hover:text-white" style="color:var(--dash-text-secondary)">← Back to Updates</a>
         </div>
         
         ${req.query.success ? `
@@ -438,106 +428,104 @@ ${getHTMLHead(`Update: ${update.title} - Admin`)}
         ` : ''}
 
         <!-- Update Header -->
-        <div class="bg-gray-800 rounded-lg p-6 border border-gray-700 mb-6">
+        <div class="admin-card p-6 mb-6">
             <div class="flex items-start justify-between mb-4">
                 <div>
-                    <h1 class="text-xl font-bold text-white">${escapeHtml(update.title)}</h1>
-                    <p class="text-gray-500 text-sm">${escapeHtml(update.description || 'No description')}</p>
+                    <h1 class="text-xl font-bold" style="color:var(--dash-text-primary)">${escapeHtml(update.title)}</h1>
+                    <p class="text-sm" style="color:var(--dash-text-muted)">${escapeHtml(update.description || 'No description')}</p>
                 </div>
-                <span class="px-3 py-1 rounded text-sm font-medium ${status.bg} ${status.text}">
-                    ${status.label}
-                </span>
+                <span class="${status.cls}">${status.label}</span>
             </div>
-            
+
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
-                    <span class="text-gray-500">Type</span>
-                    <div class="flex items-center gap-1.5 ${type.text}">
+                    <span style="color:var(--dash-text-muted);font-size:0.75rem">Type</span>
+                    <div class="flex items-center gap-1.5 ${type.text}" style="margin-top:0.25rem">
                         <span class="w-2 h-2 rounded-full ${type.dot}"></span>
                         ${update.type}
                         ${update.is_critical ? '<span class="text-red-400">⚠️</span>' : ''}
                     </div>
                 </div>
                 <div>
-                    <span class="text-gray-500">Version</span>
-                    <div class="text-white">${update.version || '—'}</div>
+                    <span style="color:var(--dash-text-muted);font-size:0.75rem">Version</span>
+                    <div style="color:var(--dash-text-primary);margin-top:0.25rem">${update.version || '—'}</div>
                 </div>
                 <div>
-                    <span class="text-gray-500">Created</span>
-                    <div class="text-white">${new Date(update.created_at).toLocaleString()}</div>
+                    <span style="color:var(--dash-text-muted);font-size:0.75rem">Created</span>
+                    <div style="color:var(--dash-text-primary);margin-top:0.25rem">${new Date(update.created_at).toLocaleString()}</div>
                 </div>
                 <div>
-                    <span class="text-gray-500">Hash</span>
-                    <div class="text-gray-400 font-mono text-xs">${update.script_hash ? update.script_hash.substring(0, 16) + '...' : '—'}</div>
+                    <span style="color:var(--dash-text-muted);font-size:0.75rem">Hash</span>
+                    <div style="color:var(--dash-text-secondary);font-family:monospace;font-size:0.6875rem;margin-top:0.25rem">${update.script_hash ? update.script_hash.substring(0, 16) + '...' : '—'}</div>
                 </div>
             </div>
         </div>
 
         <!-- Script -->
-        <div class="bg-gray-800 rounded-lg p-6 border border-gray-700 mb-6">
-            <h3 class="text-sm font-bold uppercase tracking-wide text-white mb-4">Script (Immutable)</h3>
-            <pre class="bg-black/50 p-4 rounded-lg overflow-x-auto text-sm font-mono text-green-400">${escapeHtml(update.script)}</pre>
-            <p class="text-xs text-gray-500 mt-2">This script cannot be edited. To change it, create a new update.</p>
+        <div class="admin-card p-6 mb-6">
+            <h3 class="admin-section-title">Script (Immutable)</h3>
+            <pre style="background:rgba(0,0,0,0.5);padding:1rem;border-radius:0.375rem;overflow-x:auto;font-size:0.8125rem;font-family:monospace;color:#a3e635">${escapeHtml(update.script)}</pre>
+            <p class="text-xs mt-2" style="color:var(--dash-text-muted)">This script cannot be edited. To change it, create a new update.</p>
         </div>
 
         <!-- Actions -->
-        <div class="bg-gray-800 rounded-lg p-6 border border-gray-700 mb-6">
-            <h3 class="text-sm font-bold uppercase tracking-wide text-white mb-4">Actions</h3>
+        <div class="admin-card p-6 mb-6">
+            <h3 class="admin-section-title">Actions</h3>
             <div class="flex gap-3 flex-wrap">
                 ${update.status === 'draft' ? (testServers.length > 0 ? `
-                <form method="POST" action="/admin/updates/${update.id}/test" class="inline">
+                <form method="POST" action="/admin/updates/${update.id}/test" class="flex items-center gap-2">
                     <input type="hidden" name="_csrf" value="${req.csrfToken()}">
-                    <select name="serverId" required class="px-3 py-2 bg-gray-900 border border-gray-700 rounded text-white text-sm">
+                    <select name="serverId" required class="admin-input" style="width:auto;font-size:0.875rem">
                         <option value="">Select test server...</option>
                         ${testServers.map(s => `<option value="${s.id}">${escapeHtml(s.hostname || s.ip_address)}</option>`).join('')}
                     </select>
-                    <button type="submit" class="px-4 py-2 bg-yellow-600 text-white text-sm font-bold rounded hover:bg-yellow-500 ml-2">
+                    <button type="submit" class="admin-btn admin-btn-orange" style="padding:0.5rem 1rem;font-size:0.875rem">
                         Test on Server
                     </button>
                 </form>
                 ` : `
-                <span class="px-3 py-2 text-sm text-yellow-500 bg-yellow-500/10 rounded border border-yellow-500/30">
+                <span class="text-sm" style="padding:0.5rem 0.75rem;background:rgba(234,179,8,0.08);border:1px solid rgba(234,179,8,0.2);border-radius:0.375rem;color:#fbbf24">
                     No running servers available for testing
                 </span>
                 `) : ''}
-                
+
                 ${update.status === 'tested' ? `
                 <form method="POST" action="/admin/updates/${update.id}/release" class="inline">
                     <input type="hidden" name="_csrf" value="${req.csrfToken()}">
-                    <button type="submit" class="px-4 py-2 bg-green-600 text-white text-sm font-bold rounded hover:bg-green-500"
+                    <button type="submit" class="admin-btn admin-btn-green" style="padding:0.5rem 1rem;font-size:0.875rem"
                         onclick="return confirm('Release this update?')">
                         Release Update
                     </button>
                 </form>
                 ` : ''}
-                
+
                 ${update.status === 'released' ? `
                 <form method="POST" action="/admin/updates/${update.id}/push" class="inline">
                     <input type="hidden" name="_csrf" value="${req.csrfToken()}">
-                    <button type="submit" class="px-4 py-2 bg-orange-600 text-white text-sm font-bold rounded hover:bg-orange-500"
+                    <button type="submit" class="admin-btn admin-btn-orange" style="padding:0.5rem 1rem;font-size:0.875rem"
                         onclick="return confirm('Push to all pending servers?')">
                         Push to All
                     </button>
                 </form>
                 <form method="POST" action="/admin/updates/${update.id}/retry" class="inline">
                     <input type="hidden" name="_csrf" value="${req.csrfToken()}">
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded hover:bg-blue-500">
+                    <button type="submit" class="admin-btn admin-btn-primary" style="padding:0.5rem 1rem;font-size:0.875rem">
                         Retry Failed
                     </button>
                 </form>
                 <form method="POST" action="/admin/updates/${update.id}/archive" class="inline">
                     <input type="hidden" name="_csrf" value="${req.csrfToken()}">
-                    <button type="submit" class="px-4 py-2 bg-gray-600 text-white text-sm font-bold rounded hover:bg-gray-500"
+                    <button type="submit" class="admin-btn" style="padding:0.5rem 1rem;font-size:0.875rem"
                         onclick="return confirm('Archive this update?')">
                         Archive
                     </button>
                 </form>
                 ` : ''}
-                
+
                 ${(update.status === 'draft' || update.status === 'archived') ? `
                 <form method="POST" action="/admin/updates/${update.id}/delete" class="inline">
                     <input type="hidden" name="_csrf" value="${req.csrfToken()}">
-                    <button type="submit" class="px-4 py-2 bg-red-600 text-white text-sm font-bold rounded hover:bg-red-500"
+                    <button type="submit" class="admin-btn admin-btn-red" style="padding:0.5rem 1rem;font-size:0.875rem"
                         onclick="return confirm('Permanently delete this update?')">
                         Delete
                     </button>
@@ -548,24 +536,24 @@ ${getHTMLHead(`Update: ${update.title} - Admin`)}
 
         <!-- Test Results -->
         ${testResults.length > 0 ? `
-        <div class="bg-gray-800 rounded-lg p-6 border border-gray-700 mb-6">
-            <h3 class="text-sm font-bold uppercase tracking-wide text-white mb-4">Test Results (${testResults.length})</h3>
+        <div class="admin-card p-6 mb-6">
+            <h3 class="admin-section-title">Test Results (${testResults.length})</h3>
             <div class="space-y-3">
                 ${testResults.map(t => `
-                <div class="bg-black/30 p-4 rounded-lg">
+                <div style="background:rgba(0,0,0,0.3);padding:1rem;border-radius:0.5rem">
                     <div class="flex items-center justify-between mb-2">
-                        <span class="text-white font-medium">${escapeHtml(t.hostname || t.ip_address)}</span>
-                        <span class="px-2 py-1 rounded text-xs ${t.success ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">
+                        <span style="color:var(--dash-text-primary);font-weight:500">${escapeHtml(t.hostname || t.ip_address)}</span>
+                        <span class="admin-badge ${t.success ? 'admin-badge-green' : 'admin-badge-red'}">
                             ${t.success ? '✓ Passed' : '✗ Failed'} (exit ${t.exit_code})
                         </span>
                     </div>
-                    <div class="text-xs text-gray-500">
+                    <div class="text-xs" style="color:var(--dash-text-muted)">
                         Tested by ${escapeHtml(t.tested_by_email || 'unknown')} · ${new Date(t.tested_at).toLocaleString()} · ${t.execution_time_ms}ms
                     </div>
                     ${t.stdout || t.stderr ? `
                     <details class="mt-2">
-                        <summary class="text-xs text-gray-400 cursor-pointer hover:text-white">View output</summary>
-                        <pre class="mt-2 text-xs bg-black/50 p-2 rounded overflow-x-auto ${t.success ? 'text-green-400' : 'text-red-400'}">${escapeHtml((t.stdout || '') + (t.stderr ? '\n[stderr]\n' + t.stderr : ''))}</pre>
+                        <summary class="text-xs cursor-pointer" style="color:var(--dash-text-secondary)">View output</summary>
+                        <pre style="margin-top:0.5rem;font-size:0.6875rem;background:rgba(0,0,0,0.5);padding:0.5rem;border-radius:0.25rem;overflow-x:auto;color:${t.success ? '#a3e635' : '#f87171'}">${escapeHtml((t.stdout || '') + (t.stderr ? '\n[stderr]\n' + t.stderr : ''))}</pre>
                     </details>
                     ` : ''}
                 </div>
@@ -576,29 +564,29 @@ ${getHTMLHead(`Update: ${update.title} - Admin`)}
 
         <!-- Execution Logs -->
         ${executionLogs.length > 0 ? `
-        <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
-            <h3 class="text-sm font-bold uppercase tracking-wide text-white mb-4">Execution Log (${executionLogs.length})</h3>
+        <div class="admin-card p-6">
+            <h3 class="admin-section-title">Execution Log (${executionLogs.length})</h3>
             <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead class="bg-black/30">
+                <table class="admin-table">
+                    <thead>
                         <tr>
-                            <th class="px-3 py-2 text-left text-xs text-gray-400">Server</th>
-                            <th class="px-3 py-2 text-left text-xs text-gray-400">Status</th>
-                            <th class="px-3 py-2 text-left text-xs text-gray-400">Triggered</th>
-                            <th class="px-3 py-2 text-left text-xs text-gray-400">Time</th>
+                            <th>Server</th>
+                            <th>Status</th>
+                            <th>Triggered</th>
+                            <th>Time</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-700">
+                    <tbody>
                         ${executionLogs.map(l => `
                         <tr>
-                            <td class="px-3 py-2 text-white">${escapeHtml(l.hostname || l.ip_address)}</td>
-                            <td class="px-3 py-2">
-                                <span class="${l.status === 'success' ? 'text-green-400' : 'text-red-400'}">
+                            <td style="color:var(--dash-text-primary)">${escapeHtml(l.hostname || l.ip_address)}</td>
+                            <td>
+                                <span style="color:${l.status === 'success' ? '#4ade80' : '#f87171'}">
                                     ${l.status === 'success' ? '✓' : '✗'} ${l.status}
                                 </span>
                             </td>
-                            <td class="px-3 py-2 text-gray-400">${l.trigger_type || '—'}</td>
-                            <td class="px-3 py-2 text-gray-400">${new Date(l.applied_at).toLocaleString()}</td>
+                            <td style="color:var(--dash-text-muted)">${l.trigger_type || '—'}</td>
+                            <td style="color:var(--dash-text-muted)">${new Date(l.applied_at).toLocaleString()}</td>
                         </tr>
                         `).join('')}
                     </tbody>
