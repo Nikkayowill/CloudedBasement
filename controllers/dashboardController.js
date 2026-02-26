@@ -572,7 +572,70 @@ const getDashboardData = async (req, res) => {
     }
 };
 
-module.exports = { showDashboard: exports.showDashboard, getDashboardData, submitSupportTicket, changePassword, applyUpdates, getCredentials };
+// GET /api/env-vars — list env vars for the user's server
+const getEnvVars = async (req, res) => {
+    try {
+        const server = await getUserServer(req.session.userId);
+        if (!server) return res.json({ envVars: [] });
+        const result = await pool.query(
+            'SELECT id, key, value, created_at FROM environment_variables WHERE server_id = $1 ORDER BY key ASC',
+            [server.id]
+        );
+        res.json({ envVars: result.rows });
+    } catch (err) {
+        console.error('[ENV] getEnvVars error:', err);
+        res.status(500).json({ error: 'Failed to fetch environment variables' });
+    }
+};
+
+// POST /api/env-vars — create or update an env var
+const createEnvVar = async (req, res) => {
+    try {
+        const { key, value } = req.body;
+        if (!key || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) {
+            return res.status(400).json({ error: 'Key must start with a letter or underscore and contain only letters, numbers, and underscores' });
+        }
+        if (value === undefined || value === null) {
+            return res.status(400).json({ error: 'Value is required' });
+        }
+        const server = await getUserServer(req.session.userId);
+        if (!server) return res.status(400).json({ error: 'No server found' });
+
+        await pool.query(
+            `INSERT INTO environment_variables (server_id, key, value, updated_at)
+             VALUES ($1, $2, $3, NOW())
+             ON CONFLICT (server_id, key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`,
+            [server.id, key.toUpperCase(), value]
+        );
+        const result = await pool.query(
+            'SELECT id, key, value, created_at FROM environment_variables WHERE server_id = $1 AND key = $2',
+            [server.id, key.toUpperCase()]
+        );
+        res.json({ envVar: result.rows[0] });
+    } catch (err) {
+        console.error('[ENV] createEnvVar error:', err);
+        res.status(500).json({ error: 'Failed to save environment variable' });
+    }
+};
+
+// DELETE /api/env-vars/:id — delete an env var
+const deleteEnvVar = async (req, res) => {
+    try {
+        const server = await getUserServer(req.session.userId);
+        if (!server) return res.status(400).json({ error: 'No server found' });
+        const result = await pool.query(
+            'DELETE FROM environment_variables WHERE id = $1 AND server_id = $2 RETURNING id',
+            [req.params.id, server.id]
+        );
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Not found' });
+        res.json({ success: true });
+    } catch (err) {
+        console.error('[ENV] deleteEnvVar error:', err);
+        res.status(500).json({ error: 'Failed to delete environment variable' });
+    }
+};
+
+module.exports = { showDashboard: exports.showDashboard, getDashboardData, submitSupportTicket, changePassword, applyUpdates, getCredentials, getEnvVars, createEnvVar, deleteEnvVar };
 
 /**
  * Dashboard Template Builder - Tech-View Design

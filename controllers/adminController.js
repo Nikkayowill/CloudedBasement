@@ -145,12 +145,12 @@ ${getHTMLHead('Admin Dashboard')}
         <header class="flex flex-col gap-4 mb-8">
             <div class="flex items-center gap-4">
                 <!-- Mobile sidebar toggle -->
-                <button id="mobile-sidebar-toggle" class="md:hidden p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors">
+                <button id="mobile-sidebar-toggle" class="md:hidden p-2 rounded-lg transition-colors" style="color:var(--dash-text-secondary)">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
                 <div class="flex-1">
-                    <h1 class="text-xl md:text-2xl font-bold text-white">Admin Dashboard</h1>
-                    <p class="text-gray-500 text-xs">Manage users, servers, and payments</p>
+                    <h1 class="text-xl md:text-2xl font-bold" style="color:var(--dash-text-primary)">Admin Dashboard</h1>
+                    <p class="text-xs" style="color:var(--dash-text-muted)">Manage users, servers, and payments</p>
                 </div>
                 <a href="/pay?demo=true&plan=pro" class="px-4 py-2 bg-yellow-500 hover:bg-yellow-400 text-black font-semibold rounded-lg text-sm transition-colors flex items-center gap-2">
                     <span>▶</span> Demo Mode
@@ -163,22 +163,22 @@ ${getHTMLHead('Admin Dashboard')}
         
             <!-- STATS SECTION -->
             <div id="stats" class="scroll-mt-24">
-                <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-4">Stats</h4>
+                <h4 class="admin-section-title">Stats</h4>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                        <p class="text-xs text-gray-500 uppercase font-bold mb-1">Users</p>
+                    <div class="admin-card p-4">
+                        <p class="text-xs uppercase font-bold mb-1" style="color:var(--dash-text-muted)">Users</p>
                         <p class="text-2xl font-bold text-brand">${users.length}</p>
                     </div>
-                    <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                        <p class="text-xs text-gray-500 uppercase font-bold mb-1">Servers</p>
+                    <div class="admin-card p-4">
+                        <p class="text-xs uppercase font-bold mb-1" style="color:var(--dash-text-muted)">Servers</p>
                         <p class="text-2xl font-bold text-green-400">${servers.filter(s => s.status === 'running').length}/${servers.length}</p>
                     </div>
-                    <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                        <p class="text-xs text-gray-500 uppercase font-bold mb-1">Domains</p>
+                    <div class="admin-card p-4">
+                        <p class="text-xs uppercase font-bold mb-1" style="color:var(--dash-text-muted)">Domains</p>
                         <p class="text-2xl font-bold text-purple-400">${domains.length}</p>
                     </div>
-                    <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                        <p class="text-xs text-gray-500 uppercase font-bold mb-1">Revenue</p>
+                    <div class="admin-card p-4">
+                        <p class="text-xs uppercase font-bold mb-1" style="color:var(--dash-text-muted)">Revenue</p>
                         <p class="text-2xl font-bold text-yellow-400">$${(payments.filter(p => p.status === 'succeeded').reduce((sum, p) => sum + p.amount, 0) / 100).toFixed(0)}</p>
                     </div>
                 </div>
@@ -186,20 +186,20 @@ ${getHTMLHead('Admin Dashboard')}
 
             ${pendingRequests.length > 0 ? `
             <!-- PENDING SECTION -->
-            <div id="pending" class="bg-gray-800 rounded-lg p-6 scroll-mt-24 border-2 border-orange-500">
-                <h4 class="text-sm font-bold uppercase tracking-wide text-orange-400 mb-4">⚡ Pending Requests (${pendingRequests.length})</h4>
+            <div id="pending" class="admin-card p-6 scroll-mt-24" style="border-color:rgba(249,115,22,0.4)">
+                <h4 class="admin-section-title" style="color:#fb923c">⚡ Pending Requests (${pendingRequests.length})</h4>
                 <div class="overflow-x-auto">
-                    <table class="w-full">
-                        <thead class="bg-black bg-opacity-30">
+                    <table class="admin-table">
+                        <thead>
                             <tr>
-                                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Customer</th>
-                                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Details</th>
-                                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Status</th>
-                                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Date</th>
-                                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Action</th>
+                                <th>Customer</th>
+                                <th>Details</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-700">
+                        <tbody>
                             ${pendingRequests.map(r => {
                               const details = r.description.split('\\n').reduce((acc, line) => {
                                 const [key, val] = line.split(': ');
@@ -207,14 +207,14 @@ ${getHTMLHead('Admin Dashboard')}
                                 return acc;
                               }, {});
                               return `
-                              <tr class="hover:bg-gray-700 transition-colors">
-                                <td class="px-4 py-3 text-sm text-white">${escapeHtml(r.customer_email)}</td>
-                                <td class="px-4 py-3 text-xs text-gray-400">
+                              <tr>
+                                <td style="color:var(--dash-text-primary);font-size:0.875rem">${escapeHtml(r.customer_email)}</td>
+                                <td style="color:var(--dash-text-secondary);font-size:0.75rem">
                                     <span class="text-brand">${escapeHtml(details.Region || 'N/A')}</span> · ${escapeHtml(details['Server Name'] || 'Default')}
                                 </td>
-                                <td class="px-4 py-3"><span class="px-2 py-1 text-xs font-bold uppercase rounded bg-orange-900 text-orange-300">${escapeHtml(r.status)}</span></td>
-                                <td class="px-4 py-3 text-xs text-gray-400">${new Date(r.created_at).toLocaleDateString()}</td>
-                                <td class="px-4 py-3">
+                                <td><span class="admin-badge admin-badge-orange">${escapeHtml(r.status)}</span></td>
+                                <td style="color:var(--dash-text-muted);font-size:0.75rem">${new Date(r.created_at).toLocaleDateString()}</td>
+                                <td>
                                     <a href="https://cloud.digitalocean.com/droplets/new" target="_blank" class="text-brand hover:text-cyan-400 text-xs font-bold">Provision →</a>
                                 </td>
                               </tr>
@@ -226,30 +226,30 @@ ${getHTMLHead('Admin Dashboard')}
             ` : ''}
 
       <!-- USERS SECTION -->
-      <div id="users" class="bg-gray-800 rounded-lg p-6 scroll-mt-24">
-        <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-4">Users (${users.length})</h4>
+      <div id="users" class="admin-card p-6 scroll-mt-24">
+        <h4 class="admin-section-title">Users (${users.length})</h4>
         <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead class="bg-black bg-opacity-30">
+          <table class="admin-table">
+            <thead>
               <tr>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Email</th>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Role</th>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Confirmed</th>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Created</th>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Action</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Confirmed</th>
+                <th>Created</th>
+                <th>Action</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-gray-700">
+            <tbody>
               ${users.map(u => `
-                <tr class="hover:bg-gray-700 transition-colors">
-                  <td class="px-4 py-3 text-sm text-white">${escapeHtml(u.email)}</td>
-                  <td class="px-4 py-3 text-xs"><span class="px-2 py-1 rounded ${u.role === 'admin' ? 'bg-red-900 text-red-300' : 'bg-gray-700 text-gray-300'}">${u.role}</span></td>
-                  <td class="px-4 py-3 text-xs">${u.email_confirmed ? '<span class="text-green-400">✓</span>' : '<span class="text-red-400">✗</span>'}</td>
-                  <td class="px-4 py-3 text-xs text-gray-400">${new Date(u.created_at).toLocaleDateString()}</td>
-                  <td class="px-4 py-3">
+                <tr>
+                  <td style="color:var(--dash-text-primary);font-size:0.875rem">${escapeHtml(u.email)}</td>
+                  <td><span class="admin-badge ${u.role === 'admin' ? 'admin-badge-red' : 'admin-badge-gray'}">${u.role}</span></td>
+                  <td style="font-size:0.75rem">${u.email_confirmed ? '<span style="color:#4ade80">✓</span>' : '<span style="color:#f87171">✗</span>'}</td>
+                  <td style="color:var(--dash-text-muted);font-size:0.75rem">${new Date(u.created_at).toLocaleDateString()}</td>
+                  <td>
                     <form method="POST" action="/admin/delete-user/${u.id}" class="inline" onsubmit="return confirm('Delete ${escapeHtml(u.email)}?');">
                       <input type="hidden" name="_csrf" value="${req.csrfToken()}">
-                      <button type="submit" class="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700">Delete</button>
+                      <button type="submit" class="admin-btn admin-btn-red">Delete</button>
                     </form>
                   </td>
                 </tr>
@@ -260,47 +260,47 @@ ${getHTMLHead('Admin Dashboard')}
       </div>
 
       <!-- SERVERS SECTION -->
-      <div id="servers" class="bg-gray-800 rounded-lg p-6 scroll-mt-24">
-        <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-4">Servers (${servers.length})</h4>
+      <div id="servers" class="admin-card p-6 scroll-mt-24">
+        <h4 class="admin-section-title">Servers (${servers.length})</h4>
         <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead class="bg-black bg-opacity-30">
+          <table class="admin-table">
+            <thead>
               <tr>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">ID</th>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Owner</th>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Plan</th>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Status</th>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">IP</th>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Created</th>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Actions</th>
+                <th>ID</th>
+                <th>Owner</th>
+                <th>Plan</th>
+                <th>Status</th>
+                <th>IP</th>
+                <th>Created</th>
+                <th>Actions</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-gray-700">
+            <tbody>
               ${servers.map(s => `
-                <tr class="hover:bg-gray-700 transition-colors">
-                  <td class="px-4 py-3 text-xs text-gray-400 font-mono">#${s.id}</td>
-                  <td class="px-4 py-3 text-sm text-white">${escapeHtml(s.owner_email || '-')}</td>
-                  <td class="px-4 py-3 text-xs"><span class="px-2 py-1 rounded bg-blue-900 text-blue-300">${escapeHtml(s.plan)}</span></td>
-                  <td class="px-4 py-3 text-xs"><span class="px-2 py-1 rounded ${s.status === 'running' ? 'bg-green-900 text-green-300' : s.status === 'provisioning' ? 'bg-yellow-900 text-yellow-300' : s.status === 'deleted' ? 'bg-gray-900 text-gray-500' : 'bg-red-900 text-red-300'}">${escapeHtml(s.status)}</span></td>
-                  <td class="px-4 py-3 text-xs font-mono text-brand">${escapeHtml(s.ip_address || '-')}</td>
-                  <td class="px-4 py-3 text-xs text-gray-400">${new Date(s.created_at).toLocaleDateString()}</td>
-                  <td class="px-4 py-3">
+                <tr>
+                  <td style="color:var(--dash-text-muted);font-size:0.75rem;font-family:monospace">#${s.id}</td>
+                  <td style="color:var(--dash-text-primary);font-size:0.875rem">${escapeHtml(s.owner_email || '-')}</td>
+                  <td><span class="admin-badge admin-badge-blue">${escapeHtml(s.plan)}</span></td>
+                  <td><span class="admin-badge ${s.status === 'running' ? 'admin-badge-green' : s.status === 'provisioning' ? 'admin-badge-yellow' : s.status === 'deleted' ? 'admin-badge-gray' : 'admin-badge-red'}">${escapeHtml(s.status)}</span></td>
+                  <td style="font-size:0.75rem;font-family:monospace" class="text-brand">${escapeHtml(s.ip_address || '-')}</td>
+                  <td style="color:var(--dash-text-muted);font-size:0.75rem">${new Date(s.created_at).toLocaleDateString()}</td>
+                  <td>
                     <div class="flex gap-1">
                       ${s.status === 'provisioning' ? `
                       <form method="POST" action="/admin/cancel-provisioning/${s.id}" class="inline" onsubmit="return confirm('Cancel provisioning?');">
                         <input type="hidden" name="_csrf" value="${req.csrfToken()}">
-                        <button type="submit" class="px-2 py-1 bg-orange-600 text-white text-xs rounded hover:bg-orange-700">Cancel</button>
+                        <button type="submit" class="admin-btn admin-btn-orange">Cancel</button>
                       </form>
                       ` : ''}
                       ${s.status === 'deleted' ? `
                       <form method="POST" action="/admin/delete-server/${s.id}" class="inline" onsubmit="return confirm('Remove server record #${s.id}?');">
                         <input type="hidden" name="_csrf" value="${req.csrfToken()}">
-                        <button type="submit" class="px-2 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700">Remove Record</button>
+                        <button type="submit" class="admin-btn">Remove Record</button>
                       </form>
                       ` : `
                       <form method="POST" action="/admin/destroy-droplet/${s.id}" class="inline" onsubmit="return confirm('DESTROY droplet for server #${s.id}? This will delete the droplet from DigitalOcean and remove the server record. Cannot be undone!');">
                         <input type="hidden" name="_csrf" value="${req.csrfToken()}">
-                        <button type="submit" class="px-2 py-1 bg-red-800 text-white text-xs rounded hover:bg-red-900">Destroy</button>
+                        <button type="submit" class="admin-btn admin-btn-red">Destroy</button>
                       </form>
                       `}
                     </div>
@@ -313,25 +313,25 @@ ${getHTMLHead('Admin Dashboard')}
       </div>
 
       <!-- DOMAINS SECTION -->
-      <div id="domains" class="bg-gray-800 rounded-lg p-6 scroll-mt-24">
-        <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-4">Domains (${domains.length})</h4>
+      <div id="domains" class="admin-card p-6 scroll-mt-24">
+        <h4 class="admin-section-title">Domains (${domains.length})</h4>
         <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead class="bg-black bg-opacity-30">
+          <table class="admin-table">
+            <thead>
               <tr>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Domain</th>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">SSL</th>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Expires</th>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Created</th>
+                <th>Domain</th>
+                <th>SSL</th>
+                <th>Expires</th>
+                <th>Created</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-gray-700">
+            <tbody>
               ${domains.map(d => `
-                <tr class="hover:bg-gray-700 transition-colors">
-                  <td class="px-4 py-3 text-sm text-white font-mono">${escapeHtml(d.domain)}</td>
-                  <td class="px-4 py-3 text-xs">${d.ssl_enabled ? '<span class="text-green-400">🔒 Active</span>' : '<span class="text-gray-500">—</span>'}</td>
-                  <td class="px-4 py-3 text-xs text-gray-400">${d.ssl_expires_at ? new Date(d.ssl_expires_at).toLocaleDateString() : '-'}</td>
-                  <td class="px-4 py-3 text-xs text-gray-400">${new Date(d.created_at).toLocaleDateString()}</td>
+                <tr>
+                  <td style="color:var(--dash-text-primary);font-size:0.875rem;font-family:monospace">${escapeHtml(d.domain)}</td>
+                  <td style="font-size:0.75rem">${d.ssl_enabled ? '<span style="color:#4ade80">🔒 Active</span>' : '<span style="color:var(--dash-text-muted)">—</span>'}</td>
+                  <td style="color:var(--dash-text-muted);font-size:0.75rem">${d.ssl_expires_at ? new Date(d.ssl_expires_at).toLocaleDateString() : '-'}</td>
+                  <td style="color:var(--dash-text-muted);font-size:0.75rem">${new Date(d.created_at).toLocaleDateString()}</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -340,27 +340,27 @@ ${getHTMLHead('Admin Dashboard')}
       </div>
 
       <!-- DEPLOYMENTS SECTION -->
-      <div id="deployments" class="bg-gray-800 rounded-lg p-6 scroll-mt-24">
-        <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-4">Deployments (${deployments.length})</h4>
+      <div id="deployments" class="admin-card p-6 scroll-mt-24">
+        <h4 class="admin-section-title">Deployments (${deployments.length})</h4>
         <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead class="bg-black bg-opacity-30">
+          <table class="admin-table">
+            <thead>
               <tr>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">ID</th>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Owner</th>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Git URL</th>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Status</th>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Deployed</th>
+                <th>ID</th>
+                <th>Owner</th>
+                <th>Git URL</th>
+                <th>Status</th>
+                <th>Deployed</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-gray-700">
+            <tbody>
               ${deployments.map(d => `
-                <tr class="hover:bg-gray-700 transition-colors">
-                  <td class="px-4 py-3 text-xs text-gray-400 font-mono">#${d.id}</td>
-                  <td class="px-4 py-3 text-sm text-white">${escapeHtml(d.owner_email || '-')}</td>
-                  <td class="px-4 py-3 text-xs text-gray-300 font-mono truncate max-w-[200px]">${escapeHtml(d.git_url || '-')}</td>
-                  <td class="px-4 py-3 text-xs"><span class="px-2 py-1 rounded ${d.status === 'success' ? 'bg-green-900 text-green-300' : d.status === 'failed' ? 'bg-red-900 text-red-300' : 'bg-yellow-900 text-yellow-300'}">${escapeHtml(d.status)}</span></td>
-                  <td class="px-4 py-3 text-xs text-gray-400">${d.deployed_at ? new Date(d.deployed_at).toLocaleDateString() : '-'}</td>
+                <tr>
+                  <td style="color:var(--dash-text-muted);font-size:0.75rem;font-family:monospace">#${d.id}</td>
+                  <td style="color:var(--dash-text-primary);font-size:0.875rem">${escapeHtml(d.owner_email || '-')}</td>
+                  <td style="color:var(--dash-text-secondary);font-size:0.75rem;font-family:monospace;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(d.git_url || '-')}</td>
+                  <td><span class="admin-badge ${d.status === 'success' ? 'admin-badge-green' : d.status === 'failed' ? 'admin-badge-red' : 'admin-badge-yellow'}">${escapeHtml(d.status)}</span></td>
+                  <td style="color:var(--dash-text-muted);font-size:0.75rem">${d.deployed_at ? new Date(d.deployed_at).toLocaleDateString() : '-'}</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -369,29 +369,29 @@ ${getHTMLHead('Admin Dashboard')}
       </div>
 
       <!-- PAYMENTS SECTION -->
-      <div id="payments" class="bg-gray-800 rounded-lg p-6 scroll-mt-24">
-        <h4 class="text-sm font-bold uppercase tracking-wide text-white mb-4">Payments (${payments.length})</h4>
+      <div id="payments" class="admin-card p-6 scroll-mt-24">
+        <h4 class="admin-section-title">Payments (${payments.length})</h4>
         <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead class="bg-black bg-opacity-30">
+          <table class="admin-table">
+            <thead>
               <tr>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">ID</th>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Customer</th>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Plan</th>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Amount</th>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Status</th>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase">Date</th>
+                <th>ID</th>
+                <th>Customer</th>
+                <th>Plan</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Date</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-gray-700">
+            <tbody>
               ${payments.map(p => `
-                <tr class="hover:bg-gray-700 transition-colors">
-                  <td class="px-4 py-3 text-xs text-gray-400 font-mono">#${p.id}</td>
-                  <td class="px-4 py-3 text-sm text-white">${escapeHtml(p.customer_email || '-')}</td>
-                  <td class="px-4 py-3 text-xs"><span class="px-2 py-1 rounded bg-blue-900 text-blue-300">${escapeHtml(p.plan)}</span></td>
-                  <td class="px-4 py-3 text-sm text-brand font-bold">$${(p.amount / 100).toFixed(2)}</td>
-                  <td class="px-4 py-3 text-xs"><span class="px-2 py-1 rounded ${p.status === 'succeeded' ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'}">${escapeHtml(p.status)}</span></td>
-                  <td class="px-4 py-3 text-xs text-gray-400">${new Date(p.created_at).toLocaleDateString()}</td>
+                <tr>
+                  <td style="color:var(--dash-text-muted);font-size:0.75rem;font-family:monospace">#${p.id}</td>
+                  <td style="color:var(--dash-text-primary);font-size:0.875rem">${escapeHtml(p.customer_email || '-')}</td>
+                  <td><span class="admin-badge admin-badge-blue">${escapeHtml(p.plan)}</span></td>
+                  <td style="font-size:0.875rem;font-weight:700" class="text-brand">$${(p.amount / 100).toFixed(2)}</td>
+                  <td><span class="admin-badge ${p.status === 'succeeded' ? 'admin-badge-green' : 'admin-badge-red'}">${escapeHtml(p.status)}</span></td>
+                  <td style="color:var(--dash-text-muted);font-size:0.75rem">${new Date(p.created_at).toLocaleDateString()}</td>
                 </tr>
               `).join('')}
             </tbody>
