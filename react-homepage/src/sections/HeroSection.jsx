@@ -9,7 +9,9 @@ export default function HeroSection() {
         <div className="border-r-faint px-8 md:px-12 py-28 md:py-32 flex flex-col items-center md:items-start text-center md:text-left hero-text-block">
           <p className="funnel-kicker mb-5">Clouded Basement</p>
           <h1 className="funnel-heading-1 mb-6">
-            Ship Faster.<br />No Infrastructure Headaches.
+            Ship Faster.{" "}
+            <span className="hidden md:inline"> No Infrastructure Headaches.</span>
+            <span className="md:hidden"><br />No Infrastructure Headaches.</span>
           </h1>
           <p className="funnel-body mb-8" style={{ maxWidth: '30rem' }}>
             Your server is already set up. Connect your repo, push code, and it's live.

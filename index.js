@@ -320,8 +320,17 @@ app.post('/disable-auto-deploy', requireAuth, csrfProtection, githubWebhookContr
 app.post('/enable-domain-autodeploy', requireAuth, csrfProtection, serverController.enableDomainAutoDeploy);
 app.post('/disable-domain-autodeploy', requireAuth, csrfProtection, serverController.disableDomainAutoDeploy);
 
-// Dashboard route
-app.get('/dashboard', requireAuth, csrfProtection, dashboardController.showDashboard);
+// ── Dashboard routes ──
+// New React dashboard — auth still gated here; React SPA handles UI
+app.get('/dashboard', requireAuth, csrfProtection, (_req, res) =>
+  res.sendFile(path.join(__dirname, 'react-homepage/dist/index.html'))
+);
+// JSON data endpoint consumed by the React dashboard
+app.get('/api/dashboard', requireAuth, csrfProtection, dashboardController.getDashboardData);
+// Sensitive credentials fetched on demand (never embedded in the main API response)
+app.get('/api/credentials', requireAuth, dashboardController.getCredentials);
+// Classic server-rendered dashboard kept as fallback during migration
+app.get('/old-dashboard', requireAuth, csrfProtection, dashboardController.showDashboard);
 app.post('/submit-ticket', requireAuth, csrfProtection, dashboardController.submitSupportTicket);
 app.post('/change-password', requireAuth, csrfProtection, dashboardController.changePassword);
 app.post('/apply-updates', requireAuth, csrfProtection, dashboardController.applyUpdates);
