@@ -496,7 +496,83 @@ const getCredentials = async (req, res) => {
   }
 };
 
-module.exports = { showDashboard: exports.showDashboard, submitSupportTicket, changePassword, applyUpdates, getCredentials };
+// GET /api/dashboard — JSON data for the React dashboard
+const getDashboardData = async (req, res) => {
+    try {
+        const userId = req.session.userId;
+
+        const hasPaid = await hasSuccessfulPayment(userId);
+        const server  = await getUserServer(userId);
+        const hasServer = !!server;
+
+        const paymentResult = hasPaid ? await pool.query(
+            'SELECT plan FROM payments WHERE user_id = $1 AND status = $2 ORDER BY created_at DESC LIMIT 1',
+            [userId, PAYMENT_STATUS.SUCCEEDED]
+        ) : { rows: [] };
+        const plan = paymentResult.rows[0]?.plan || server?.plan || 'basic';
+
+        const deploymentsResult = await pool.query(
+            'SELECT * FROM deployments WHERE user_id = $1 ORDER BY deployed_at DESC NULLS LAST, created_at DESC',
+            [userId]
+        );
+
+        const domainsResult = await pool.query(
+            'SELECT * FROM domains WHERE user_id = $1 ORDER BY created_at DESC',
+            [userId]
+        );
+
+        const siteCountResult = hasServer ? await pool.query(
+            'SELECT COUNT(DISTINCT git_url) as count FROM deployments WHERE server_id = $1',
+            [server.id]
+        ) : { rows: [{ count: 0 }] };
+
+        // Trial eligibility (mirrors /start-trial check)
+        let trialAvailable = false;
+        if (!hasServer && !hasPaid) {
+            const trialRow = await pool.query(
+                'SELECT trial_used, browser_fingerprint FROM users WHERE id = $1', [userId]
+            );
+            trialAvailable = !trialRow.rows[0]?.trial_used && !!trialRow.rows[0]?.browser_fingerprint;
+        }
+
+        const isProvisioning = server?.status === 'provisioning';
+
+        const domains = domainsResult.rows || [];
+        const sslDomain = domains.find(d => d.ssl_enabled);
+        const liveSiteUrl = sslDomain
+            ? `https://${sslDomain.domain}`
+            : domains.length > 0 ? `http://${domains[0].domain}` : `http://${server?.ip_address || ''}`;
+
+        res.json({
+            userEmail:    req.session.userEmail,
+            userRole:     req.session.userRole,
+            plan:         plan.toString(),
+            hasPaid,
+            hasServer,
+            isProvisioning,
+            trialAvailable,
+            serverStatus: server?.status || (isProvisioning ? 'provisioning' : 'unknown'),
+            serverName:   server?.hostname || 'basement-core',
+            serverId:     server?.id || null,
+            ipAddress:    server?.ip_address || '',
+            ipv6Address:  server?.ipv6_address || '',
+            sshUsername:       server?.ssh_username || 'root',
+            postgresInstalled: server?.postgres_installed === true,
+            mongodbInstalled:  server?.mongodb_installed === true,
+            siteCount:    parseInt(siteCountResult.rows[0]?.count || 0),
+            siteLimit:    server?.site_limit || 2,
+            deployments:  deploymentsResult.rows || [],
+            domains,
+            liveSiteUrl,
+            csrfToken:    typeof req.csrfToken === 'function' ? req.csrfToken() : '',
+        });
+    } catch (error) {
+        console.error('[API] /api/dashboard error:', error);
+        res.status(500).json({ error: 'Failed to load dashboard data' });
+    }
+};
+
+module.exports = { showDashboard: exports.showDashboard, getDashboardData, submitSupportTicket, changePassword, applyUpdates, getCredentials };
 
 /**
  * Dashboard Template Builder - Tech-View Design

@@ -1,9 +1,13 @@
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import LenisScroll from './components/LenisScroll';
 import HomePage from './HomePage';
 
-function App() {
-  // Scroll reveal: add .revealed when elements enter the viewport
+// Dashboard is code-split — only loads when /dashboard is visited
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+
+// Scroll-reveal + Lenis only needed on the marketing homepage
+function HomeWrapper() {
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const observer = new IntersectionObserver(
@@ -28,6 +32,24 @@ function App() {
       <LenisScroll />
       <HomePage />
     </>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<HomeWrapper />} />
+        <Route
+          path="/dashboard"
+          element={
+            <Suspense fallback={null}>
+              <DashboardPage />
+            </Suspense>
+          }
+        />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
