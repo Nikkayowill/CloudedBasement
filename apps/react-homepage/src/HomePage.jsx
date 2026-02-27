@@ -1,11 +1,13 @@
 import ResponsiveNav from './components/ResponsiveNav';
-import HeroSection  from './sections/HeroSection';
-import HowItWorks   from './sections/HowItWorks';
-import Features     from './sections/Features';
-import NewPricing   from './sections/NewPricing';
-import FaqSection   from './sections/FaqSection';
-import CTASection   from './sections/CTASection';
-import Footer       from './sections/Footer';
+import HeroSection from './sections/HeroSection';
+import ProblemFrame from './sections/ProblemFrame';
+import HowItWorks from './sections/HowItWorks';
+import Features from './sections/Features';
+import WhyChooseUs from './sections/WhyChooseUs';
+import NewPricing from './sections/NewPricing';
+import FaqSection from './sections/FaqSection';
+import CTASection from './sections/CTASection';
+import Footer from './sections/Footer';
 
 export default function HomePage() {
   return (
@@ -15,8 +17,10 @@ export default function HomePage() {
       <div className="cb">
         <main>
           <HeroSection />
+          <ProblemFrame />
           <HowItWorks />
           <Features />
+          <WhyChooseUs />
           <NewPricing />
           <FaqSection />
           <CTASection />
@@ -26,3 +30,4 @@ export default function HomePage() {
     </div>
   );
 }
+

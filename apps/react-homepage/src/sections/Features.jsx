@@ -27,9 +27,9 @@ export default function Features() {
       {/* Section title row */}
       <div style={{ padding: '6rem 2.5rem 4rem', borderBottom: CELL_BORDER }}>
         <SectionTitle
-          text1="Features"
-          text2="Everything you need, nothing you don't"
-          text3="We built the hosting platform we always wanted — fast deploys, zero ops overhead, and sane defaults."
+          text1="What you get"
+          text2="Everything a production app needs. Nothing it doesn't."
+          text3="We built the hosting platform we always wanted — fast deploys, zero ops overhead, and sane defaults out of the box."
         />
       </div>
 
