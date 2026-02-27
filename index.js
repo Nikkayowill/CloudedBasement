@@ -558,6 +558,7 @@ app.get('/pay', requireAuth, csrfProtection, paymentController.showCheckout);
 app.post('/create-payment-intent', requireAuth, paymentLimiter, csrfProtection, paymentController.createPaymentIntent);
 
 app.post('/create-checkout-session', requireAuth, paymentLimiter, csrfProtection, paymentController.createCheckoutSession);
+app.post('/upgrade-plan', requireAuth, csrfProtection, paymentController.upgradePlan);
 
 // 404 error page - must be last route
 app.use((req, res) => {
