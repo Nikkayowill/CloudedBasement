@@ -9,19 +9,19 @@ export default function HeroSection() {
         <div className="border-r-faint px-8 md:px-12 py-28 md:py-32 flex flex-col items-center md:items-start text-center md:text-left hero-text-block">
           <p className="funnel-kicker mb-5">Clouded Basement</p>
           <h1 className="funnel-heading-1 mb-6">
-            Ship Faster.{" "}
-            <span className="hidden md:inline"> No Infrastructure Headaches.</span>
-            <span className="md:hidden"><br />No Infrastructure Headaches.</span>
+            Your server.{" "}
+            <span className="hidden md:inline"> Your code. Zero&nbsp;setup.</span>
+            <span className="md:hidden"><br />Your code. Zero&nbsp;setup.</span>
           </h1>
           <p className="funnel-body mb-8" style={{ maxWidth: '30rem' }}>
-            Your server is already set up. Connect your repo, push code, and it's live.
+            A fully managed VPS with GitHub auto-deploy, SSL, and databases — ready in under two minutes. No Dockerfiles. No YAML. Just push and&nbsp;ship.
           </p>
           <div
             className="flex flex-col sm:flex-row gap-3 hero-cta-group"
             style={{ justifyContent: 'center', alignItems: 'center' }}
           >
             <a href="/register" className="funnel-btn funnel-btn-primary">Get Started Free</a>
-            <a href="/docs"     className="funnel-btn funnel-btn-subtle">Read Docs →</a>
+            <a href="#how-it-works" className="funnel-btn funnel-btn-subtle">See how it works →</a>
           </div>
         </div>
 
