@@ -68,11 +68,11 @@ const path = require('path');
 const crypto = require('crypto');
 const pool = require('../db');
 const { validationResult } = require('express-validator');
-const { getHTMLHead, getFooter, getScripts, getResponsiveNav, escapeHtml } = require('../helpers');
-const { createConfirmationCode, isCodeValid } = require('../utils/emailToken');
+const { getHTMLHead, getFooter, getScripts, getResponsiveNav, escapeHtml } = require('../src/utils/helpers');
+const { createConfirmationCode, isCodeValid } = require('../src/utils/emailToken');
 const { sendConfirmationEmail, sendWelcomeEmail } = require('../services/email');
-const { isDisposableEmail } = require('../utils/emailValidation');
-const { getNonce } = require('../utils/nonce');
+const { isDisposableEmail } = require('../src/utils/emailValidation');
+const { getNonce } = require('../src/utils/nonce');
 
 // Helper function to generate random verification code
 function generateBotCode() {

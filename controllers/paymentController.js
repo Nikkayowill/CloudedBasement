@@ -5,9 +5,9 @@ const getStripe = () => {
 };
 const pool = require('../db');
 const { createRealServer, destroyDroplet } = require('../services/digitalocean');
-const { getHTMLHead, getScripts, getFooter, getResponsiveNav, escapeHtml } = require('../helpers');
+const { getHTMLHead, getScripts, getFooter, getResponsiveNav, escapeHtml } = require('../src/utils/helpers');
 const { sendEmail } = require('../services/email');
-const { getNonce } = require('../utils/nonce');
+const { getNonce } = require('../src/utils/nonce');
 
 // Pricing plans configuration (monthly and yearly prices in CENTS for Stripe)
 // Yearly = 10% discount (monthly × 12 × 0.90)

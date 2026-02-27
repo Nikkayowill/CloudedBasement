@@ -1,4 +1,4 @@
-const { getHTMLHead, getScripts, getFooter, getResponsiveNav } = require('../../helpers');
+const { getHTMLHead, getScripts, getFooter, getResponsiveNav } = require('../../src/utils/helpers');
 
 exports.showAbout = (req, res) => {
   res.send(`

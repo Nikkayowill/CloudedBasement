@@ -1,5 +1,5 @@
 // Database helper functions to reduce duplication across controllers
-const pool = require('../db');
+const pool = require('../../db');
 
 /**
  * Get user's server (most commonly used query - appears 15+ times)

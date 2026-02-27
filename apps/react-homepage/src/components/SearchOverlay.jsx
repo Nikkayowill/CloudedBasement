@@ -14,13 +14,13 @@ export default function SearchOverlay({ onClose }) {
   useEffect(() => { setCursor(0); }, [query]);
 
   function handleKey(e) {
+    if (flat.length === 0) return;
     if (e.key === 'Escape') { onClose(); return; }
     if (e.key === 'ArrowDown') { e.preventDefault(); setCursor((c) => Math.min(c + 1, flat.length - 1)); }
     if (e.key === 'ArrowUp')   { e.preventDefault(); setCursor((c) => Math.max(c - 1, 0)); }
     if (e.key === 'Enter' && flat[cursor]) { window.location.href = flat[cursor].href; onClose(); }
   }
 
-  let globalIdx = 0;
 
   return (
     <div

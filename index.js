@@ -51,7 +51,7 @@ const errorHandler = require('./middleware/errorHandler');
 const logger = require('./middleware/logger');
 const { runMigrations } = require('./migrations/run-migrations');
 const { passport, initializeGoogleAuth } = require('./services/googleAuth');
-const { nonceMiddleware } = require('./utils/nonce');
+const { nonceMiddleware } = require('./src/utils/nonce');
 
 const app = express();
 

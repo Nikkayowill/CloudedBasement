@@ -111,7 +111,7 @@ export default function ResponsiveNav() {
           <button
             className="md:hidden"
             onClick={() => setMobileOpen((o) => !o)}
-            style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: '0.25rem' }}
+            style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: '0.25rem', position: 'relative', zIndex: 1000 }}
             aria-label="Toggle menu"
           >
             {mobileOpen ? <XIcon size={22} /> : <MenuIcon size={22} />}

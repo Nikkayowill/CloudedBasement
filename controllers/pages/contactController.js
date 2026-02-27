@@ -1,7 +1,7 @@
 const { validationResult } = require('express-validator');
-const { getHTMLHead, getScripts, getFooter, getResponsiveNav } = require('../../helpers');
+const { getHTMLHead, getScripts, getFooter, getResponsiveNav } = require('../../src/utils/helpers');
 const { sendContactEmail } = require('../../services/email');
-const { validateEmailDomain } = require('../../utils/emailValidation');
+const { validateEmailDomain } = require('../../src/utils/emailValidation');
 
 exports.showContact = (req, res) => {
   res.send(`
