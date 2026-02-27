@@ -17,8 +17,8 @@
  */
 
 const pool = require('../db');
-const { getHTMLHead, getFooter, getScripts, getResponsiveNav, escapeHtml } = require('../helpers');
-const { getNonce } = require('../utils/nonce');
+const { getHTMLHead, getFooter, getScripts, getResponsiveNav, escapeHtml } = require('../src/utils/helpers');
+const { getNonce } = require('../src/utils/nonce');
 const serverUpdates = require('../services/serverUpdates');
 const { UPDATE_STATUS } = serverUpdates;
 

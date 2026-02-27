@@ -1,4 +1,4 @@
-const { getHTMLHead, getScripts, getResponsiveNav, getFooter } = require('../../helpers');
+const { getHTMLHead, getScripts, getResponsiveNav, getFooter } = require('../../src/utils/helpers');
 
 /**
  * Funnel Homepage — Isolated layout system

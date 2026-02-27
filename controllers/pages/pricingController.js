@@ -1,4 +1,4 @@
-const { getHTMLHead, getScripts, getFooter, getResponsiveNav } = require('../../helpers');
+const { getHTMLHead, getScripts, getFooter, getResponsiveNav } = require('../../src/utils/helpers');
 const pool = require('../../db');
 
 exports.showPricing = async (req, res) => {

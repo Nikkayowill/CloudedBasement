@@ -1,6 +1,6 @@
 const pool = require('../db');
-const { getDashboardHead, getFooter, getScripts, getResponsiveNav } = require('../helpers');
-const { getNonce } = require('../utils/nonce');
+const { getDashboardHead, getFooter, getScripts, getResponsiveNav } = require('../src/utils/helpers');
+const { getNonce } = require('../src/utils/nonce');
 
 exports.showGettingStarted = async (req, res) => {
   // Check payment and server status

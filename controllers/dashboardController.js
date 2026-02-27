@@ -1,10 +1,10 @@
 const pool = require('../db');
-const { getDashboardHead, getFooter, getScripts, getResponsiveNav, escapeHtml, getDashboardLayoutStart, getDashboardLayoutEnd } = require('../helpers');
-const { getUserServer, hasSuccessfulPayment } = require('../utils/db-helpers');
-const { PAYMENT_STATUS, SERVER_STATUS } = require('../constants');
+const { getDashboardHead, getFooter, getScripts, getResponsiveNav, escapeHtml, getDashboardLayoutStart, getDashboardLayoutEnd } = require('../src/utils/helpers');
+const { getUserServer, hasSuccessfulPayment } = require('../src/utils/db-helpers');
+const { PAYMENT_STATUS, SERVER_STATUS } = require('../src/utils/constants');
 const serverUpdates = require('../services/serverUpdates');
 const { sendEmail } = require('../services/email');
-const { getNonce } = require('../utils/nonce');
+const { getNonce } = require('../src/utils/nonce');
 
 // Dashboard navigation items - centralized for consistency
 const DASHBOARD_NAV_ITEMS = [

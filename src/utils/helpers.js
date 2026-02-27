@@ -1,5 +1,5 @@
 // HTML escaping to prevent XSS attacks
-const { getNonce } = require('./utils/nonce');
+const { getNonce } = require('./nonce');
 
 function escapeHtml(unsafe) {
   if (unsafe === null || unsafe === undefined) return '';

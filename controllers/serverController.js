@@ -2,12 +2,12 @@ const axios = require('axios');
 const crypto = require('crypto');
 const { Client } = require('ssh2');
 const pool = require('../db');
-const { escapeHtml } = require('../helpers');
-const { getUserServer, verifyServerOwnership, updateServerStatus, appendDeploymentOutput, updateDeploymentStatus } = require('../utils/db-helpers');
-const { SERVER_STATUS, DEPLOYMENT_STATUS, TIMEOUTS, PORTS } = require('../constants');
+const { escapeHtml } = require('../src/utils/helpers');
+const { getUserServer, verifyServerOwnership, updateServerStatus, appendDeploymentOutput, updateDeploymentStatus } = require('../src/utils/db-helpers');
+const { SERVER_STATUS, DEPLOYMENT_STATUS, TIMEOUTS, PORTS } = require('../src/utils/constants');
 const { sendDeployErrorEmail } = require('../services/email');
 const { generateSubdomain, createDNSRecord, deleteDNSRecord } = require('../services/dns');
-const { generateNginxConfig, isValidDomainName } = require('../utils/nginxTemplates');
+const { generateNginxConfig, isValidDomainName } = require('../src/utils/nginxTemplates');
 
 // Strict DNS-compliant domain validation
 function isValidDomain(domain) {
