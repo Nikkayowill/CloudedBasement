@@ -560,10 +560,10 @@ html {
     overflow-x: clip;
 }
 
-/* True black background */
+/* Dark theme background based on vite.dev */
 body {
     font-family: 'Inter', sans-serif;
-    background: #000000;
+    background: #16171d;
     color: var(--text-primary);
     position: relative;
     overflow-x: clip;

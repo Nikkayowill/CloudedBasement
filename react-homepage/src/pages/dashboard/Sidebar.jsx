@@ -86,6 +86,10 @@ function SidebarInner({ nav, active, onNav, userEmail, initial, plan, planStyle 
       <nav style={{ flex: 1, padding: '0.375rem 0' }}>
         {nav.map((item) => {
           const isActive = item.id === active;
+          // Update label for 'sites' to 'Domains' and 'deploy' to 'Deployments'
+          let label = item.label;
+          if (item.id === 'sites') label = 'Domains';
+          if (item.id === 'deploy') label = 'Deployments';
           return (
             <button
               key={item.id}
@@ -108,7 +112,7 @@ function SidebarInner({ nav, active, onNav, userEmail, initial, plan, planStyle 
               <span style={{ opacity: isActive ? 1 : 0.55, flexShrink: 0, display: 'flex' }}>
                 {item.icon}
               </span>
-              {item.label}
+              {label}
             </button>
           );
         })}

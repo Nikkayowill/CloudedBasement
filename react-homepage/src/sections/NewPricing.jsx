@@ -123,8 +123,8 @@ export default function NewPricing() {
         </div>
       </div>
 
-      {/* 3-col pricing grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }}>
+      {/* Responsive pricing grid: stacks on mobile, 3 cols on desktop */}
+      <div className="grid grid-cols-1 md:grid-cols-3">
         {pricingData.map((plan, i) => (
           <PricingCell
             key={plan.id}

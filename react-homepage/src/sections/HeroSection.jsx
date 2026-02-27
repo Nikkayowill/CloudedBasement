@@ -32,7 +32,7 @@ export default function HeroSection() {
             className="funnel-mono text-[11px] text-center"
             style={{ color: 'rgba(255,255,255,0.2)' }}
           >
-            skip hours of server config — this just works
+            skip hours of server config and debugging, and get back to building your app.
           </p>
         </div>
       </div>

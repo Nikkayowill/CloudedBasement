@@ -4,7 +4,7 @@ function SectionHeader({ title }) {
   return (
     <div className="border-b-faint" style={{ padding: '1.5rem 1.5rem 1rem' }}>
       <h2 style={{ fontSize: '0.8125rem', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--dash-text-muted, #525252)' }}>
-        {title}
+        {title === 'Sites' ? 'Domains' : title}
       </h2>
     </div>
   );
@@ -78,7 +78,7 @@ export default function SitesSection({ data }) {
 
   return (
     <section>
-      <SectionHeader title="Sites" />
+      <SectionHeader title="Domains" />
 
       <div style={{ padding: '1.5rem' }}>
         {/* Domain list */}
