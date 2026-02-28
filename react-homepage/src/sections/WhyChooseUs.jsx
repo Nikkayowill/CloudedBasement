@@ -53,7 +53,7 @@ function ComparisonTable() {
                     </tr>
                 </thead>
                 <tbody>
-                    {ROWS.map((row, i) => (
+                    {ROWS.map((row) => (
                         <tr key={row.label}>
                             <td style={{
                                 ...cellStyle, textAlign: 'left', fontWeight: 500,
