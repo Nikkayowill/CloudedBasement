@@ -39,4 +39,13 @@ router.get(
   wordpressController.getSiteStatus
 );
 
+// Decrypt + return WP admin credentials — only callable on live sites
+router.get(
+  '/wordpress/credentials/:siteId',
+  requireAuth,
+  deploymentLimiter,
+  validateSiteId,
+  wordpressController.getWpCredentials
+);
+
 module.exports = router;

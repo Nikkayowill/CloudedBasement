@@ -62,6 +62,16 @@ exports.showDashboard = async (req, res) => {
         const server = isDemoMode ? null : await getUserServer(userId);
         // In demo provisioning state, pretend there's no server yet so provisioning UI shows
         const hasServer = isDemoMode ? !isDemoProvisioning : !!server;
+
+        // If this is a WordPress server, fetch the wordpress_sites row for the status card
+        let wpSite = null;
+        if (!isDemoMode && server?.server_type === 'wordpress') {
+            const wpResult = await pool.query(
+                'SELECT * FROM wordpress_sites WHERE server_id = $1 AND user_id = $2 LIMIT 1',
+                [server.id, userId]
+            );
+            wpSite = wpResult.rows[0] || null;
+        }
         
         // Demo mode: generate realistic mock data
         const demoServer = isDemoMode ? {
@@ -268,7 +278,9 @@ exports.showDashboard = async (req, res) => {
             githubWebhookSecret: activeServer?.github_webhook_secret || null,
             // Server updates
             pendingUpdates,
-            updateHistory
+            updateHistory,
+            // WordPress site (null for Node.js servers)
+            wpSite: wpSite || null
         });
 
         res.send(`
@@ -763,7 +775,188 @@ ${getDashboardLayoutStart(layoutOptions)}
     <div class="sections-container">
         <!-- OVERVIEW SECTION -->
         <section id="section-overview" class="dash-section active">
-        ${(data.hasServer || data.isProvisioning) ? `
+        ${data.wpSite ? `
+
+        <!-- ── WordPress Site Card ────────────────────────────────────────── -->
+        ${(() => {
+          const ws = data.wpSite;
+          const isLive         = ws.status === 'live';
+          const isError        = ws.status === 'error';
+          const inProgress     = !isLive && !isError;
+          const step1Done      = ws.status !== 'provisioning';
+          const step2Done      = ws.status === 'configuring' || ws.status === 'live';
+          const step3Done      = ws.status === 'live';
+          const siteUrl        = ws.domain
+            ? 'https://' + escapeHtml(ws.domain)
+            : 'http://' + escapeHtml(data.ipAddress || '');
+          const statusColour   = isLive ? 'text-[var(--dash-success)]' : isError ? 'text-[var(--dash-danger)]' : 'text-[var(--dash-warning)]';
+          const statusLabel    = isLive ? 'Live' : isError ? 'Error' : 'Setting up';
+
+          return `
+        <div class="dash-card" id="wp-site-card" data-wp-site-id="${ws.id}" data-wp-status="${escapeHtml(ws.status)}">
+            <div class="dash-card-header">
+                <div class="flex items-center gap-3">
+                    <!-- WordPress logo mark -->
+                    <svg class="w-5 h-5 text-[#21759b] flex-shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 1.543c2.34 0 4.484.849 6.141 2.247L4.79 18.141A8.432 8.432 0 013.543 12c0-4.666 3.791-8.457 8.457-8.457zm0 16.914a8.432 8.432 0 01-5.34-1.898l3.516-9.623.007-.017 3.613 9.904A8.43 8.43 0 0112 20.457zm3.507-.85l-2.61-7.143 2.553-7.387A8.46 8.46 0 0120.457 12a8.432 8.432 0 01-4.95 7.607z"/>
+                    </svg>
+                    <span class="text-sm font-medium ${statusColour}" id="wp-status-label">${statusLabel}</span>
+                </div>
+                <h3 class="dash-card-title">${escapeHtml(ws.site_title || 'WordPress Site')}</h3>
+            </div>
+
+            ${inProgress ? `
+            <!-- ── In-progress: step list + status message ── -->
+            <div class="space-y-3 py-4">
+                <div id="wp-step-1" class="flex items-center gap-3 text-sm ${step1Done ? 'text-[var(--dash-success)]' : 'text-[var(--dash-text-muted)]'}">
+                    ${step1Done
+                      ? '<svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>'
+                      : '<svg class="w-4 h-4 flex-shrink-0 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>'}
+                    <span>Provisioning server</span>
+                </div>
+                <div id="wp-step-2" class="flex items-center gap-3 text-sm ${step2Done ? 'text-[var(--dash-success)]' : step1Done ? 'text-[var(--dash-text-muted)]' : 'text-[var(--dash-text-muted)] opacity-40'}">
+                    ${step2Done
+                      ? '<svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>'
+                      : step1Done
+                        ? '<svg class="w-4 h-4 flex-shrink-0 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>'
+                        : '<span class="w-4 h-4 flex-shrink-0 rounded-full border border-current inline-block"></span>'}
+                    <span>Installing WordPress</span>
+                </div>
+                <div id="wp-step-3" class="flex items-center gap-3 text-sm ${step3Done ? 'text-[var(--dash-success)]' : step2Done ? 'text-[var(--dash-text-muted)]' : 'text-[var(--dash-text-muted)] opacity-40'}">
+                    ${step3Done
+                      ? '<svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>'
+                      : step2Done
+                        ? '<svg class="w-4 h-4 flex-shrink-0 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>'
+                        : '<span class="w-4 h-4 flex-shrink-0 rounded-full border border-current inline-block"></span>'}
+                    <span>Configuring Nginx &amp; DNS</span>
+                </div>
+            </div>
+            ${ws.status_message ? `<p id="wp-status-msg" class="text-xs text-[var(--dash-text-muted)] mt-2">${escapeHtml(ws.status_message)}</p>` : `<p id="wp-status-msg" class="text-xs text-[var(--dash-text-muted)] mt-2">This usually takes 5-10 minutes.</p>`}
+            ` : isError ? `
+            <!-- ── Error state ── -->
+            <div class="py-4">
+                <p class="text-sm text-[var(--dash-danger)] mb-2">${escapeHtml(ws.status_message || 'Provisioning failed.')}</p>
+                <p class="text-xs text-[var(--dash-text-muted)]">Please <a href="mailto:support@cloudedbasement.ca" class="underline hover:text-[var(--dash-text-primary)]">contact support</a> and include your server ID: <code class="text-[var(--dash-accent)]">${data.serverId}</code></p>
+            </div>
+            ` : `
+            <!-- ── Live state ── -->
+            <div class="space-y-0 mb-6">
+                <div class="dash-data-row">
+                    <span class="dash-data-label">Site URL</span>
+                    <a href="${siteUrl}" target="_blank" rel="noopener noreferrer" class="dash-data-value text-[var(--dash-accent)] hover:underline truncate max-w-[200px]">${siteUrl}</a>
+                </div>
+                <div class="dash-data-row">
+                    <span class="dash-data-label">wp-admin</span>
+                    <a href="${siteUrl}/wp-admin" target="_blank" rel="noopener noreferrer" class="dash-data-value text-[var(--dash-text-secondary)] hover:text-[var(--dash-accent)] text-sm">${siteUrl}/wp-admin</a>
+                </div>
+                <div class="dash-data-row">
+                    <span class="dash-data-label">Admin user</span>
+                    <span class="dash-data-value font-mono text-sm">${escapeHtml(ws.admin_user || 'wpadmin')}</span>
+                </div>
+                <div class="dash-data-row">
+                    <span class="dash-data-label">Admin email</span>
+                    <span class="dash-data-value text-sm">${escapeHtml(ws.admin_email || '')}</span>
+                </div>
+                <div class="dash-data-row">
+                    <span class="dash-data-label">IPv4</span>
+                    <span class="dash-data-value text-[var(--dash-accent)]">${escapeHtml(data.ipAddress)}</span>
+                </div>
+                <div class="dash-data-row">
+                    <span class="dash-data-label">Plan</span>
+                    <span class="dash-data-value">${escapeHtml(data.plan.toUpperCase())} WordPress</span>
+                </div>
+            </div>
+            <!-- Credentials actions -->
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button type="button" id="wp-copy-pass" data-site-id="${ws.id}" class="dash-btn dash-btn-secondary flex-1">
+                    Copy Admin Password
+                </button>
+                <form id="terminate-form" action="/delete-server" method="POST" class="sm:flex-initial">
+                    <input type="hidden" name="_csrf" value="${data.csrfToken}">
+                    <button type="button" onclick="openTerminateModal()" class="dash-btn dash-btn-danger w-full sm:w-auto">Cancel Plan</button>
+                </form>
+            </div>
+            `}
+        </div>
+
+        ${inProgress ? `
+        <script nonce="${getNonce()}">
+        (function () {
+          var card = document.getElementById('wp-site-card');
+          if (!card) return;
+          var siteId = card.dataset.wpSiteId;
+          if (!siteId) return;
+
+          var intervalId = setInterval(function () {
+            fetch('/wordpress/status/' + siteId, {
+              credentials: 'same-origin',
+              headers: { 'Accept': 'application/json' }
+            })
+              .then(function (r) { return r.json(); })
+              .then(function (d) {
+                if (d.wpStatus === 'live' || d.wpStatus === 'error') {
+                  clearInterval(intervalId);
+                  location.reload();
+                  return;
+                }
+                // Update status message
+                var msgEl = document.getElementById('wp-status-msg');
+                if (msgEl && d.statusMessage) {
+                  msgEl.textContent = d.statusMessage;
+                }
+                // Update step indicators
+                var s = d.wpStatus;
+                var step1Done = s !== 'provisioning';
+                var step2Done = s === 'configuring' || s === 'live';
+                var checkSvg  = '<svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>';
+                var spinSvg   = '<svg class="w-4 h-4 flex-shrink-0 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>';
+                var dotSvg    = '<span class="w-4 h-4 flex-shrink-0 rounded-full border border-current inline-block"></span>';
+                function setStep(id, done, active) {
+                  var el = document.getElementById(id);
+                  if (!el) return;
+                  var icon = done ? checkSvg : active ? spinSvg : dotSvg;
+                  el.className = 'flex items-center gap-3 text-sm ' + (done ? 'text-[var(--dash-success)]' : active ? 'text-[var(--dash-text-muted)]' : 'text-[var(--dash-text-muted)] opacity-40');
+                  el.innerHTML = icon + '<span>' + el.querySelector('span').textContent + '</span>';
+                }
+                setStep('wp-step-1', step1Done, !step1Done);
+                setStep('wp-step-2', step2Done, step1Done && !step2Done);
+                setStep('wp-step-3', false,      step2Done);
+              })
+              .catch(function () { /* silent — retry next tick */ });
+          }, 5000);
+        })();
+        </script>
+        ` : isLive ? `
+        <script nonce="${getNonce()}">
+        document.getElementById('wp-copy-pass')?.addEventListener('click', function () {
+          var btn = this;
+          var siteId = btn.dataset.siteId;
+          btn.textContent = 'Fetching\u2026';
+          btn.disabled = true;
+          fetch('/api/wordpress/credentials/' + siteId, { credentials: 'same-origin' })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+              if (d.adminPassword && navigator.clipboard) {
+                navigator.clipboard.writeText(d.adminPassword)
+                  .then(function () {
+                    btn.textContent = 'Copied!';
+                    setTimeout(function () { btn.textContent = 'Copy Admin Password'; btn.disabled = false; }, 2500);
+                  })
+                  .catch(function () { btn.textContent = 'Copy failed'; btn.disabled = false; });
+              } else {
+                btn.textContent = 'Unavailable';
+                btn.disabled = false;
+              }
+            })
+            .catch(function () { btn.textContent = 'Error'; btn.disabled = false; });
+        });
+        </script>
+        ` : ''}
+          `;
+        })()}
+
+        ` : (data.hasServer || data.isProvisioning) ? `
+        <!-- ── Node.js Server Card (unchanged) ───────────────────────────── -->
         <div class="dash-card" data-server-status="${data.serverStatus}" ${data.isDemoProvisioning ? 'data-demo-provisioning="true"' : ''}>
             <div class="dash-card-header">
                 <div class="flex items-center gap-3">
@@ -774,7 +967,7 @@ ${getDashboardLayoutStart(layoutOptions)}
                 </div>
                 <h3 class="dash-card-title">${escapeHtml(data.serverName)}</h3>
             </div>
-            
+
             ${data.isProvisioning && !data.hasServer ? `
             <!-- Provisioning State -->
             <div class="text-center py-8">
@@ -809,7 +1002,7 @@ ${getDashboardLayoutStart(layoutOptions)}
                     <span class="dash-data-value ${data.siteCount >= data.siteLimit ? 'text-[var(--dash-danger)]' : ''}">${data.siteCount} / ${data.siteLimit}</span>
                 </div>
             </div>
-            
+
             <!-- Actions -->
             <div class="flex flex-col sm:flex-row gap-3">
                 <form action="/server-action" method="POST" class="flex-1">
@@ -826,11 +1019,56 @@ ${getDashboardLayoutStart(layoutOptions)}
         </div>
 
         ` : `
-        <!-- No Server State -->
+        <!-- ── No Server State ────────────────────────────────────────────── -->
         <div class="dash-card text-center py-12">
             <h3 class="text-lg font-semibold text-[var(--dash-text-secondary)] mb-2">No Server</h3>
             <p class="text-sm text-[var(--dash-text-muted)]">${data.hasPaid ? 'Waiting for server setup (contact support if delayed)' : data.trialAvailable ? 'Start your free trial below to get a server' : 'Purchase a plan to see your server details here'}</p>
         </div>
+
+        ${data.hasPaid && !data.hasServer ? `
+        <!-- WordPress creation option (shown alongside Node.js provisioning) -->
+        <div class="dash-card mt-4">
+            <div class="dash-card-header">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-[#21759b]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 1.543c2.34 0 4.484.849 6.141 2.247L4.79 18.141A8.432 8.432 0 013.543 12c0-4.666 3.791-8.457 8.457-8.457zm0 16.914a8.432 8.432 0 01-5.34-1.898l3.516-9.623.007-.017 3.613 9.904A8.43 8.43 0 0112 20.457zm3.507-.85l-2.61-7.143 2.553-7.387A8.46 8.46 0 0120.457 12a8.432 8.432 0 01-4.95 7.607z"/>
+                    </svg>
+                    <h3 class="dash-card-title">Launch a WordPress Site</h3>
+                </div>
+            </div>
+            <p class="text-sm text-[var(--dash-text-muted)] mb-5">Get a managed WordPress installation on a fresh VPS — MySQL, Nginx, wp-cli, and Certbot pre-configured.</p>
+            <form id="wp-create-form" action="/wordpress/create" method="POST" class="space-y-4">
+                <input type="hidden" name="_csrf" value="${data.csrfToken}">
+                <!-- Plan -->
+                <div>
+                    <label class="block text-xs text-[var(--dash-text-secondary)] mb-1" for="wp-plan">Plan</label>
+                    <select id="wp-plan" name="plan" required class="dash-input w-full">
+                        <option value="basic">Basic — 1 vCPU / 1 GB RAM</option>
+                        <option value="pro" selected>Pro — 2 vCPU / 2 GB RAM</option>
+                        <option value="premium">Premium — 2 vCPU / 4 GB RAM</option>
+                    </select>
+                </div>
+                <!-- Site title -->
+                <div>
+                    <label class="block text-xs text-[var(--dash-text-secondary)] mb-1" for="wp-title">Site title</label>
+                    <input type="text" id="wp-title" name="siteTitle" required maxlength="100" placeholder="My Awesome Blog" class="dash-input w-full">
+                </div>
+                <!-- Admin email -->
+                <div>
+                    <label class="block text-xs text-[var(--dash-text-secondary)] mb-1" for="wp-email">Admin email</label>
+                    <input type="email" id="wp-email" name="adminEmail" required placeholder="you@example.com" class="dash-input w-full">
+                </div>
+                <button type="submit" class="dash-btn dash-btn-primary w-full">Create WordPress Site</button>
+                <p class="text-xs text-[var(--dash-text-muted)] text-center">Provisioning takes 5-10 minutes. Credentials are generated and encrypted automatically.</p>
+            </form>
+        </div>
+        <script nonce="${getNonce()}">
+        document.getElementById('wp-create-form')?.addEventListener('submit', function (e) {
+          var btn = this.querySelector('button[type="submit"]');
+          if (btn) { btn.disabled = true; btn.textContent = 'Launching\u2026'; }
+        });
+        </script>
+        ` : ''}
         `}
         </section>
 

@@ -4,11 +4,13 @@
 // Handles WordPress site creation and status polling.
 //
 // Endpoints:
-//   POST /wordpress/create      — validate input, kick off async provisioning
-//   GET  /api/wordpress/status/:siteId — poll deployment progress (frontend poller)
+//   POST /wordpress/create                    — validate input, kick off async provisioning
+//   GET  /wordpress/status/:siteId            — poll deployment progress (frontend poller)
+//   GET  /api/wordpress/credentials/:siteId   — decrypt + return WP admin password (reveal/copy)
 
 const pool = require('../db');
 const { createWordPressServer } = require('../services/wordpress');
+const { decrypt } = require('../src/utils/encryption');
 
 // ── Allowed plan slugs ──────────────────────────────────────────────────────
 const ALLOWED_PLANS = new Set(['basic', 'pro', 'premium']);
@@ -210,5 +212,86 @@ exports.getSiteStatus = async (req, res) => {
   } catch (err) {
     console.error('[WP Controller] getSiteStatus error:', err.message);
     return res.status(500).json({ error: 'Failed to fetch site status.' });
+  }
+};
+
+// ── GET /api/wordpress/credentials/:siteId ─────────────────────────────────
+
+/**
+ * Decrypt and return the WP admin password for the authenticated owner.
+ *
+ * Password is NOT stored in the status polling response to avoid leaking it
+ * into logs/cache. The frontend fetches it only when the user explicitly clicks
+ * "Copy Password", then writes directly to the clipboard without touching the DOM.
+ *
+ * URL param: siteId — validated by the router's validateSiteId middleware.
+ */
+exports.getWpCredentials = async (req, res) => {
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ error: 'Authentication required.' });
+  }
+  const userId = req.session.userId;
+
+  const siteId = parseInt(req.params.siteId, 10);
+  if (!Number.isInteger(siteId) || siteId <= 0) {
+    return res.status(400).json({ error: 'Invalid site ID.' });
+  }
+
+  try {
+    // Ownership check — only the site owner can retrieve credentials
+    const result = await pool.query(
+      `SELECT ws.admin_user,
+              ws.admin_email,
+              ws.encrypted_admin_password,
+              ws.encrypted_admin_password_iv,
+              ws.domain,
+              s.ip_address
+         FROM wordpress_sites ws
+         JOIN servers s ON s.id = ws.server_id
+        WHERE ws.id = $1
+          AND ws.user_id = $2
+          AND ws.status = 'live'`,
+      [siteId, userId]
+    );
+
+    if (result.rows.length === 0) {
+      // Return 404 — not 403 — to avoid leaking whether the site exists
+      // (403 could be used to enumerate valid site IDs owned by others)
+      return res.status(404).json({ error: 'Site not found or not yet live.' });
+    }
+
+    const row = result.rows[0];
+
+    // Defensive: Only decrypt if both values are present and non-empty
+    let adminPassword = null;
+    if (row.encrypted_admin_password && row.encrypted_admin_password_iv && row.encrypted_admin_password.length > 0 && row.encrypted_admin_password_iv.length > 0) {
+      try {
+        adminPassword = decrypt(row.encrypted_admin_password, row.encrypted_admin_password_iv);
+      } catch (err) {
+        console.warn('[WP Controller] Failed to decrypt admin password:', err.message);
+        adminPassword = null;
+      }
+    } else {
+      console.warn('[WP Controller] Missing encrypted_admin_password or IV for site', siteId);
+    }
+
+    // Build public URL only if domain or valid ip_address exists
+    let siteUrl = null;
+    if (row.domain) {
+      siteUrl = `https://${row.domain}`;
+    } else if (row.ip_address && row.ip_address !== 'null' && row.ip_address !== '' && row.ip_address !== null && row.ip_address !== undefined) {
+      siteUrl = `http://${row.ip_address}`;
+    }
+
+    return res.json({
+      adminUser:     row.admin_user,
+      adminEmail:    row.admin_email,
+      adminPassword,             // plaintext — HTTPS only, never logged
+      wpAdminUrl:    siteUrl ? `${siteUrl}/wp-admin` : null,
+    });
+
+  } catch (err) {
+    console.error('[WP Controller] getWpCredentials error:', err.message);
+    return res.status(500).json({ error: 'Failed to retrieve credentials.' });
   }
 };
