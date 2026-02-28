@@ -326,14 +326,15 @@ async function createWordPressServer(userId, plan, siteTitle, adminEmail) {
 
     // ── Insert into wordpress_sites ───────────────────────────────────────
     // Passwords are stored as encrypted BYTEA — never plaintext.
-    await pool.query(
+    const wpSiteResult = await pool.query(
       `INSERT INTO wordpress_sites
          (user_id, server_id, site_title, admin_user, admin_email,
           encrypted_admin_password, encrypted_admin_password_iv,
           db_name, db_user,
           encrypted_db_password, encrypted_db_password_iv,
           status)
-       VALUES ($1, $2, $3, 'wpadmin', $4, $5, $6, $7, $8, $9, $10, 'provisioning')`,
+       VALUES ($1, $2, $3, 'wpadmin', $4, $5, $6, $7, $8, $9, $10, 'provisioning')
+       RETURNING id`,
       [
         userId,
         serverRow.id,
@@ -347,13 +348,14 @@ async function createWordPressServer(userId, plan, siteTitle, adminEmail) {
         encDb.iv,
       ]
     );
-    console.log(`[WP] wordpress_sites record created (server ${serverRow.id})`);
+    const wpSiteId = wpSiteResult.rows[0].id;
+    console.log(`[WP] wordpress_sites record created (server ${serverRow.id}, site ${wpSiteId})`);
 
-    // ── Start IP polling ──────────────────────────────────────────────────
-    // pollDropletStatus updates servers.ip_address + status to 'running'
-    // once the droplet becomes active. WordPress installation (Step 2) waits
-    // for status = 'running' before SSHing in.
+    // ── Start IP polling + provisioning pipeline ──────────────────────────
+    // pollDropletStatus sets servers.status → 'running' once the IP is live.
+    // watchForServerRunning then fires the DB → install → Nginx chain.
     pollDropletStatus(droplet.id, serverRow.id);
+    watchForServerRunning(serverRow.id, wpSiteId);
 
     return serverRow;
 
@@ -857,6 +859,234 @@ async function setupWordPressDatabase(wpSiteId) {
   }
 }
 
+// ── Step 3 Part 2: Nginx virtual host + SSL ───────────────────────────────────
+
+/**
+ * Generate a hardened Nginx virtual host config for a WordPress site.
+ *
+ * Security notes:
+ *  - wp-config.php, xmlrpc.php, readme, license all blocked with `deny all`.
+ *  - PHP execution inside wp-content/uploads is blocked (prevents webshell upload).
+ *  - Hidden files (.htaccess, .git, etc.) denied.
+ *  - Security response headers added.
+ *
+ * @param {string} serverName - validated IPv4 address or domain (e.g. 'example.com')
+ * @returns {string} nginx config file content
+ */
+function generateNginxWpConfig(serverName) {
+  // Build without template literals for the nginx $variable portions —
+  // avoids any risk of JS interpolating $uri, $args, $request_uri, etc.
+  return (
+    'server {\n' +
+    '    listen 80;\n' +
+    `    server_name ${serverName};\n\n` +
+    '    root  /var/www/wordpress;\n' +
+    '    index index.php;\n\n' +
+    '    # WordPress pretty permalinks\n' +
+    '    location / {\n' +
+    '        try_files $uri $uri/ /index.php?$args;\n' +
+    '    }\n\n' +
+    '    # PHP via FPM\n' +
+    '    location ~ \\.php$ {\n' +
+    '        include snippets/fastcgi-php.conf;\n' +
+    '        fastcgi_pass unix:/run/php/php8.3-fpm.sock;\n' +
+    '        fastcgi_read_timeout 300;\n' +
+    '    }\n\n' +
+    '    # ── Security blocks ──────────────────────────────────────\n' +
+    '    location = /wp-config.php                    { deny all; }\n' +
+    '    location = /xmlrpc.php                       { deny all; }\n' +
+    '    location = /readme.html                      { deny all; }\n' +
+    '    location = /license.txt                      { deny all; }\n' +
+    '    location ~ /\\.                               { deny all; }\n' +
+    '    # Block PHP execution inside uploads (webshell prevention)\n' +
+    '    location ~* ^/wp-content/uploads/.*\\.php$   { deny all; }\n\n' +
+    '    # ── Security headers ─────────────────────────────────────\n' +
+    '    add_header X-Frame-Options       SAMEORIGIN;\n' +
+    '    add_header X-Content-Type-Options nosniff;\n' +
+    '    add_header Referrer-Policy       strict-origin-when-cross-origin;\n' +
+    '}\n'
+  );
+}
+
+/**
+ * Write the Nginx virtual host, enable it, reload Nginx, and mark the site live.
+ *
+ * If `wordpress_sites.domain` is already set, it is used as server_name.
+ * Otherwise the server's IP address is used and can be replaced later when
+ * the user adds a custom domain.
+ *
+ * @param {number} wpSiteId
+ */
+async function configureWordPressNginx(wpSiteId) {
+  const result = await pool.query(
+    `SELECT ws.id, ws.domain,
+            s.ip_address, s.ssh_password, s.ssh_password_iv
+     FROM wordpress_sites ws
+     JOIN servers s ON s.id = ws.server_id
+     WHERE ws.id = $1`,
+    [wpSiteId]
+  );
+
+  if (!result.rows.length) {
+    throw new Error(`[WP-NGINX] Site not found: ${wpSiteId}`);
+  }
+  const wp = result.rows[0];
+
+  // Determine server_name: prefer domain if set, else fall back to IP
+  const net = require('net');
+  let serverName;
+  if (wp.domain) {
+    // Validate domain format before embedding in config
+    if (!/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i.test(wp.domain)) {
+      throw new Error(`[WP-NGINX] Refusing — invalid domain format: ${wp.domain}`);
+    }
+    serverName = wp.domain;
+  } else {
+    if (net.isIP(wp.ip_address) === 0) {
+      throw new Error(`[WP-NGINX] Refusing — invalid IP address: ${wp.ip_address}`);
+    }
+    serverName = wp.ip_address;
+  }
+
+  const rootPassword = decrypt(wp.ssh_password, wp.ssh_password_iv);
+  const nginxConfig  = generateNginxWpConfig(serverName);
+  const confPath     = '/etc/nginx/sites-available/wordpress';
+
+  let conn;
+  try {
+    conn = await sshConnect(wp.ip_address, rootPassword);
+    console.log(`[WP-NGINX] SSH connected to ${wp.ip_address} for site ${wpSiteId}`);
+
+    // Write config via stdin — serverName is validated above, never a raw user string
+    await execSSHWithInput(conn, `cat > ${confPath}`, nginxConfig);
+
+    // Enable site, remove default placeholder, test, reload
+    await execSSH(conn, [
+      `ln -sf ${confPath} /etc/nginx/sites-enabled/wordpress`,
+      'rm -f /etc/nginx/sites-enabled/default',
+      'nginx -t',                 // aborts pipeline if config is invalid
+      'systemctl reload nginx',
+    ].join(' && '));
+
+    console.log(`[WP-NGINX] Nginx configured with server_name: ${serverName}`);
+
+    // Mark site live
+    await pool.query(
+      `UPDATE wordpress_sites
+          SET status         = 'live',
+              domain         = COALESCE(domain, $1),
+              status_message = 'Site is live at http://' || $1,
+              ssl_enabled    = false,
+              updated_at     = NOW()
+        WHERE id = $2`,
+      [serverName, wpSiteId]
+    );
+
+    console.log(`[WP-NGINX] Site ${wpSiteId} is LIVE at http://${serverName}`);
+
+  } catch (err) {
+    console.error(`[WP-NGINX] Failed for site ${wpSiteId}:`, err.message);
+    await pool.query(
+      `UPDATE wordpress_sites
+          SET status = 'error', status_message = $1, updated_at = NOW()
+        WHERE id = $2`,
+      [`Nginx configuration failed: ${err.message}`, wpSiteId]
+    );
+    throw err;
+  } finally {
+    if (conn) conn.end();
+  }
+}
+
+// ── Provisioning orchestrator ─────────────────────────────────────────────────
+
+/**
+ * Run the full post-droplet provisioning pipeline in sequence:
+ *   setupWordPressDatabase → installWordPress → configureWordPressNginx
+ *
+ * Called by watchForServerRunning once servers.status = 'running'.
+ * Each step updates wordpress_sites.status so progress is visible in the UI.
+ *
+ * @param {number} wpSiteId
+ */
+async function provisionWordPressSite(wpSiteId) {
+  console.log(`[WP-PROVISION] Starting full pipeline for site ${wpSiteId}`);
+  try {
+    await setupWordPressDatabase(wpSiteId);
+    await installWordPress(wpSiteId);
+    await configureWordPressNginx(wpSiteId);
+    console.log(`[WP-PROVISION] Pipeline complete — site ${wpSiteId} is live`);
+  } catch (err) {
+    // Each step already wrote 'error' status — just log here for traceability
+    console.error(`[WP-PROVISION] Pipeline failed for site ${wpSiteId}:`, err.message);
+  }
+}
+
+/**
+ * Poll the servers table until status = 'running', then fire provisionWordPressSite.
+ *
+ * This bridges the gap between pollDropletStatus (which only knows about the
+ * servers table) and the WordPress provisioning pipeline (which needs the IP
+ * to be live before SSHing in).
+ *
+ * Runs in the background — never awaited by the caller.
+ *
+ * @param {number} serverId
+ * @param {number} wpSiteId
+ */
+async function watchForServerRunning(serverId, wpSiteId) {
+  const maxAttempts = 40;   // ~40 × 15 s = 10 min ceiling
+  const intervalMs  = 15000;
+
+  for (let i = 1; i <= maxAttempts; i++) {
+    try {
+      const { rows } = await pool.query(
+        `SELECT status FROM servers WHERE id = $1`,
+        [serverId]
+      );
+
+      if (!rows.length) {
+        console.error(`[WP-WATCH] Server ${serverId} not found — aborting watch`);
+        return;
+      }
+
+      const { status } = rows[0];
+
+      if (status === 'running') {
+        console.log(`[WP-WATCH] Server ${serverId} is running — starting WP pipeline`);
+        // Fire-and-forget: do not await, let the provisioning run in the background
+        provisionWordPressSite(wpSiteId).catch(() => {});
+        return;
+      }
+
+      if (status === 'failed' || status === 'deleted') {
+        console.log(`[WP-WATCH] Server ${serverId} status=${status} — aborting watch`);
+        await pool.query(
+          `UPDATE wordpress_sites
+              SET status = 'error', status_message = 'Droplet provisioning failed', updated_at = NOW()
+            WHERE id = $1`,
+          [wpSiteId]
+        );
+        return;
+      }
+
+      console.log(`[WP-WATCH] Server ${serverId} status=${status}, attempt ${i}/${maxAttempts}`);
+    } catch (e) {
+      console.error(`[WP-WATCH] Poll error on attempt ${i}:`, e.message);
+    }
+
+    if (i < maxAttempts) await new Promise(r => setTimeout(r, intervalMs));
+  }
+
+  console.error(`[WP-WATCH] Timed out waiting for server ${serverId} to reach 'running'`);
+  await pool.query(
+    `UPDATE wordpress_sites
+        SET status = 'error', status_message = 'Timed out waiting for droplet', updated_at = NOW()
+      WHERE id = $1`,
+    [wpSiteId]
+  ).catch(() => {});
+}
+
 // ── Exports ───────────────────────────────────────────────────────────────────
 module.exports = {
   generateSecurePassword,
@@ -864,4 +1094,6 @@ module.exports = {
   createWordPressServer,
   setupWordPressDatabase,
   installWordPress,
+  configureWordPressNginx,
+  provisionWordPressSite,
 };
