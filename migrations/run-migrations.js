@@ -59,6 +59,10 @@ async function runMigrations() {
     // Add browser fingerprint column for trial abuse prevention
     const { run: addBrowserFingerprint } = require('./016-add-browser-fingerprint');
     await addBrowserFingerprint();
+
+    // Add wordpress_sites table + servers.server_type discriminator
+    const { up: addWordPressSites } = require('./026-add-wordpress-sites');
+    await addWordPressSites();
     
   } catch (error) {
     // Safely rollback transaction (may not have started if error was early)
