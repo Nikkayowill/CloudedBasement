@@ -108,15 +108,20 @@ export default function ProblemFrame() {
                 {/* Copy */}
                 <div className="border-r-faint" style={{ padding: '3rem 2.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                     <div className="reveal" style={{ maxWidth: '32rem' }}>
-                        <p className="funnel-body mb-5">
-                            You wanted to ship a product — not spend weekends wrestling Nginx configs, debugging SSL renewals, or reverse-engineering why your CI pipeline broke at&nbsp;2&nbsp;AM.
-                        </p>
-                        <p className="funnel-body mb-5">
-                            Serverless platforms promise simplicity but bury you in cold starts, vendor lock-in, and bills that scale faster than your users&nbsp;do. Raw VPS providers hand you a blank terminal and wish you&nbsp;luck.
-                        </p>
-                        <p className="funnel-body" style={{ color: '#e5e7eb' }}>
-                            <strong>You need something in between:</strong> a real server that's already configured, already secured, and already wired to deploy every time you push — so you can stay in your editor, not your&nbsp;terminal.
-                        </p>
+                    <p className="funnel-body mb-4">
+                     Most projects don’t fail because of code — they stall on deployment details.
+                     SSL, reverse proxies, CI hooks, and keeping servers updated end up eating more time than expected.
+                    </p>
+
+                    <p className="funnel-body mb-4">
+                     Serverless platforms abstract too much and add constraints.
+                     Raw VPS providers give you full control but no setup.
+                    </p>
+
+                    <p className="funnel-body" style={{ color: '#e5e7eb' }}>
+                    <strong>This sits in the middle:</strong> a pre-configured VPS that deploys from Git,
+                            runs a normal Linux stack, and stays managed after launch.
+                    </p>
                     </div>
                 </div>
 

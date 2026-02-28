@@ -2,17 +2,11 @@ import SectionTitle from '../components/SectionTitle';
 import IntegrationsCarousel from '../components/IntegrationsCarousel';
 import { featuresData } from '../data/featuresData';
 
-const CELL_BORDER = '0.5px solid rgba(255,255,255,0.07)';
-
 function FeatureCell({ Icon, title, body }) {
   return (
-    <div className="feature-cell" style={{ padding: '2.5rem' }}>
-      <div style={{
-        width: '2rem', height: '2rem', borderRadius: '0.375rem',
-        background: 'rgba(96,165,250,0.08)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: '#60a5fa', marginBottom: '1.25rem',
-      }}>
+    <div className="feature-cell p-10">
+      <div className="w-8 h-8 rounded-md flex items-center justify-center text-blue-400 mb-5"
+           style={{ background: 'rgba(96,165,250,0.08)' }}>
         <Icon size={16} strokeWidth={1.75} />
       </div>
       <h3 className="funnel-heading-3 mb-2">{title}</h3>
@@ -25,11 +19,10 @@ export default function Features() {
   return (
     <section id="features" className="border-b-faint">
       {/* Section title row */}
-      <div style={{ padding: '6rem 2.5rem 4rem', borderBottom: CELL_BORDER }}>
+      <div className="pt-28 pb-20 px-10 border-b-dim">
         <SectionTitle
           text1="What you get"
           text2="Everything a production app needs. Nothing it doesn't."
-          text3="We built the hosting platform we always wanted — fast deploys, zero ops overhead, and sane defaults out of the box."
         />
       </div>
 
@@ -41,16 +34,9 @@ export default function Features() {
       </div>
 
       {/* Integrations carousel strip */}
-      <div style={{ borderTop: CELL_BORDER, padding: '1.5rem 0 1.25rem' }}>
-        <p style={{
-          textAlign: 'center',
-          fontSize: '0.6875rem',
-          fontWeight: 600,
-          letterSpacing: '0.1em',
-          textTransform: 'uppercase',
-          color: 'rgba(255,255,255,0.3)',
-          marginBottom: '1rem',
-        }}>
+      <div className="border-t-dim pt-6 pb-5">
+        <p className="funnel-mono text-[11px] font-semibold tracking-widest uppercase text-center mb-4"
+           style={{ color: 'rgba(255,255,255,0.3)' }}>
           Trusted integrations
         </p>
         <IntegrationsCarousel />

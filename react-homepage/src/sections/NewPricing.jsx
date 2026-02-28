@@ -2,57 +2,51 @@ import { useState } from 'react';
 import SectionTitle from '../components/SectionTitle';
 import { pricingData } from '../data/pricingData';
 
-const CELL_BORDER = '0.5px solid rgba(255,255,255,0.07)';
-
 function PricingCell({ id, name, desc, monthly, yearly, features, adds, popular, isLast, interval }) {
   const active = interval === 'yearly' ? yearly : monthly;
 
   return (
-    <div style={{
-      padding: '3rem 2rem',
-      borderRight: isLast ? 'none' : CELL_BORDER,
-      display: 'flex', flexDirection: 'column',
-      position: 'relative',
-      background: popular ? 'rgba(37,99,235,0.04)' : 'transparent',
-    }}>
+    <div
+      className={`py-12 px-8 flex flex-col relative${!isLast ? ' border-r-dim' : ''}`}
+      style={{ background: popular ? 'rgba(37,99,235,0.04)' : 'transparent' }}
+    >
       {popular && <span className="funnel-badge">Most Popular</span>}
 
       <h3 className="funnel-heading-3 mb-1">{name}</h3>
-      <p className="funnel-body-sm mb-5" style={{ color: '#6b7280' }}>{desc}</p>
+      <p className="funnel-body-sm mb-5 text-gray-500">{desc}</p>
 
       <p className="mb-1">
-        <span style={{ fontSize: '2.5rem', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1, color: '#fff' }}>
+        <span className="text-[2.5rem] font-bold tracking-[-0.03em] leading-none text-white">
           {active.price}
         </span>
-        <span className="funnel-body-sm" style={{ color: '#6b7280', marginLeft: '0.25rem' }}>{active.period}</span>
+        <span className="funnel-body-sm text-gray-500 ml-1">{active.period}</span>
       </p>
-      <p style={{ fontSize: '0.75rem', color: '#4b5563', marginBottom: '1.5rem', minHeight: '1.25rem' }}>
+      <p className="text-xs text-gray-600 mb-6 min-h-5">
         {interval === 'yearly'
-          ? <span style={{ color: '#4ade80' }}>{active.perMonth}/mo — 2 months free</span>
+          ? <span className="text-green-400">{active.perMonth}/mo — 2 months free</span>
           : '3-day free trial'}
       </p>
 
       <ul className="flex flex-col gap-2 mb-8 flex-1">
         {features.map((f) => (
-          <li key={f} className="funnel-body-sm flex items-center gap-2" style={popular ? { color: '#d1d5db' } : {}}>
-            <span style={{ color: '#4ade80', fontSize: '9px', flexShrink: 0 }}>●</span>
+          <li key={f} className={`funnel-body-sm flex items-center gap-2${popular ? ' text-gray-300' : ''}`}>
+            <span className="text-green-400 text-[9px] shrink-0">●</span>
             {f}
           </li>
         ))}
 
         {adds && adds.length > 0 && (
           <>
-            <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.375rem 0 0.125rem' }}>
-              <div style={{ flex: 1, height: '0.5px', background: 'rgba(255,255,255,0.07)' }} />
-              <span style={{
-                fontSize: '0.625rem', fontWeight: 600, letterSpacing: '0.08em',
-                textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap',
-              }}>also includes</span>
-              <div style={{ flex: 1, height: '0.5px', background: 'rgba(255,255,255,0.07)' }} />
+            <li className="flex items-center gap-2 pt-1.5 pb-0.5">
+              <div className="flex-1" style={{ height: '0.5px', background: 'rgba(255,255,255,0.07)' }} />
+              <span className="text-[0.625rem] font-semibold tracking-[0.08em] uppercase text-white/20 whitespace-nowrap">
+                also includes
+              </span>
+              <div className="flex-1" style={{ height: '0.5px', background: 'rgba(255,255,255,0.07)' }} />
             </li>
             {adds.map((f) => (
-              <li key={f} className="funnel-body-sm flex items-center gap-2" style={{ color: '#93c5fd' }}>
-                <span style={{ color: '#60a5fa', fontSize: '9px', flexShrink: 0 }}>●</span>
+              <li key={f} className="funnel-body-sm flex items-center gap-2 text-blue-300">
+                <span className="text-blue-400 text-[9px] shrink-0">●</span>
                 {f}
               </li>
             ))}
@@ -62,8 +56,7 @@ function PricingCell({ id, name, desc, monthly, yearly, features, adds, popular,
 
       <a
         href={`/pay?plan=${id}&interval=${interval}`}
-        className={`funnel-btn ${popular ? 'funnel-btn-primary' : 'funnel-btn-subtle'} w-full`}
-        style={{ textAlign: 'center' }}
+        className={`funnel-btn ${popular ? 'funnel-btn-primary' : 'funnel-btn-subtle'} w-full text-center`}
       >
         {name}
       </a>
@@ -77,7 +70,7 @@ export default function NewPricing() {
   return (
     <section id="pricing" className="border-b-faint">
       {/* Section title row */}
-      <div style={{ padding: '6rem 2.5rem 4rem', borderBottom: CELL_BORDER }}>
+      <div className="pt-28 pb-20 px-10 border-b-dim">
         <SectionTitle
           text1="Pricing"
           text2="One price. No surprises."
@@ -85,34 +78,25 @@ export default function NewPricing() {
         />
 
         {/* Billing toggle */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center',
-            border: CELL_BORDER, borderRadius: '0.5rem',
-            overflow: 'hidden', background: 'rgba(255,255,255,0.02)',
-          }}>
+        <div className="flex justify-center mt-8">
+          <div className="inline-flex items-center rounded-lg overflow-hidden border-dim"
+               style={{ background: 'rgba(255,255,255,0.02)' }}>
             {['monthly', 'yearly'].map((opt) => (
               <button
                 key={opt}
                 onClick={() => setInterval(opt)}
+                className="py-2 px-5 text-[0.8125rem] font-medium border-none cursor-pointer flex items-center gap-2"
                 style={{
-                  padding: '0.5rem 1.25rem',
-                  fontSize: '0.8125rem', fontWeight: 500,
                   background: interval === opt ? 'rgba(255,255,255,0.07)' : 'transparent',
                   color: interval === opt ? '#fff' : '#6b7280',
-                  border: 'none', cursor: 'pointer',
                   transition: 'background 150ms ease, color 150ms ease',
-                  display: 'flex', alignItems: 'center', gap: '0.5rem',
                 }}
               >
                 {opt === 'monthly' ? 'Monthly' : (
                   <>
                     Yearly
-                    <span style={{
-                      fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.05em',
-                      padding: '0.1rem 0.4rem', borderRadius: '0.25rem',
-                      background: 'rgba(74,222,128,0.15)', color: '#4ade80',
-                    }}>
+                    <span className="text-[0.625rem] font-bold tracking-[0.05em] py-0.5 px-1.5 rounded text-green-400"
+                          style={{ background: 'rgba(74,222,128,0.15)' }}>
                       SAVE 10%
                     </span>
                   </>
@@ -136,10 +120,10 @@ export default function NewPricing() {
       </div>
 
       {/* Footer note */}
-      <div style={{ borderTop: CELL_BORDER, padding: '1rem 2.5rem', textAlign: 'center' }}>
-        <p className="funnel-body-sm" style={{ color: '#4b5563' }}>
+      <div className="border-t-dim py-4 px-10 text-center">
+        <p className="funnel-body-sm text-gray-600">
           No contracts. Cancel anytime.{' '}
-          <a href="/pricing" style={{ color: '#60a5fa', textDecoration: 'underline' }}>Full pricing details →</a>
+          <a href="/pricing" className="text-blue-400 underline">Full pricing details →</a>
         </p>
       </div>
     </section>

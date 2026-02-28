@@ -9,11 +9,11 @@ export const faqsData = [
   },
   {
     q: 'What languages and frameworks are supported?',
-    a: 'Node.js, Python, Go, and Rust are pre-installed on every server. Any framework that runs on Linux works — Express, Fastify, NestJS, Next.js, FastAPI, Gin, and more. Static sites are supported too.',
+    a: 'Node.js, Python, Go, and Rust are pre-installed. Any framework that runs on Linux works — Express, Next.js, FastAPI, Gin, and more. Static sites too.',
   },
   {
     q: 'Do I get database support?',
-    a: 'Yes. Install PostgreSQL or MongoDB from the dashboard in one click. We generate credentials and give you a ready-to-use connection string — no manual configuration required.',
+    a: 'Yes. Install PostgreSQL or MongoDB from the dashboard in one click. We generate credentials and give you a ready-to-use connection string.',
   },
   {
     q: 'Can I cancel anytime?',

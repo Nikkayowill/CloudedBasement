@@ -14,7 +14,7 @@ export default function HeroSection() {
             <span className="md:hidden"><br />Your code. Zero&nbsp;setup.</span>
           </h1>
           <p className="funnel-body mb-8" style={{ maxWidth: '30rem' }}>
-            A fully managed VPS with GitHub auto-deploy, SSL, and databases — ready in under two minutes. No Dockerfiles. No YAML. Just push and&nbsp;ship.
+            A fully managed VPS with GitHub auto-deploy, SSL, and databases — ready in under two minutes.
           </p>
           <div
             className="flex flex-col sm:flex-row gap-3 hero-cta-group"
@@ -32,7 +32,7 @@ export default function HeroSection() {
             className="funnel-mono text-[11px] text-center"
             style={{ color: 'rgba(255,255,255,0.2)' }}
           >
-            skip hours of server config and debugging, and get back to building your app.
+            skip the config. get back to building.
           </p>
         </div>
       </div>

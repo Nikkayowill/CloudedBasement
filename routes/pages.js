@@ -1,41 +1,32 @@
-const express = require('express');
-const router = express.Router();
-const csrf = require('csurf');
+const { Router } = require('express');
 const { body } = require('express-validator');
+const csrf = require('../middleware/csrf');
 const { contactLimiter } = require('../middleware/rateLimiter');
+const pagesController = require('../controllers/pagesController');
 
-// Import all page controllers (will create next)
-const homeController = require('../controllers/homeController');
-const aboutController = require('../controllers/aboutController');
-const pricingController = require('../controllers/pricingController');
-const termsController = require('../controllers/termsController');
-const privacyController = require('../controllers/privacyController');
-const faqController = require('../controllers/faqController');
-const docsController = require('../controllers/docsController');
-const contactController = require('../controllers/contactController');
+const router = Router();
 
-const csrfProtection = csrf({ cookie: true });
-
-// Static pages
-router.get('/', homeController.showHome);
-router.get('/about', aboutController.showAbout);
-router.get('/pricing', pricingController.showPricing);
-router.get('/terms', termsController.showTerms);
-router.get('/privacy', privacyController.showPrivacy);
-router.get('/faq', faqController.showFaq);
-router.get('/docs', docsController.showDocs);
+// Static public pages
+router.get('/about', pagesController.showAbout);
+router.get('/is-this-safe', pagesController.showSafety);
+router.get('/compare', pagesController.showCompare);
+router.get('/pricing', pagesController.showPricing);
+router.get('/terms', pagesController.showTerms);
+router.get('/privacy', pagesController.showPrivacy);
+router.get('/faq', pagesController.showFaq);
+router.get('/docs', pagesController.showDocs);
 
 // Contact form
-router.get('/contact', csrfProtection, contactController.showContact);
-router.post('/contact', 
+router.get('/contact', csrf, pagesController.showContact);
+router.post('/contact',
   contactLimiter,
-  csrfProtection,
+  csrf,
   [
     body('name').trim().notEmpty().withMessage('Name is required').isLength({ max: 100 }),
     body('email').trim().isEmail().normalizeEmail().withMessage('Valid email is required'),
-    body('message').trim().notEmpty().withMessage('Message is required').isLength({ max: 1000 })
+    body('message').trim().notEmpty().withMessage('Message is required').isLength({ max: 1000 }),
   ],
-  contactController.submitContact
+  pagesController.submitContact
 );
 
 module.exports = router;

@@ -5,7 +5,8 @@ const pool = require('../db');
 const { escapeHtml } = require('../src/utils/helpers');
 const { getUserServer, verifyServerOwnership, updateServerStatus, appendDeploymentOutput, updateDeploymentStatus } = require('../src/utils/db-helpers');
 const { SERVER_STATUS, DEPLOYMENT_STATUS, TIMEOUTS, PORTS } = require('../src/utils/constants');
-const { sendDeployErrorEmail } = require('../services/email');
+const { sendDeployErrorEmail, sendServerRequestEmail } = require('../services/email');
+const { createRealServer } = require('../services/digitalocean');
 const { generateSubdomain, createDNSRecord, deleteDNSRecord } = require('../services/dns');
 const { generateNginxConfig, isValidDomainName } = require('../src/utils/nginxTemplates');
 
@@ -2096,6 +2097,164 @@ exports.disableDomainAutoDeploy = async (req, res) => {
 };
 
 
+/**
+ * POST /request-server
+ * Submit a manual server setup request (for users who have already paid)
+ */
+exports.requestServer = async (req, res) => {
+  try {
+    const { region, server_name, use_case } = req.body;
+    const userId = req.session.userId;
+
+    // Check if user has already paid
+    const paymentCheck = await pool.query(
+      'SELECT * FROM payments WHERE user_id = $1 AND status = $2 LIMIT 1',
+      [userId, 'succeeded']
+    );
+
+    if (paymentCheck.rows.length === 0) {
+      return res.redirect('/pricing?error=payment_required');
+    }
+
+    // Check if user already has a server (exclude deleted/failed)
+    const serverCheck = await pool.query(
+      "SELECT * FROM servers WHERE user_id = $1 AND status NOT IN ('deleted', 'failed')",
+      [userId]
+    );
+
+    if (serverCheck.rows.length > 0) {
+      return res.redirect('/dashboard?error=server_exists');
+    }
+
+    // Check for existing pending request
+    const existingTicket = await pool.query(
+      'SELECT * FROM support_tickets WHERE user_id = $1 AND subject = $2 AND status IN ($3, $4)',
+      [userId, 'Server Setup Request', 'open', 'in-progress']
+    );
+
+    if (existingTicket.rows.length > 0) {
+      return res.redirect('/dashboard?error=Server request already pending');
+    }
+
+    await pool.query(
+      `INSERT INTO support_tickets (user_id, subject, description, status)
+       VALUES ($1, $2, $3, $4)`,
+      [
+        userId,
+        'Server Setup Request',
+        `Region: ${region}\nServer Name: ${server_name || 'Not specified'}\nUse Case: ${use_case || 'Not specified'}`,
+        'open'
+      ]
+    );
+
+    const userResult = await pool.query('SELECT email FROM users WHERE id = $1', [userId]);
+    const userEmail = userResult.rows[0].email;
+
+    // Fire-and-forget — don't block the redirect on email delivery
+    sendServerRequestEmail(userEmail, region, server_name || 'Default').catch(err => {
+      console.error('Failed to send server request email:', err);
+    });
+
+    res.redirect('/dashboard?success=Server request submitted successfully');
+  } catch (err) {
+    console.error('Server request error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+/**
+ * POST /start-trial
+ * Provision a Basic server for 3 days without payment.
+ * Guards: email confirmation, daily cap, per-user, per-IP, per-fingerprint.
+ */
+exports.startTrial = async (req, res) => {
+  try {
+    const userId = req.session.userId;
+
+    if (!req.session.emailConfirmed) {
+      return res.redirect('/dashboard?error=Please confirm your email before starting a trial');
+    }
+
+    // Global daily trial cap — prevent mass abuse (50 trials/day max)
+    const dailyTrialCount = await pool.query(
+      `SELECT COUNT(*) as count FROM servers
+       WHERE is_trial = true AND created_at > NOW() - INTERVAL '24 hours'`
+    );
+    if (parseInt(dailyTrialCount.rows[0].count) >= 50) {
+      console.log(`[TRIAL] Daily trial cap reached (50/day). Rejecting user ${userId}`);
+      return res.redirect('/dashboard?error=Trial signups temporarily limited. Please try again tomorrow or subscribe now.');
+    }
+
+    const userResult = await pool.query(
+      'SELECT trial_used, email, browser_fingerprint FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.redirect('/dashboard?error=User not found');
+    }
+
+    if (userResult.rows[0].trial_used) {
+      return res.redirect('/dashboard?error=You have already used your free trial. Please subscribe to continue.');
+    }
+
+    const serverCheck = await pool.query(
+      "SELECT * FROM servers WHERE user_id = $1 AND status NOT IN ('deleted', 'failed')",
+      [userId]
+    );
+
+    if (serverCheck.rows.length > 0) {
+      return res.redirect('/dashboard?error=You already have a server');
+    }
+
+    // IP abuse check — one trial per IP per 90 days
+    const clientIp = req.ip || req.socket.remoteAddress;
+    const recentTrialCheck = await pool.query(
+      `SELECT id FROM users
+       WHERE signup_ip = $1
+       AND trial_used = true
+       AND trial_used_at > NOW() - INTERVAL '90 days'
+       AND id != $2`,
+      [clientIp, userId]
+    );
+
+    if (recentTrialCheck.rows.length > 0) {
+      return res.redirect('/dashboard?error=A trial was recently used from this network. Please subscribe to continue.');
+    }
+
+    const userFingerprint = userResult.rows[0].browser_fingerprint;
+
+    if (!userFingerprint) {
+      return res.redirect('/dashboard?error=Browser verification required. Please enable JavaScript and try again.');
+    }
+
+    // Fingerprint abuse check — one trial per device per 90 days
+    const fingerprintTrialCheck = await pool.query(
+      `SELECT id FROM users
+       WHERE browser_fingerprint = $1
+       AND trial_used = true
+       AND trial_used_at > NOW() - INTERVAL '90 days'
+       AND id != $2`,
+      [userFingerprint, userId]
+    );
+
+    if (fingerprintTrialCheck.rows.length > 0) {
+      console.log(`[TRIAL] Blocked trial for user ${userId} - device fingerprint already used`);
+      return res.redirect('/dashboard?error=A trial was recently used from this device. Please subscribe to continue.');
+    }
+
+    console.log(`[TRIAL] Starting free trial for user ${userId}`);
+
+    // Pass null for stripeChargeId to signal trial mode inside createRealServer
+    await createRealServer(userId, 'basic', null, 'monthly', null);
+
+    res.redirect('/dashboard?success=Your 3-day free trial has started! Your server is being provisioned.&provisioning=true');
+  } catch (err) {
+    console.error('[TRIAL] Start trial error:', err);
+    res.redirect('/dashboard?error=Failed to start trial. Please try again or contact support.');
+  }
+};
+
 module.exports = {
   serverAction: exports.serverAction,
   deleteServer: exports.deleteServer,
@@ -2109,5 +2268,8 @@ module.exports = {
   triggerAutoDeploy: exports.triggerAutoDeploy,
   triggerDomainAutoDeploy: exports.triggerDomainAutoDeploy,
   enableDomainAutoDeploy: exports.enableDomainAutoDeploy,
-  disableDomainAutoDeploy: exports.disableDomainAutoDeploy
+  disableDomainAutoDeploy: exports.disableDomainAutoDeploy,
+  // Server provisioning
+  requestServer: exports.requestServer,
+  startTrial: exports.startTrial,
 };

@@ -1,7 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 
-const CELL_BORDER = '0.5px solid rgba(255,255,255,0.07)';
-
 // Dashboard design tokens
 const BG     = '#0a0a0a';
 const CARD   = '#111111';
@@ -20,12 +18,12 @@ const STEPS = [
   {
     n: '02',
     title: 'Watch it build',
-    body: 'Live deploy logs stream as your app is cloned, dependencies installed, and your server started. Enable auto-deploy once — every future push triggers this automatically.',
+    body: 'Live logs stream as your app clones, installs, and starts. Enable auto-deploy once — every future push ships automatically.',
   },
   {
     n: '03',
     title: "You're live",
-    body: "Your app is running. Add a custom domain, we handle SSL automatically via Let's Encrypt. The dashboard shows status, sites, and deploy history.",
+    body: "Your app is running. Add a custom domain and SSL is handled automatically. The dashboard tracks status, sites, and deploy history.",
   },
 ];
 
@@ -202,7 +200,7 @@ export default function HowItWorks() {
       <div className="hiw-sticky border-b-faint" style={{ display: 'flex', flexDirection: 'column' }}>
 
         {/* Title row */}
-        <div style={{ padding: '3.5rem 2.5rem 2.5rem', borderBottom: CELL_BORDER, flexShrink: 0 }}>
+        <div className="pt-14 px-10 pb-10 border-b-dim shrink-0">
           <p className="funnel-kicker mb-3">How it works</p>
           <h2 className="funnel-heading-2">Three steps to live</h2>
         </div>
@@ -211,25 +209,20 @@ export default function HowItWorks() {
         <div className="grid grid-cols-1 md:grid-cols-2" style={{ flex: 1, minHeight: 0 }}>
 
           {/* Steps */}
-          <div className="border-r-faint" style={{
-            padding: '2rem 2.5rem',
-            display: 'flex', flexDirection: 'column', justifyContent: 'center',
-          }}>
+          <div className="border-r-faint py-8 px-10 flex flex-col justify-center">
             {STEPS.map((step, i) => {
               const isActive = active === i;
               return (
                 <div
                   key={step.n}
                   onClick={() => setActive(i)}
+                  className={`flex gap-5 py-8 cursor-pointer${i < STEPS.length - 1 ? ' border-b-dim' : ''}`}
                   style={{
-                    display: 'flex', gap: '1.25rem',
-                    padding: '1.5rem 0',
-                    borderBottom: i < STEPS.length - 1 ? CELL_BORDER : 'none',
-                    cursor: 'pointer',
                     opacity: isActive ? 1 : 0.35,
                     transition: 'opacity 400ms ease',
                   }}
                 >
+                  {/* Step number circle — all styles are state-driven, keep as inline */}
                   <div style={{
                     width: '2.25rem', height: '2.25rem', borderRadius: '50%', flexShrink: 0,
                     border: isActive ? `1px solid ${ACCENT}` : '1px solid rgba(255,255,255,0.1)',
@@ -243,7 +236,7 @@ export default function HowItWorks() {
                   </div>
                   <div style={{ paddingTop: '0.3rem' }}>
                     <h3 className="funnel-heading-3 mb-2">{step.title}</h3>
-                    <p className="funnel-body-sm" style={{ color: '#6b7280' }}>{step.body}</p>
+                    <p className="funnel-body-sm text-gray-500">{step.body}</p>
                   </div>
                 </div>
               );
@@ -251,10 +244,7 @@ export default function HowItWorks() {
           </div>
 
           {/* Panel */}
-          <div style={{
-            padding: '2rem 2.5rem',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
+          <div className="py-8 px-10 flex items-center justify-center">
             <PanelChrome activeIdx={active} />
           </div>
         </div>

@@ -11,3 +11,6 @@ server.log
 nul
 HTML5Template/
 .claude/
+
+# Ignore build outputs
+react-homepage/dist/

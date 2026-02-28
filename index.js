@@ -22,30 +22,17 @@ const path = require('path');
 const express = require('express');
 // express-rate-limit used via middleware/rateLimiter, not directly
 const helmet = require('helmet');
-const { body } = require('express-validator');
 const cookieParser = require('cookie-parser');
-const csrf = require('csurf');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const pool = require('./db');
 // Helpers imported by controllers directly — not needed in index.js
-const { createRealServer: createRealServerService, syncDigitalOceanDroplets: syncDigitalOceanDropletsService } = require('./services/digitalocean');
+const { syncDigitalOceanDroplets: syncDigitalOceanDropletsService } = require('./services/digitalocean');
 const { monitorSubscriptions } = require('./services/subscriptionMonitor');
 const { checkAndProvisionSSL } = require('./services/autoSSL');
 const { runDailyBackups } = require('./services/dailyBackups');
-const { sendServerRequestEmail } = require('./services/email');
-const { requireAuth, requireAdmin } = require('./middleware/auth');
-const { generalLimiter, contactLimiter, paymentLimiter, emailVerifyLimiter, deploymentLimiter, loginLimiter, registrationLimiter } = require('./middleware/rateLimiter');
-const pagesController = require('./controllers/pagesController');
-const gettingStartedController = require('./controllers/gettingStartedController');
-const authController = require('./controllers/authController');
-const dashboardController = require('./controllers/dashboardController');
+const { generalLimiter } = require('./middleware/rateLimiter');
 const paymentController = require('./controllers/paymentController');
-const serverController = require('./controllers/serverController');
-const adminController = require('./controllers/adminController');
-
-const adminUpdatesController = require('./controllers/adminUpdatesController');
-const domainController = require('./controllers/domainController');
 const githubWebhookController = require('./controllers/githubWebhookController');
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./middleware/logger');
@@ -138,9 +125,6 @@ initializeGoogleAuth();
 app.use(passport.initialize());
 app.use(passport.session());
 
-// CSRF protection
-const csrfProtection = csrf({ cookie: true });
-
 // HTTPS redirect middleware (only in production)
 app.use((req, res, next) => {
   if (process.env.NODE_ENV === 'production' && req.headers['x-forwarded-proto'] !== 'https') {
@@ -153,412 +137,31 @@ app.use((req, res, next) => {
 // ROUTES
 // ======================
 
-// Health check endpoint (for load balancers and monitoring)
+// Health check (infrastructure concern — stays here, not in a router)
 app.get('/health', async (req, res) => {
   try {
-    // Check database connection
     const dbCheck = await pool.query('SELECT NOW()');
-    
     res.status(200).json({
       status: 'ok',
       database: dbCheck.rows.length > 0 ? 'connected' : 'error'
     });
   } catch (error) {
     console.error('[HEALTH] Database check failed:', error.message);
-    res.status(503).json({
-      status: 'degraded',
-      database: 'disconnected'
-    });
+    res.status(503).json({ status: 'degraded', database: 'disconnected' });
   }
 });
 
-// app.get('/', pagesController.showHome); // replaced by React SPA
+// React SPA homepage
+// app.get('/', pagesController.showHome); // original server-rendered route kept as reference
 app.get('/', (_req, res) => res.sendFile(path.join(__dirname, 'react-homepage/dist/index.html')));
-app.get('/about', pagesController.showAbout);
-app.get('/is-this-safe', pagesController.showSafety);
-app.get('/compare', pagesController.showCompare);
 
-// Register route (GET)
-app.get('/register', csrfProtection, authController.showRegister);
-app.get('/contact', csrfProtection, pagesController.showContact);
-
-app.post('/contact', 
-  contactLimiter,
-  csrfProtection,
-  [
-    body('name').trim().notEmpty().withMessage('Name is required').isLength({ max: 100 }),
-    body('email').trim().isEmail().normalizeEmail().withMessage('Valid email is required'),
-    body('message').trim().notEmpty().withMessage('Message is required').isLength({ max: 1000 })
-  ],
-  pagesController.submitContact
-);
-
-// Register POST handler
-app.post('/register',
-  registrationLimiter,
-  csrfProtection,
-  [
-    body('email').trim().isEmail().normalizeEmail(),
-    body('password').isLength({ min: 8 }),
-    body('confirmPassword').custom((value, { req }) => value === req.body.password)
-  ],
-  authController.handleRegister
-);
-
-// Login GET route
-app.get('/login', csrfProtection, authController.showLogin);
-
-// Login POST handler
-app.post('/login',
-  loginLimiter,
-  csrfProtection,
-  [
-    body('email').trim().isEmail().normalizeEmail(),
-    body('password').notEmpty()
-  ],
-  authController.handleLogin
-);
-
-// Google OAuth routes
-app.get('/auth/google', passport.authenticate('google', { 
-  scope: ['profile', 'email'] 
-}));
-
-app.get('/auth/google/callback', 
-  passport.authenticate('google', { failureRedirect: '/login?error=Google authentication failed' }),
-  (req, res) => {
-    // Successful authentication - set session from passport user
-    req.session.userId = req.user.id;
-    req.session.userEmail = req.user.email;
-    req.session.userRole = req.user.role;
-    req.session.emailConfirmed = req.user.email_confirmed;
-    
-    // Redirect based on role
-    if (req.user.role === 'admin') {
-      res.redirect('/admin');
-    } else {
-      res.redirect('/dashboard');
-    }
-  }
-);
-
-// Email confirmation route
-app.get('/confirm-email/:token', emailVerifyLimiter, authController.confirmEmail);
-
-// Code verification routes
-app.get('/verify-email', csrfProtection, authController.showVerifyEmail);
-app.post('/verify-email', emailVerifyLimiter, csrfProtection, authController.verifyEmailCode);
-app.post('/resend-code', emailVerifyLimiter, csrfProtection, authController.resendCode);
-app.get('/resend-confirmation', emailVerifyLimiter, authController.resendConfirmation);
-
-// Password reset routes
-app.get('/forgot-password', csrfProtection, authController.showForgotPassword);
-app.post('/forgot-password', 
-  csrfProtection,
-  emailVerifyLimiter,
-  [body('email').trim().isEmail().normalizeEmail()],
-  authController.handleForgotPassword
-);
-app.get('/reset-password/:token', csrfProtection, authController.showResetPassword);
-app.post('/reset-password/:token',
-  csrfProtection,
-  [
-    body('password').isLength({ min: 8 }),
-    body('confirmPassword').custom((value, { req }) => value === req.body.password)
-  ],
-  authController.handleResetPassword
-);
-
-// Logout route
-app.get('/logout', authController.handleLogout);
-
-// API endpoint for deployment status polling (AJAX)
-app.get('/api/deployment-status/:id', requireAuth, async (req, res) => {
-  try {
-    const deploymentId = parseInt(req.params.id);
-    const result = await pool.query(
-      'SELECT status, output, deployed_at FROM deployments WHERE id = $1 AND user_id = $2',
-      [deploymentId, req.session.userId]
-    );
-    
-    if (result.rows.length === 0) {
-      // SECURITY: Return 403 instead of 404 to prevent enumeration
-      return res.status(403).json({ error: 'Access denied' });
-    }
-    
-    res.json(result.rows[0]);
-  } catch (err) {
-    console.error('Error fetching deployment status:', err);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// Server action route (restart/stop)
-app.post('/server-action', requireAuth, csrfProtection, serverController.serverAction);
-
-// Delete server route
-app.post('/delete-server', requireAuth, csrfProtection, serverController.deleteServer);
-
-// Deploy route
-app.post('/deploy', requireAuth, deploymentLimiter, csrfProtection, serverController.deploy);
-
-// Delete deployment route
-app.post('/delete-deployment', requireAuth, csrfProtection, serverController.deleteDeployment);
-
-// Add domain route
-app.post('/add-domain', requireAuth, csrfProtection, serverController.addDomain);
-
-// Delete domain route
-app.post('/delete-domain', requireAuth, csrfProtection, serverController.deleteDomain);
-
-// Enable SSL route
-app.post('/enable-ssl', requireAuth, csrfProtection, serverController.enableSSL);
-
-// Auto-deploy routes
-app.post('/enable-auto-deploy', requireAuth, csrfProtection, githubWebhookController.enableAutoDeploy);
-app.post('/disable-auto-deploy', requireAuth, csrfProtection, githubWebhookController.disableAutoDeploy);
-app.post('/enable-domain-autodeploy', requireAuth, csrfProtection, serverController.enableDomainAutoDeploy);
-app.post('/disable-domain-autodeploy', requireAuth, csrfProtection, serverController.disableDomainAutoDeploy);
-
-// ── Dashboard routes ──
-// New React dashboard — auth still gated here; React SPA handles UI
-app.get('/dashboard', requireAuth, csrfProtection, (_req, res) =>
-  res.sendFile(path.join(__dirname, 'react-homepage/dist/index.html'))
-);
-// JSON data endpoint consumed by the React dashboard
-app.get('/api/dashboard', requireAuth, csrfProtection, dashboardController.getDashboardData);
-// Sensitive credentials fetched on demand (never embedded in the main API response)
-app.get('/api/credentials', requireAuth, dashboardController.getCredentials);
-// Environment variable management
-app.get('/api/env-vars', requireAuth, csrfProtection, dashboardController.getEnvVars);
-app.post('/api/env-vars', requireAuth, csrfProtection, dashboardController.createEnvVar);
-app.delete('/api/env-vars/:id', requireAuth, csrfProtection, dashboardController.deleteEnvVar);
-// Classic server-rendered dashboard kept as fallback during migration
-app.get('/old-dashboard', requireAuth, csrfProtection, dashboardController.showDashboard);
-app.post('/submit-ticket', requireAuth, csrfProtection, dashboardController.submitSupportTicket);
-app.post('/change-password', requireAuth, csrfProtection, dashboardController.changePassword);
-app.post('/apply-updates', requireAuth, csrfProtection, dashboardController.applyUpdates);
-app.post('/dashboard/dismiss-next-steps', requireAuth, csrfProtection, (req, res) => {
-  req.session.dismissedNextSteps = true;
-  res.json({ success: true });
-});
-
-// Database setup
-app.post('/setup-database', requireAuth, csrfProtection, serverController.setupDatabase);
-
-// Admin - dashboard
-app.get('/admin', requireAuth, requireAdmin, csrfProtection, adminController.listUsers);
-app.post('/admin/delete-user/:id', requireAuth, requireAdmin, csrfProtection, adminController.deleteUser);
-app.post('/admin/cancel-provisioning/:id', requireAuth, requireAdmin, csrfProtection, adminController.cancelProvisioning);
-app.post('/admin/delete-server/:id', requireAuth, requireAdmin, csrfProtection, adminController.deleteServer);
-app.post('/admin/destroy-droplet/:id', requireAuth, requireAdmin, csrfProtection, adminController.destroyDroplet);
-
-// Admin - Server Updates (secure update orchestration)
-app.get('/admin/updates', requireAuth, requireAdmin, csrfProtection, adminUpdatesController.showUpdates);
-app.get('/admin/updates/:id', requireAuth, requireAdmin, csrfProtection, adminUpdatesController.showUpdateDetail);
-app.post('/admin/updates/create', requireAuth, requireAdmin, csrfProtection, adminUpdatesController.createUpdate);
-app.post('/admin/updates/kill-switch', requireAuth, requireAdmin, csrfProtection, adminUpdatesController.toggleKillSwitch);
-app.post('/admin/updates/:id/test', requireAuth, requireAdmin, csrfProtection, adminUpdatesController.testUpdate);
-app.post('/admin/updates/:id/release', requireAuth, requireAdmin, csrfProtection, adminUpdatesController.releaseUpdate);
-app.post('/admin/updates/:id/push', requireAuth, requireAdmin, csrfProtection, adminUpdatesController.pushUpdate);
-app.post('/admin/updates/:id/retry', requireAuth, requireAdmin, csrfProtection, adminUpdatesController.retryFailedServers);
-app.post('/admin/updates/:id/archive', requireAuth, requireAdmin, csrfProtection, adminUpdatesController.archiveUpdate);
-app.post('/admin/updates/:id/delete', requireAuth, requireAdmin, csrfProtection, adminUpdatesController.deleteUpdate);
-
-// Admin - domain management (API endpoints only - UI is in /admin/users)
-app.get('/admin/domains/list', requireAuth, requireAdmin, domainController.listDomains);
-app.post('/admin/domains', requireAuth, requireAdmin, csrfProtection, domainController.addDomain);
-app.put('/admin/domains/:id', requireAuth, requireAdmin, csrfProtection, domainController.updateDomain);
-app.delete('/admin/domains/:id', requireAuth, requireAdmin, csrfProtection, domainController.deleteDomain);
-
-// Pricing page
-app.get('/pricing', pagesController.showPricing);
-
-app.get('/terms', pagesController.showTerms);
-
-app.get('/privacy', pagesController.showPrivacy);
-
-// FAQ page
-app.get('/faq', pagesController.showFaq);
-
-// Documentation page
-app.get('/docs', pagesController.showDocs);
-
-// Getting Started Guide
-app.get('/getting-started', requireAuth, gettingStartedController.showGettingStarted);
-
-// Server Request Handler
-app.post('/request-server', requireAuth, deploymentLimiter, csrfProtection, async (req, res) => {
-  try {
-    const { region, server_name, use_case } = req.body;
-    
-    // Check if user has already paid
-    const paymentCheck = await pool.query(
-      'SELECT * FROM payments WHERE user_id = $1 AND status = $2 LIMIT 1',
-      [req.session.userId, 'succeeded']
-    );
-    
-    if (paymentCheck.rows.length === 0) {
-      return res.redirect('/pricing?error=payment_required');
-    }
-    
-    // Check if user already has a server (exclude deleted/failed)
-    const serverCheck = await pool.query(
-      "SELECT * FROM servers WHERE user_id = $1 AND status NOT IN ('deleted', 'failed')",
-      [req.session.userId]
-    );
-    
-    if (serverCheck.rows.length > 0) {
-      return res.redirect('/dashboard?error=server_exists');
-    }
-    
-    // Check for existing pending request
-    const existingTicket = await pool.query(
-      'SELECT * FROM support_tickets WHERE user_id = $1 AND subject = $2 AND status IN ($3, $4)',
-      [req.session.userId, 'Server Setup Request', 'open', 'in-progress']
-    );
-    
-    if (existingTicket.rows.length > 0) {
-      return res.redirect('/dashboard?error=Server request already pending');
-    }
-    
-    // Store server request (you'll process this manually)
-    await pool.query(
-      `INSERT INTO support_tickets (user_id, subject, description, status) 
-       VALUES ($1, $2, $3, $4)`,
-      [
-        req.session.userId,
-        'Server Setup Request',
-        `Region: ${region}\nServer Name: ${server_name || 'Not specified'}\nUse Case: ${use_case || 'Not specified'}`,
-        'open'
-      ]
-    );
-    
-    // Get user email and send confirmation
-    const userResult = await pool.query('SELECT email FROM users WHERE id = $1', [req.session.userId]);
-    const userEmail = userResult.rows[0].email;
-    
-    // Send confirmation email (don't wait for it)
-    sendServerRequestEmail(userEmail, region, server_name || 'Default').catch(err => {
-      console.error('Failed to send server request email:', err);
-    });
-    
-    res.redirect('/dashboard?success=Server request submitted successfully');
-  } catch (err) {
-    console.error('Server request error:', err);
-    res.status(500).send('Server error');
-  }
-});
-
-// Free Trial Endpoint - provisions a Basic server for 3 days without payment
-app.post('/start-trial', requireAuth, deploymentLimiter, csrfProtection, async (req, res) => {
-  try {
-    const userId = req.session.userId;
-    
-    // Require email confirmation before starting trial
-    if (!req.session.emailConfirmed) {
-      return res.redirect('/dashboard?error=Please confirm your email before starting a trial');
-    }
-    
-    // Global daily trial cap - prevent mass abuse (50 trials/day max)
-    const dailyTrialCount = await pool.query(
-      `SELECT COUNT(*) as count FROM servers 
-       WHERE is_trial = true AND created_at > NOW() - INTERVAL '24 hours'`
-    );
-    if (parseInt(dailyTrialCount.rows[0].count) >= 50) {
-      console.log(`[TRIAL] Daily trial cap reached (50/day). Rejecting user ${userId}`);
-      return res.redirect('/dashboard?error=Trial signups temporarily limited. Please try again tomorrow or subscribe now.');
-    }
-    
-    // Check if user has already used their trial
-    const userResult = await pool.query(
-      'SELECT trial_used, email, browser_fingerprint FROM users WHERE id = $1',
-      [userId]
-    );
-    
-    if (userResult.rows.length === 0) {
-      return res.redirect('/dashboard?error=User not found');
-    }
-    
-    if (userResult.rows[0].trial_used) {
-      return res.redirect('/dashboard?error=You have already used your free trial. Please subscribe to continue.');
-    }
-    
-    // Check if user already has a server (exclude deleted/failed)
-    const serverCheck = await pool.query(
-      "SELECT * FROM servers WHERE user_id = $1 AND status NOT IN ('deleted', 'failed')",
-      [userId]
-    );
-    
-    if (serverCheck.rows.length > 0) {
-      return res.redirect('/dashboard?error=You already have a server');
-    }
-    
-    // Check if same IP has used trial within 90 days (prevent abuse)
-    // Use req.ip which respects trust proxy setting instead of manually parsing headers
-    const clientIp = req.ip || req.socket.remoteAddress;
-    const recentTrialCheck = await pool.query(
-      `SELECT id FROM users 
-       WHERE signup_ip = $1 
-       AND trial_used = true 
-       AND trial_used_at > NOW() - INTERVAL '90 days'
-       AND id != $2`,
-      [clientIp, userId]
-    );
-    
-    if (recentTrialCheck.rows.length > 0) {
-      return res.redirect('/dashboard?error=A trial was recently used from this network. Please subscribe to continue.');
-    }
-    
-    // Check if same browser fingerprint has used trial within 90 days (VPN bypass prevention)
-    const userFingerprint = userResult.rows[0].browser_fingerprint;
-    
-    // Require fingerprint to start trial (prevents JS-disabled bypass)
-    if (!userFingerprint) {
-      return res.redirect('/dashboard?error=Browser verification required. Please enable JavaScript and try again.');
-    }
-    
-    const fingerprintTrialCheck = await pool.query(
-      `SELECT id FROM users 
-       WHERE browser_fingerprint = $1 
-       AND trial_used = true 
-       AND trial_used_at > NOW() - INTERVAL '90 days'
-       AND id != $2`,
-      [userFingerprint, userId]
-    );
-    
-    if (fingerprintTrialCheck.rows.length > 0) {
-      console.log(`[TRIAL] Blocked trial for user ${userId} - device fingerprint already used`);
-      return res.redirect('/dashboard?error=A trial was recently used from this device. Please subscribe to continue.');
-    }
-    
-    console.log(`[TRIAL] Starting free trial for user ${userId}`);
-    
-    // Create server with no payment (this will trigger trial mode in createRealServer)
-    // Pass null for stripeChargeId to indicate it's a trial
-    await createRealServerService(userId, 'basic', null, 'monthly', null);
-    
-    // Note: trial_used is set to true inside createRealServer after successful creation
-    
-    res.redirect('/dashboard?success=Your 3-day free trial has started! Your server is being provisioned.&provisioning=true');
-  } catch (err) {
-    console.error('[TRIAL] Start trial error:', err);
-    res.redirect('/dashboard?error=Failed to start trial. Please try again or contact support.');
-  }
-});
-
-// Payment Success page
-app.get('/payment-success', requireAuth, paymentController.paymentSuccess);
-
-// Payment Cancel page
-app.get('/payment-cancel', requireAuth, paymentController.paymentCancel);
-
-app.get('/pay', requireAuth, csrfProtection, paymentController.showCheckout);
-
-app.post('/create-payment-intent', requireAuth, paymentLimiter, csrfProtection, paymentController.createPaymentIntent);
-
-app.post('/create-checkout-session', requireAuth, paymentLimiter, csrfProtection, paymentController.createCheckoutSession);
-app.post('/upgrade-plan', requireAuth, csrfProtection, paymentController.upgradePlan);
+// Feature routers
+app.use(require('./routes/pages'));
+app.use(require('./routes/auth'));
+app.use(require('./routes/dashboard'));
+app.use(require('./routes/servers'));
+app.use(require('./routes/payments'));
+app.use('/admin', require('./routes/admin'));
 
 // 404 error page - must be last route
 app.use((req, res) => {

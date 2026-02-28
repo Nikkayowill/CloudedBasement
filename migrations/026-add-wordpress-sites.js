@@ -45,12 +45,18 @@ exports.up = async () => {
         site_title      VARCHAR(255) NOT NULL,
         admin_user      VARCHAR(100) NOT NULL DEFAULT 'wpadmin',
         admin_email     VARCHAR(255) NOT NULL,
-        admin_password  VARCHAR(255) NOT NULL,
+
+        encrypted_admin_password  BYTEA NOT NULL,
+        encrypted_admin_password_iv  BYTEA NOT NULL,
+        encrypted_admin_password_version INTEGER DEFAULT 1,
 
         -- MySQL credentials (for the WP database on this droplet)
         db_name     VARCHAR(100) NOT NULL,
         db_user     VARCHAR(100) NOT NULL,
-        db_password VARCHAR(255) NOT NULL,
+
+        encrypted_db_password  BYTEA NOT NULL,
+        encrypted_db_password_iv  BYTEA NOT NULL,
+        encrypted_db_password_version INTEGER DEFAULT 1,
 
         -- Lifecycle status
         -- provisioning : droplet is being created (user-data script running)
@@ -74,7 +80,26 @@ exports.up = async () => {
         updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
     console.log('[MIGRATION 026] ✓ wordpress_sites table created');
+
+    // ── 2b. Add updated_at auto-update trigger ─────────────────────────────
+    await client.query(`
+      CREATE OR REPLACE FUNCTION update_updated_at_column()
+      RETURNS TRIGGER AS $$
+      BEGIN
+        NEW.updated_at = CURRENT_TIMESTAMP;
+        RETURN NEW;
+      END;
+      $$ language 'plpgsql';
+    `);
+    await client.query(`
+      DROP TRIGGER IF EXISTS trg_wordpress_sites_updated_at ON wordpress_sites;
+      CREATE TRIGGER trg_wordpress_sites_updated_at
+        BEFORE UPDATE ON wordpress_sites
+        FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
+    `);
+    console.log('[MIGRATION 026] ✓ updated_at trigger added');
 
     // ── 3. Indexes ────────────────────────────────────────────────────────────
     await client.query(`
