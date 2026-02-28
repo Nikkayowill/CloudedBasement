@@ -12,7 +12,8 @@
 const crypto = require('crypto');
 const axios  = require('axios');
 const pool   = require('../db');
-const { encrypt }             = require('../src/utils/encryption');
+const { Client }              = require('ssh2');
+const { encrypt, decrypt }    = require('../src/utils/encryption');
 const { pollDropletStatus }   = require('./digitalocean');
 
 // ── Credential helpers ────────────────────────────────────────────────────────
@@ -383,9 +384,484 @@ async function createWordPressServer(userId, plan, siteTitle, adminEmail) {
   }
 }
 
+// ── Step 3: WordPress installation ───────────────────────────────────────────
+
+/**
+ * Install WordPress on a provisioned, database-ready droplet.
+ *
+ * Call this once `wordpress_sites.status = 'installing'` (after setupWordPressDatabase).
+ * On success, advances status → 'configuring' so the Nginx + SSL step can proceed.
+ *
+ * Security notes:
+ *  - wp-config.php is generated in Node.js and piped via stdin — dbPassword is never
+ *    a CLI argument and never appears in ps aux.
+ *  - wp core install uses a disposable temp password. The real admin password is
+ *    applied in the next step via a root-only PHP file (chmod 600), then shred-deleted.
+ *  - siteTitle is sanitized (metacharacter strip) before shell use.
+ *  - adminEmail and ip_address are validated by regex before any use.
+ *  - Temp files are shredded on both success and error paths.
+ *
+ * @param {number} wpSiteId - `wordpress_sites.id`
+ */
+async function installWordPress(wpSiteId) {
+  // ── Fetch records ────────────────────────────────────────────────────────────
+  const result = await pool.query(
+    `SELECT ws.id, ws.site_title, ws.admin_user, ws.admin_email,
+            ws.encrypted_admin_password, ws.encrypted_admin_password_iv,
+            ws.db_name, ws.db_user,
+            ws.encrypted_db_password, ws.encrypted_db_password_iv,
+            s.ip_address, s.ssh_password, s.ssh_password_iv
+     FROM wordpress_sites ws
+     JOIN servers s ON s.id = ws.server_id
+     WHERE ws.id = $1`,
+    [wpSiteId]
+  );
+
+  if (!result.rows.length) {
+    throw new Error(`[WP-INSTALL] Site not found: ${wpSiteId}`);
+  }
+  const wp = result.rows[0];
+
+  // ── Input validation ─────────────────────────────────────────────────────────
+  if (!/^wp_[a-f0-9]{8}$/.test(wp.db_name)) {
+    throw new Error('[WP-INSTALL] Refusing — invalid db_name format');
+  }
+  if (!/^wpuser_[a-f0-9]{6}$/.test(wp.db_user)) {
+    throw new Error('[WP-INSTALL] Refusing — invalid db_user format');
+  }
+  // Strict IPv4 check — prevents SSRF if ip_address is ever tampered
+  if (!/^\d{1,3}(\.\d{1,3}){3}$/.test(wp.ip_address)) {
+    throw new Error('[WP-INSTALL] Refusing — invalid IP address format');
+  }
+  // Validate email before embedding in wp-cli command
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(wp.admin_email)) {
+    throw new Error('[WP-INSTALL] Refusing — invalid admin email format');
+  }
+
+  // Sanitize site title: allow alphanumeric, spaces, hyphens, underscores, periods, commas.
+  // Anything else is stripped so the value is safe inside single-quoted shell arguments.
+  const siteTitle = (wp.site_title || '')
+    .replace(/[^\w\s\-.,]/g, '')
+    .slice(0, 100)
+    .trim() || 'WordPress Site';
+
+  // ── Decrypt credentials (in-memory only, never logged) ───────────────────────
+  const rootPassword  = decrypt(wp.ssh_password,              wp.ssh_password_iv);
+  const dbPassword    = decrypt(wp.encrypted_db_password,     wp.encrypted_db_password_iv);
+  const adminPassword = decrypt(wp.encrypted_admin_password,  wp.encrypted_admin_password_iv);
+
+  const wpPath     = '/var/www/wordpress';
+  const phpTmpPath = `/tmp/wp_pw_${wpSiteId}.php`; // shredded after use
+
+  // Disposable password for wp core install — replaced by adminPassword in the next step.
+  // Real adminPassword is never passed as a CLI argument.
+  const tempAdminPassword = generateSecurePassword(20);
+
+  let conn;
+  try {
+    conn = await sshConnect(wp.ip_address, rootPassword);
+    console.log(`[WP-INSTALL] SSH connected to ${wp.ip_address} for site ${wpSiteId}`);
+
+    // ── 1. Wait for cloud-init to finish ──────────────────────────────────────
+    // The user-data script ends with `echo "SETUP_DONE"`. We must wait before
+    // running wp-cli, which requires PHP + MySQL to be installed first.
+    await waitForSetupDone(conn, wpSiteId);
+
+    // ── 2. Create WordPress web root ──────────────────────────────────────────
+    await execSSH(conn, `mkdir -p ${wpPath}`);
+
+    // ── 3. Download WordPress core ────────────────────────────────────────────
+    console.log('[WP-INSTALL] Downloading WordPress core...');
+    await execSSH(conn, `wp core download --path=${wpPath} --allow-root`, 120000);
+
+    // ── 4. Write wp-config.php via stdin ─────────────────────────────────────
+    // dbPassword lives only in the file content — never a shell argument.
+    // `cat >` is used instead of `tee` to avoid echoing credentials back in stdout.
+    console.log('[WP-INSTALL] Writing wp-config.php...');
+    const wpConfigContent = generateWpConfig(wp.db_name, wp.db_user, dbPassword);
+    await execSSHWithInput(conn, `cat > ${wpPath}/wp-config.php`, wpConfigContent);
+    // Root-owned, group-readable by www-data; not world-readable
+    await execSSH(conn, `chown root:www-data ${wpPath}/wp-config.php && chmod 640 ${wpPath}/wp-config.php`);
+
+    // ── 5. File permissions ───────────────────────────────────────────────────
+    await execSSH(conn, [
+      `chown -R www-data:www-data ${wpPath}`,
+      `find ${wpPath} -type d -exec chmod 755 {} +`,
+      `find ${wpPath} -type f -exec chmod 644 {} +`,
+      // Re-lock config after chown sweep
+      `chown root:www-data ${wpPath}/wp-config.php && chmod 640 ${wpPath}/wp-config.php`,
+    ].join(' && '));
+
+    // ── 6. wp core install (temp password) ───────────────────────────────────
+    // tempAdminPassword appears in ps briefly (~ms) but is discarded immediately.
+    // The real adminPassword is applied in step 7 and never touches the CLI.
+    console.log('[WP-INSTALL] Running wp core install...');
+    await execSSH(conn,
+      `wp core install` +
+      ` --url='http://${wp.ip_address}'` +
+      ` --title='${siteTitle}'` +
+      ` --admin_user='${wp.admin_user}'` +
+      ` --admin_password='${tempAdminPassword}'` +
+      ` --admin_email='${wp.admin_email}'` +
+      ` --skip-email` +
+      ` --path=${wpPath}` +
+      ` --allow-root`,
+      120000
+    );
+
+    // ── 7. Set real admin password via PHP file ───────────────────────────────
+    // Written via stdin (not CLI), chmod 600 root-only, executed, then shredded.
+    // adminPassword is [a-zA-Z0-9] — no PHP string escaping required.
+    console.log('[WP-INSTALL] Updating admin password...');
+    const phpScript =
+      `<?php\n` +
+      `require '${wpPath}/wp-load.php';\n` +
+      `$u = get_user_by('login', '${wp.admin_user}');\n` +
+      `if (!$u) { fwrite(STDERR, "User not found\\n"); exit(1); }\n` +
+      `wp_set_password('${adminPassword}', $u->ID);\n` +
+      `echo "Password updated\\n";\n`;
+
+    await execSSHWithInput(conn, `cat > ${phpTmpPath}`, phpScript);
+    await execSSH(conn, `chmod 600 ${phpTmpPath}`);
+    await execSSH(conn, `php ${phpTmpPath}`);
+    await execSSH(conn, `shred -u ${phpTmpPath}`);
+
+    // ── 8. Verify + record wp version ────────────────────────────────────────
+    const wpVersion = (await execSSH(conn,
+      `wp core version --path=${wpPath} --allow-root`
+    )).trim();
+    console.log(`[WP-INSTALL] WordPress ${wpVersion} installed for site ${wpSiteId}`);
+
+    // ── 9. Advance status ─────────────────────────────────────────────────────
+    await pool.query(
+      `UPDATE wordpress_sites
+          SET status         = 'configuring',
+              wp_version     = $1,
+              status_message = 'WordPress installed. Configuring web server and SSL.',
+              install_log    = COALESCE(install_log, '') || $2,
+              updated_at     = NOW()
+        WHERE id = $3`,
+      [
+        wpVersion,
+        `[${new Date().toISOString()}] WordPress ${wpVersion} installed successfully.\n`,
+        wpSiteId,
+      ]
+    );
+
+  } catch (err) {
+    // Error message only — credentials are never logged
+    console.error(`[WP-INSTALL] Failed for site ${wpSiteId}:`, err.message);
+
+    // Best-effort cleanup of temp PHP file on error path
+    if (conn) {
+      await execSSH(conn, `test -f ${phpTmpPath} && shred -u ${phpTmpPath} || true`)
+        .catch(() => {});
+    }
+
+    await pool.query(
+      `UPDATE wordpress_sites
+          SET status         = 'error',
+              status_message = $1,
+              updated_at     = NOW()
+        WHERE id = $2`,
+      [`Installation failed: ${err.message}`, wpSiteId]
+    );
+    throw err;
+
+  } finally {
+    if (conn) conn.end();
+  }
+}
+
+// ── SSH helpers ───────────────────────────────────────────────────────────────
+
+/**
+ * Execute a remote command, return stdout.
+ * For commands that need stdin input, use execSSHWithInput instead.
+ *
+ * @param {Client} conn
+ * @param {string} command
+ * @param {number} timeoutMs
+ * @returns {Promise<string>} stdout
+ */
+function execSSH(conn, command, timeoutMs = 60000) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`SSH command timed out after ${timeoutMs / 1000}s`));
+    }, timeoutMs);
+
+    conn.exec(command, (err, stream) => {
+      if (err) { clearTimeout(timer); return reject(err); }
+
+      let stdout = '';
+      let stderr = '';
+
+      stream.on('close', (code) => {
+        clearTimeout(timer);
+        if (code === 0) resolve(stdout);
+        else reject(new Error(`Command exited ${code}: ${stderr || stdout}`));
+      });
+      stream.on('data',        (d) => { stdout += d; });
+      stream.stderr.on('data', (d) => { stderr += d; });
+    });
+  });
+}
+
+/**
+ * Generate wp-config.php content in Node.js so dbPassword is written
+ * directly to the file and never appears as a CLI argument.
+ * Auth keys are freshly generated (64-char alphanumeric each).
+ *
+ * @param {string} dbName
+ * @param {string} dbUser
+ * @param {string} dbPassword
+ * @returns {string} full wp-config.php content
+ */
+function generateWpConfig(dbName, dbUser, dbPassword) {
+  const salt = () => generateSecurePassword(64);
+  return (
+    `<?php\n` +
+    `/** Auto-generated by Clouded Basement — do not edit manually. */\n\n` +
+    `define('DB_NAME',     '${dbName}');\n` +
+    `define('DB_USER',     '${dbUser}');\n` +
+    `define('DB_PASSWORD', '${dbPassword}');\n` +
+    `define('DB_HOST',     'localhost');\n` +
+    `define('DB_CHARSET',  'utf8mb4');\n` +
+    `define('DB_COLLATE',  '');\n\n` +
+    `define('AUTH_KEY',         '${salt()}');\n` +
+    `define('SECURE_AUTH_KEY',  '${salt()}');\n` +
+    `define('LOGGED_IN_KEY',    '${salt()}');\n` +
+    `define('NONCE_KEY',        '${salt()}');\n` +
+    `define('AUTH_SALT',        '${salt()}');\n` +
+    `define('SECURE_AUTH_SALT', '${salt()}');\n` +
+    `define('LOGGED_IN_SALT',   '${salt()}');\n` +
+    `define('NONCE_SALT',       '${salt()}');\n\n` +
+    `$table_prefix = 'wp_';\n\n` +
+    `define('WP_DEBUG', false);\n` +
+    `define('WP_AUTO_UPDATE_CORE', 'minor');\n\n` +
+    `if (!defined('ABSPATH')) { define('ABSPATH', __DIR__ . '/'); }\n` +
+    `require_once ABSPATH . 'wp-settings.php';\n`
+  );
+}
+
+/**
+ * Poll /root/wp-setup.log on the droplet until the last line is "SETUP_DONE".
+ * The cloud-init user-data script writes this sentinel after all packages are
+ * installed (PHP, MySQL, wp-cli). We must wait before running wp-cli.
+ *
+ * @param {Client} conn
+ * @param {number} wpSiteId      - used only for log context
+ * @param {number} maxAttempts   - default 30 (15 min total at 30 s intervals)
+ * @param {number} intervalMs    - default 30000 ms
+ */
+async function waitForSetupDone(conn, wpSiteId, maxAttempts = 30, intervalMs = 30000) {
+  for (let i = 1; i <= maxAttempts; i++) {
+    try {
+      const lastLine = await execSSH(
+        conn,
+        'tail -1 /root/wp-setup.log 2>/dev/null || echo ""',
+        10000
+      );
+      if (lastLine.trim() === 'SETUP_DONE') {
+        console.log(`[WP-INSTALL] Provisioning complete (site ${wpSiteId}, attempt ${i})`);
+        return;
+      }
+    } catch (e) {
+      // SSH can briefly fail if sshd is still starting — not fatal
+      console.log(`[WP-INSTALL] Log check failed on attempt ${i}: ${e.message}`);
+    }
+    console.log(`[WP-INSTALL] Waiting for cloud-init... attempt ${i}/${maxAttempts}`);
+    if (i < maxAttempts) await new Promise(r => setTimeout(r, intervalMs));
+  }
+  throw new Error(
+    `[WP-INSTALL] Cloud-init did not complete after ${(maxAttempts * intervalMs) / 60000} minutes`
+  );
+}
+
+/**
+ * Open an SSH connection and return the connected Client.
+ * Always call conn.end() in a finally block after use.
+ *
+ * @param {string} host
+ * @param {string} password - decrypted root password (never logged)
+ * @returns {Promise<Client>}
+ */
+function sshConnect(host, password) {
+  return new Promise((resolve, reject) => {
+    const conn = new Client();
+    conn.on('ready', () => resolve(conn));
+    conn.on('error', reject);
+    conn.connect({
+      host,
+      port:         22,
+      username:     'root',
+      password,
+      readyTimeout: 30000, // 30 s — enough for a warm droplet
+    });
+  });
+}
+
+/**
+ * Execute a remote command and pipe `inputData` to its stdin.
+ * The credential is NEVER part of the command string, so it won't
+ * appear in the process list or shell history on the remote host.
+ *
+ * @param {Client} conn
+ * @param {string} command  - shell command to run (e.g. 'mysql -u root')
+ * @param {string} inputData - data written to the command's stdin
+ * @param {number} timeoutMs
+ * @returns {Promise<string>} stdout
+ */
+function execSSHWithInput(conn, command, inputData, timeoutMs = 30000) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`SSH command timed out after ${timeoutMs / 1000}s`));
+    }, timeoutMs);
+
+    conn.exec(command, (err, stream) => {
+      if (err) {
+        clearTimeout(timer);
+        return reject(err);
+      }
+
+      let stdout = '';
+      let stderr = '';
+
+      stream.on('close', (code) => {
+        clearTimeout(timer);
+        if (code === 0) {
+          resolve(stdout);
+        } else {
+          // Never include inputData in the error — it may contain credentials
+          reject(new Error(`Command exited ${code}: ${stderr || stdout}`));
+        }
+      });
+
+      stream.on('data',        (d) => { stdout += d; });
+      stream.stderr.on('data', (d) => { stderr += d; });
+
+      // Write SQL to stdin and close — this is the only place the credential travels
+      stream.stdin.write(inputData);
+      stream.stdin.end();
+    });
+  });
+}
+
+// ── Step 2: MySQL database + user setup ───────────────────────────────────────
+
+/**
+ * Create the MySQL database and WordPress user on a provisioned droplet.
+ *
+ * Call this once `servers.status = 'running'` (IP polling done).
+ * On success, advances `wordpress_sites.status` → 'installing' so the
+ * WordPress installation step (Step 3) knows it can proceed.
+ *
+ * Security notes:
+ *  - Root SSH password and DB password are decrypted in-memory, never logged.
+ *  - SQL is piped to mysql's stdin — credentials are never CLI arguments.
+ *  - Binary logging is disabled for the CREATE USER statement so the password
+ *    doesn't land in MySQL's binary log on the remote server.
+ *  - dbName and dbUser are regex-validated before interpolation (defence in depth;
+ *    they were generated by us, but validate regardless).
+ *
+ * @param {number} wpSiteId - `wordpress_sites.id`
+ */
+async function setupWordPressDatabase(wpSiteId) {
+  // ── Fetch records ───────────────────────────────────────────────────────────
+  const result = await pool.query(
+    `SELECT ws.id, ws.db_name, ws.db_user,
+            ws.encrypted_db_password, ws.encrypted_db_password_iv,
+            s.ip_address, s.ssh_password, s.ssh_password_iv
+     FROM wordpress_sites ws
+     JOIN servers s ON s.id = ws.server_id
+     WHERE ws.id = $1`,
+    [wpSiteId]
+  );
+
+  if (!result.rows.length) {
+    throw new Error(`[WP-DB] wordpress_sites record not found: ${wpSiteId}`);
+  }
+
+  const wp = result.rows[0];
+
+  // ── Validate IP address before SSH or decryption ───────────────────────────
+  const net = require('net');
+  if (!wp.ip_address || net.isIP(wp.ip_address) === 0) {
+    throw new Error(`[WP-DB] Refusing to proceed — invalid or missing ip_address: ${wp.ip_address}`);
+  }
+
+  // ── Validate identifiers before SQL interpolation ───────────────────────────
+  // These were generated by us (wp_<8 hex chars>, wpuser_<6 hex chars>) but
+  // validate strictly to prevent injection if a record is ever tampered with.
+  if (!/^wp_[a-f0-9]{8}$/.test(wp.db_name)) {
+    throw new Error(`[WP-DB] Refusing to proceed — unexpected db_name format`);
+  }
+  if (!/^wpuser_[a-f0-9]{6}$/.test(wp.db_user)) {
+    throw new Error(`[WP-DB] Refusing to proceed — unexpected db_user format`);
+  }
+
+  // ── Decrypt credentials (in-memory only, never logged) ─────────────────────
+  const rootPassword = decrypt(wp.ssh_password,             wp.ssh_password_iv);
+  const dbPassword   = decrypt(wp.encrypted_db_password,    wp.encrypted_db_password_iv);
+
+  // ── Build SQL — password injected here, not on the CLI ─────────────────────
+  // Single-quoted MySQL string is safe: generateSecurePassword() is [a-zA-Z0-9]
+  // so no single-quote escaping is needed. Backtick-quoted identifiers are
+  // injection-safe given the regex validation above.
+  const sql = [
+    'SET sql_log_bin = 0;', // keep password out of MySQL binary log
+    `CREATE DATABASE IF NOT EXISTS \`${wp.db_name}\``,
+    `  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`,
+    `CREATE USER IF NOT EXISTS '${wp.db_user}'@'localhost' IDENTIFIED BY '${dbPassword}';`,
+    `GRANT ALL PRIVILEGES ON \`${wp.db_name}\`.* TO '${wp.db_user}'@'localhost';`,
+    'FLUSH PRIVILEGES;',
+    'SET sql_log_bin = 1;',
+  ].join('\n');
+
+  // ── Connect + execute ───────────────────────────────────────────────────────
+  let conn;
+  try {
+    conn = await sshConnect(wp.ip_address, rootPassword);
+    console.log(`[WP-DB] SSH connected to ${wp.ip_address} for site ${wpSiteId}`);
+
+    // MySQL root uses auth_socket on Ubuntu 22.04 — no -p flag needed
+    await execSSHWithInput(conn, 'mysql -u root', sql);
+    console.log(`[WP-DB] Database and user created for site ${wpSiteId}`);
+
+    // Advance status so Step 3 (WordPress installation) can begin
+    await pool.query(
+      `UPDATE wordpress_sites
+          SET status = 'installing',
+              status_message = 'Database ready. Starting WordPress installation.',
+              updated_at = NOW()
+        WHERE id = $1`,
+      [wpSiteId]
+    );
+
+  } catch (err) {
+    // Log the error message only — never log rootPassword or dbPassword
+    console.error(`[WP-DB] Database setup failed for site ${wpSiteId}:`, err.message);
+
+    await pool.query(
+      `UPDATE wordpress_sites
+          SET status = 'error',
+              status_message = $1,
+              updated_at = NOW()
+        WHERE id = $2`,
+      [`Database setup failed: ${err.message}`, wpSiteId]
+    );
+
+    throw err;
+  } finally {
+    if (conn) conn.end();
+  }
+}
+
 // ── Exports ───────────────────────────────────────────────────────────────────
 module.exports = {
   generateSecurePassword,
   getWordPressUserData,
   createWordPressServer,
+  setupWordPressDatabase,
+  installWordPress,
 };
