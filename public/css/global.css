@@ -761,7 +761,9 @@ button, a, input, textarea, select {
     overflow: hidden;
 }
 
-.btn-primary::before, button[type="submit"]::before, a.bg-blue-600::before {
+
+.btn-primary::before, button[type="submit"]::before, a.bg-blue-600::before,
+.btn-secondary::before, .bg-gray-700::before {
     content: '';
     position: absolute;
     top: 0;
@@ -773,6 +775,8 @@ button, a, input, textarea, select {
         rgba(255, 255, 255, 0.4), 
         transparent);
     transition: left 0.6s ease;
+    pointer-events: none;
+    z-index: 2;
 }
 
 .btn-primary:hover, button[type="submit"]:hover, a.bg-blue-600:hover {
@@ -789,7 +793,8 @@ button, a, input, textarea, select {
         0 0 40px rgba(135, 206, 250, 0.4);
 }
 
-.btn-primary:hover::before, button[type="submit"]:hover::before, a.bg-blue-600:hover::before {
+.btn-primary:hover::before, button[type="submit"]:hover::before, a.bg-blue-600:hover::before,
+.btn-secondary:hover::before, .bg-gray-700:hover::before {
     left: 100%;
 }
 
@@ -800,6 +805,7 @@ button, a, input, textarea, select {
 
 /* Secondary Button - iOS Liquid Dark Glass */
 .btn-secondary, .bg-gray-700 {
+    position: relative;
     background: linear-gradient(145deg, 
         rgba(40, 40, 50, 0.8) 0%, 
         rgba(25, 25, 35, 0.9) 100%) !important;
@@ -813,6 +819,7 @@ button, a, input, textarea, select {
         inset 0 1px 0 0 rgba(255, 255, 255, 0.15),
         inset 0 -1px 2px 0 rgba(0, 0, 0, 0.2);
     transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    overflow: hidden;
 }
 
 .btn-secondary:hover {

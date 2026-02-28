@@ -636,7 +636,31 @@ const deleteEnvVar = async (req, res) => {
     }
 };
 
-module.exports = { showDashboard: exports.showDashboard, getDashboardData, submitSupportTicket, changePassword, applyUpdates, getCredentials, getEnvVars, createEnvVar, deleteEnvVar };
+/**
+ * GET /api/deployment-status/:id
+ * Polling endpoint — returns status/output for a single deployment.
+ * Returns 403 (not 404) on ownership failure to prevent enumeration.
+ */
+const getDeploymentStatus = async (req, res) => {
+  try {
+    const deploymentId = parseInt(req.params.id);
+    const result = await pool.query(
+      'SELECT status, output, deployed_at FROM deployments WHERE id = $1 AND user_id = $2',
+      [deploymentId, req.session.userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error fetching deployment status:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+module.exports = { showDashboard: exports.showDashboard, getDashboardData, submitSupportTicket, changePassword, applyUpdates, getCredentials, getEnvVars, createEnvVar, deleteEnvVar, getDeploymentStatus };
 
 /**
  * Dashboard Template Builder - Tech-View Design

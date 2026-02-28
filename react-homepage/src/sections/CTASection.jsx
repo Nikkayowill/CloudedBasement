@@ -2,9 +2,9 @@ import CloudSVG from '../components/CloudSVG';
 
 export default function CTASection() {
   return (
-    <section className="grid md:grid-cols-1 gap-0 relative overflow-hidden min-h-120">
+    <section className="relative flex flex-col items-center justify-center min-h-[32rem] overflow-hidden bg-transparent">
       {/* Cloud image block */}
-      <div className="relative w-full h-full min-h-80">
+      <div className="absolute inset-0 w-full h-full pointer-events-none select-none">
         <CloudSVG />
       </div>
       {/* CTA content block with blur overlay */}
@@ -14,7 +14,7 @@ export default function CTASection() {
           <p className="funnel-kicker mb-5">Deploy now</p>
           <h2 className="funnel-heading-2 mb-6">Your server is already&nbsp;waiting.</h2>
           <p className="mb-10">
-            Stop configuring. Start shipping. Sign up in 30 seconds, connect your repo, and have your app live before your coffee gets cold. 3-day free trial — no credit card, no&nbsp;commitment.
+            Stop configuring. Start shipping. 3-day free trial — no credit card, no&nbsp;commitment.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <a href="/register" className="funnel-btn funnel-btn-primary">Start Free Trial</a>
