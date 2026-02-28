@@ -4,7 +4,7 @@ const getStripe = () => {
   return stripe;
 };
 const pool = require('../db');
-const { createRealServer, destroyDroplet } = require('../services/digitalocean');
+const { destroyDroplet } = require('../services/digitalocean');
 const { getHTMLHead, getScripts, getFooter, getResponsiveNav, escapeHtml } = require('../src/utils/helpers');
 const { sendEmail } = require('../services/email');
 const { getNonce } = require('../src/utils/nonce');
@@ -436,8 +436,13 @@ exports.createCheckoutSession = async (req, res) => {
 exports.paymentSuccess = async (req, res) => {
   console.log('[PAYMENT-SUCCESS] User returned from Stripe checkout');
 
-  // Just redirect to dashboard - it will show provisioning UI
-  res.redirect('/dashboard?provisioning=true');
+  // Forward plan, interval, and subscription_id to onboarding (if present)
+  const plan = req.query.plan || 'basic';
+  const interval = req.query.interval || 'monthly';
+  const subscriptionId = req.query.subscription_id || '';
+  const params = new URLSearchParams({ plan, interval });
+  if (subscriptionId) params.append('subscription_id', subscriptionId);
+  res.redirect(`/onboarding/choose?${params.toString()}`);
 };
 
 // GET /payment-cancel
@@ -562,14 +567,9 @@ exports.stripeWebhook = async (req, res) => {
         try {
           await client.query('BEGIN');
 
-          // Extract customer email and session data
+          // Extract customer email and plan for logging
           const customerEmail = session.customer_details?.email || session.customer_email;
-          const paymentIntentId = session.payment_intent;
-          const amount = session.amount_total / 100; // Convert cents to dollars
-
-          // Get plan and interval from metadata (set in createCheckoutSession)
           const plan = session.metadata?.plan || 'basic';
-          const interval = session.metadata?.interval || 'monthly';
 
           if (!customerEmail) {
             console.log('No customer email found in checkout session');
@@ -591,18 +591,9 @@ exports.stripeWebhook = async (req, res) => {
 
           const userId = userResult.rows[0].id;
 
-          // Check if server provisioning already started (avoid duplicates)
-          const serverCheck = await client.query(
-            'SELECT * FROM servers WHERE user_id = $1 AND status NOT IN (\'deleted\', \'failed\')',
-            [userId]
-          );
-
-          if (serverCheck.rows.length === 0) {
-            console.log('Creating server for user from webhook:', userId, 'Plan:', plan, 'Interval:', interval);
-            await createRealServer(userId, plan, paymentIntentId || session.id, interval);
-          } else {
-            console.log('User already has active/provisioning server, skipping creation');
-          }
+          // Server provisioning is deferred to /onboarding/choose — the user
+          // picks Node.js or WordPress before anything is provisioned.
+          console.log(`[WEBHOOK] checkout.session.completed: payment recorded for user ${userId}, plan ${plan}. Server creation deferred to onboarding.`);
 
           await client.query('COMMIT');
         } catch (error) {
@@ -632,7 +623,6 @@ exports.stripeWebhook = async (req, res) => {
           // Extract user_id and plan from metadata (set during createPaymentIntent)
           const userIdStr = paymentIntent.metadata?.user_id;
           let plan = paymentIntent.metadata?.plan || 'basic';
-          const interval = paymentIntent.metadata?.interval || 'monthly';
           const amount = paymentIntent.amount / 100; // Convert cents to dollars
 
           if (!userIdStr) {
@@ -699,18 +689,8 @@ exports.stripeWebhook = async (req, res) => {
 
           console.log(`Payment recorded: User ${userId}, $${amount}, Plan: ${plan}`);
 
-          // Create server if user doesn't have one (webhook is single source of truth)
-          const serverCheck = await client.query(
-            'SELECT * FROM servers WHERE user_id = $1 AND status NOT IN (\'deleted\', \'failed\')',
-            [userId]
-          );
-
-          if (serverCheck.rows.length === 0) {
-            console.log('Creating server for user from webhook:', userId);
-            await createRealServer(userId, plan, paymentIntent.id, interval);
-          } else {
-            console.log('User already has active server, skipping creation');
-          }
+          // Server provisioning is deferred to /onboarding/choose.
+          console.log(`[WEBHOOK] payment_intent.succeeded: payment recorded for user ${userId}, plan ${plan}. Server creation deferred to onboarding.`);
 
           await client.query('COMMIT');
         } catch (error) {
@@ -741,7 +721,6 @@ exports.stripeWebhook = async (req, res) => {
           const subscription = await getStripe().subscriptions.retrieve(invoice.subscription);
           const userId = parseInt(subscription.metadata?.user_id, 10);
           const plan = subscription.metadata?.plan || 'basic';
-          const interval = subscription.metadata?.interval || 'monthly';
 
           if (!userId || isNaN(userId)) {
             console.log('No valid user_id in subscription metadata');
@@ -760,10 +739,10 @@ exports.stripeWebhook = async (req, res) => {
             );
 
             if (serverCheck.rows.length === 0) {
-              console.log('Creating server for subscription:', invoice.subscription);
-              await createRealServer(userId, plan, invoice.payment_intent, interval, invoice.subscription);
+              // Server provisioning is deferred to /onboarding/choose.
+              console.log(`[WEBHOOK] invoice.paid (subscription_create): payment recorded for user ${userId}, plan ${plan}. Server creation deferred to onboarding.`);
             } else {
-              // Server exists, just update subscription ID if needed
+              // Server already exists — just attach the subscription ID
               await client.query(
                 'UPDATE servers SET stripe_subscription_id = $1 WHERE user_id = $2 AND status NOT IN (\'deleted\', \'failed\')',
                 [invoice.subscription, userId]

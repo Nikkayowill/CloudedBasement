@@ -162,6 +162,7 @@ app.use(require('./routes/dashboard'));
 app.use(require('./routes/servers'));
 app.use(require('./routes/payments'));
 app.use(require('./routes/wordpress'));
+app.use(require('./routes/onboarding'));
 app.use('/admin', require('./routes/admin'));
 
 // 404 error page - must be last route
