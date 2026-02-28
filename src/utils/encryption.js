@@ -36,10 +36,11 @@ const TAG_BYTES  = 16;  // 128-bit auth tag — GCM default
  */
 function getKey() {
   const hex = process.env.WP_ENCRYPTION_KEY;
-  if (!hex || hex.length !== 64) {
+  const hexPattern = /^[0-9a-fA-F]{64}$/;
+  if (!hex || hex.length !== 64 || !hexPattern.test(hex)) {
     throw new Error(
       'WP_ENCRYPTION_KEY must be set to a 64-character hex string (32 bytes). ' +
-      'Generate one with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"'
+      'Format validation failed. Generate one with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"'
     );
   }
   return Buffer.from(hex, 'hex');
@@ -83,6 +84,20 @@ function encrypt(plaintext) {
  * @returns {string} plaintext
  */
 function decrypt(encryptedBuf, ivBuf) {
+  // Defensive input validation
+  if (!Buffer.isBuffer(encryptedBuf)) {
+    throw new TypeError('encryptedBuf must be a Buffer');
+  }
+  if (!Buffer.isBuffer(ivBuf)) {
+    throw new TypeError('ivBuf must be a Buffer');
+  }
+  if (encryptedBuf.length < TAG_BYTES) {
+    throw new RangeError(`encryptedBuf must be at least ${TAG_BYTES} bytes (got ${encryptedBuf.length})`);
+  }
+  if (ivBuf.length !== IV_BYTES) {
+    throw new RangeError(`ivBuf must be exactly ${IV_BYTES} bytes (got ${ivBuf.length})`);
+  }
+
   const key = getKey();
 
   // Split off the 16-byte auth tag that was appended during encrypt()
