@@ -2,13 +2,18 @@
 
 // services/wordpress.js
 // WordPress provisioning service.
-// This file owns the user-data cloud-init script that turns a raw Ubuntu 22.04
-// droplet into a WordPress-ready server (Nginx + PHP 8.3-FPM + MySQL 8.0 + wp-cli).
+// This file owns:
+//   1. The user-data cloud-init script (getWordPressUserData)
+//   2. Droplet creation for WordPress servers (createWordPressServer)
 //
 // Intentionally separate from digitalocean.js so WordPress provisioning
 // logic doesn't pollute the core droplet management code.
 
 const crypto = require('crypto');
+const axios  = require('axios');
+const pool   = require('../db');
+const { encrypt }             = require('../src/utils/encryption');
+const { pollDropletStatus }   = require('./digitalocean');
 
 // ── Credential helpers ────────────────────────────────────────────────────────
 
@@ -178,8 +183,209 @@ echo "SETUP_DONE"
 `;
 }
 
+// ── Droplet provisioning ──────────────────────────────────────────────────────
+
+// Plan specs — must stay in sync with digitalocean.js
+const WP_SPECS = {
+  basic:   { ram: '1 GB',  cpu: '1 vCPU',  storage: '25 GB NVMe SSD', bandwidth: '1 TB', slug: 's-1vcpu-1gb'  },
+  pro:     { ram: '2 GB',  cpu: '2 vCPUs', storage: '60 GB NVMe SSD', bandwidth: '3 TB', slug: 's-2vcpu-2gb'  },
+  premium: { ram: '4 GB',  cpu: '2 vCPUs', storage: '80 GB NVMe SSD', bandwidth: '4 TB', slug: 's-2vcpu-4gb'  },
+};
+
+/**
+ * Provision a WordPress-ready DigitalOcean droplet for a user.
+ *
+ * Flow:
+ *  1. Guard against duplicate servers (same race-condition pattern as createRealServer).
+ *  2. Generate all credentials (root SSH, WP admin, MySQL DB + user + password).
+ *  3. Encrypt WP admin + MySQL passwords before writing to the DB.
+ *  4. Create the droplet via DO API with the WordPress user-data script.
+ *  5. Insert into `servers` (server_type = 'wordpress') and `wordpress_sites`.
+ *  6. Kick off IP polling (reuses pollDropletStatus from digitalocean.js).
+ *
+ * Database creation and WordPress installation happen AFTER the droplet is
+ * reachable — those are Step 2 and Step 3 of the roadmap.
+ *
+ * @param {number} userId
+ * @param {string} plan         - 'basic' | 'pro' | 'premium'
+ * @param {string} siteTitle    - Used as the WordPress site title
+ * @param {string} adminEmail   - WordPress admin account email
+ * @returns {Promise<object>}   - The new row from the `servers` table
+ */
+async function createWordPressServer(userId, plan, siteTitle, adminEmail) {
+  const selectedSpec = WP_SPECS[plan] || WP_SPECS.basic;
+
+  // ── Generate credentials ──────────────────────────────────────────────────
+  const rootPassword  = generateSecurePassword(20); // SSH root login
+  const adminPassword = generateSecurePassword(20); // WordPress /wp-admin
+  const dbPassword    = generateSecurePassword(20); // MySQL WP user
+  // Prefix with wp_ / wpuser_ so they're identifiable on the droplet
+  const dbName = `wp_${crypto.randomBytes(4).toString('hex')}`;
+  const dbUser = `wpuser_${crypto.randomBytes(3).toString('hex')}`;
+
+  // Encrypt before any DB write — only ciphertext + IV are persisted
+  const encAdmin = encrypt(adminPassword);
+  const encDb    = encrypt(dbPassword);
+  const encRoot  = encrypt(rootPassword);
+
+  const dropletName = `wp-basement-${userId}-${Date.now()}`;
+  const enableBackups = plan === 'pro' || plan === 'premium';
+
+  try {
+    // ── Guard: one active server per user ─────────────────────────────────
+    // Mirrors the same check in createRealServer(). Revisit if we want to
+    // allow users to run both a Node.js server and a WordPress server.
+    const existing = await pool.query(
+      `SELECT id, status FROM servers
+       WHERE user_id = $1 AND status NOT IN ('deleted', 'failed')`,
+      [userId]
+    );
+    if (existing.rows.length > 0) {
+      console.log(`[WP] User ${userId} already has active server (${existing.rows[0].id}), skipping`);
+      return existing.rows[0];
+    }
+
+    // ── Create DigitalOcean droplet ───────────────────────────────────────
+    const response = await axios.post(
+      'https://api.digitalocean.com/v2/droplets',
+      {
+        name:       dropletName,
+        region:     'nyc3',
+        size:       selectedSpec.slug,
+        image:      'ubuntu-22-04-x64',
+        ssh_keys:   null,
+        backups:    enableBackups,
+        ipv6:       true,
+        user_data:  getWordPressUserData(rootPassword),
+        monitoring: true,
+        tags:       ['basement-server', 'wordpress'],
+      },
+      {
+        headers: {
+          Authorization:  `Bearer ${process.env.DIGITALOCEAN_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const droplet = response.data.droplet;
+    console.log(`[WP] Droplet created: ${droplet.id} for user ${userId}`);
+
+    // ── Insert into servers ───────────────────────────────────────────────
+    let serverRow;
+    try {
+      const serverResult = await pool.query(
+        `INSERT INTO servers
+           (user_id, plan, status, ip_address, ssh_username, ssh_password, ssh_password_iv,
+            specs, droplet_id, droplet_name, server_type, site_limit, payment_interval)
+         VALUES ($1, $2, 'provisioning', 'pending', 'root', $3, $4,
+                 $5, $6, $7, 'wordpress', 1, 'monthly')
+         RETURNING *`,
+        [
+          userId,
+          plan,
+          encRoot.encrypted,
+          encRoot.iv,
+          JSON.stringify(selectedSpec),
+          String(droplet.id),
+          dropletName,
+        ]
+      );
+      serverRow = serverResult.rows[0];
+    } catch (insertError) {
+      // 23505 = unique_violation — race condition, another process won
+      if (insertError.code === '23505') {
+        console.log(`[WP] Race condition for user ${userId}. Destroying orphaned droplet ${droplet.id}`);
+        await axios
+          .delete(`https://api.digitalocean.com/v2/droplets/${droplet.id}`, {
+            headers: { Authorization: `Bearer ${process.env.DIGITALOCEAN_TOKEN}` },
+          })
+          .catch(e => console.error(`[WP] Failed to destroy orphaned droplet:`, e.message));
+
+        let winner;
+        let retries = 3;
+        while (retries > 0) {
+          winner = await pool.query(
+            `SELECT * FROM servers
+             WHERE user_id = $1 AND status NOT IN ('deleted', 'failed') LIMIT 1`,
+            [userId]
+          );
+          if (winner.rows.length > 0) {
+            return winner.rows[0];
+          }
+          retries--;
+          if (retries > 0) {
+            await new Promise(res => setTimeout(res, 200));
+          }
+        }
+        throw new Error('No available server after race condition');
+      }
+      throw insertError;
+    }
+
+    // ── Insert into wordpress_sites ───────────────────────────────────────
+    // Passwords are stored as encrypted BYTEA — never plaintext.
+    await pool.query(
+      `INSERT INTO wordpress_sites
+         (user_id, server_id, site_title, admin_user, admin_email,
+          encrypted_admin_password, encrypted_admin_password_iv,
+          db_name, db_user,
+          encrypted_db_password, encrypted_db_password_iv,
+          status)
+       VALUES ($1, $2, $3, 'wpadmin', $4, $5, $6, $7, $8, $9, $10, 'provisioning')`,
+      [
+        userId,
+        serverRow.id,
+        siteTitle,
+        adminEmail,
+        encAdmin.encrypted, // Buffer → PostgreSQL BYTEA
+        encAdmin.iv,
+        dbName,
+        dbUser,
+        encDb.encrypted,
+        encDb.iv,
+      ]
+    );
+    console.log(`[WP] wordpress_sites record created (server ${serverRow.id})`);
+
+    // ── Start IP polling ──────────────────────────────────────────────────
+    // pollDropletStatus updates servers.ip_address + status to 'running'
+    // once the droplet becomes active. WordPress installation (Step 2) waits
+    // for status = 'running' before SSHing in.
+    pollDropletStatus(droplet.id, serverRow.id);
+
+    return serverRow;
+
+  } catch (error) {
+    console.error('[WP] Provisioning failed:', error.response?.data || error.message);
+
+    // Attempt to destroy orphaned droplet if it was created
+    if (typeof droplet !== 'undefined' && droplet && droplet.id) {
+      try {
+        await axios.delete(`https://api.digitalocean.com/v2/droplets/${droplet.id}`,
+          { headers: { Authorization: `Bearer ${process.env.DIGITALOCEAN_TOKEN}` } });
+        console.log(`[WP] Destroyed orphaned droplet ${droplet.id}`);
+      } catch (cleanupErr) {
+        console.error(`[WP] Failed to destroy orphaned droplet:`, cleanupErr.message);
+      }
+    }
+
+    // Record the failure so it appears in the dashboard rather than disappearing
+    await pool.query(
+      `INSERT INTO servers
+         (user_id, plan, status, ip_address, ssh_username, ssh_password,
+          specs, droplet_id, server_type, site_limit)
+       VALUES ($1, $2, 'failed', 'N/A', 'root', 'N/A', $3, NULL, 'wordpress', 1)`,
+      [userId, plan, JSON.stringify(selectedSpec)]
+    ).catch(e => console.error('[WP] Failed to record failed server:', e.message));
+
+    throw error;
+  }
+}
+
 // ── Exports ───────────────────────────────────────────────────────────────────
 module.exports = {
   generateSecurePassword,
   getWordPressUserData,
+  createWordPressServer,
 };

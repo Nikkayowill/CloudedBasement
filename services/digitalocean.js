@@ -412,6 +412,7 @@ async function syncDigitalOceanDroplets() {
 module.exports = {
   createRealServer,
   syncDigitalOceanDroplets,
+  pollDropletStatus, // exported so wordpress.js can reuse the same polling logic
   
   // Destroy droplet by droplet ID directly (for webhook/cancellation use)
   destroyDroplet: async (dropletId) => {
