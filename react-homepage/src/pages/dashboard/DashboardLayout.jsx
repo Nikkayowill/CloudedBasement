@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import ResponsiveNav from '../../components/ResponsiveNav';
 import Sidebar from './Sidebar';
 import OverviewSection  from './sections/OverviewSection';
 import SitesSection     from './sections/SitesSection';
@@ -90,10 +89,7 @@ export default function DashboardLayout({ data, flashSuccess, flashError }) {
   return (
     <div style={{ minHeight: '100vh', background: '#000', display: 'flex', flexDirection: 'column' }}>
 
-      <ResponsiveNav />
-
-      {/* Body — pushed below the fixed top nav */}
-      <div style={{ display: 'flex', flex: 1, paddingTop: '3.5rem' }}>
+      <div style={{ display: 'flex', flex: 1 }}>
 
         {/* ONE .cb — rail borders run full height */}
         <div className="cb" style={{ display: 'flex', flex: 1 }}>
