@@ -19,8 +19,8 @@ export default function Sidebar({ nav, active, onNav, userEmail, plan, open, onT
           display: 'flex',
           flexDirection: 'column',
           position: 'sticky',
-          top: '3.5rem',
-          height: 'calc(100vh - 3.5rem)',
+          top: 0,
+          height: '100vh',
           overflowX: 'hidden',
         }}
       >
