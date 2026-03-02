@@ -78,22 +78,6 @@
     }
 }
 
-/* ============================================
-   RESPONSIVE VISIBILITY UTILITIES
-   (Tailwind v4 not generating these from content)
-   ============================================ */
-@media (min-width: 768px) {
-    .md\:hidden {
-        display: none !important;
-    }
-    .md\:block {
-        display: block !important;
-    }
-    .md\:flex {
-        display: flex !important;
-    }
-}
-
 /* Cloud Gradient Journey - Dark Basement to Bright Sky */
 .gradient-basement-glimpse {
     background: #0a0a0f;
@@ -515,11 +499,6 @@ p, li, blockquote {
     font-weight: 700;
     letter-spacing: -0.03em;
     text-wrap: balance;}
-
-/* Hero title - let Tailwind handle sizing */
-.hero-title {
-    /* font-size controlled by Tailwind classes */
-}
 
 /* Glossy Gradient Text - hero only */
 .hero-title {

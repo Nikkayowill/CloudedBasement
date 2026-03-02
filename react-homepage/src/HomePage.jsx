@@ -13,21 +13,21 @@ export default function HomePage() {
   return (
     <div className="funnel">
       <ResponsiveNav />
-      {/* ONE .cb container — rail borders run the full page height */}
-      <div className="cb">
-        <main>
-          <HeroSection />
-          <ProblemFrame />
-          <HowItWorks />
-          <Features />
-          <WhyChooseUs />
-          <NewPricing />
-          <FaqSection />
-          <CTASection />
-        </main>
-        <Footer />
+      <div className="cb-shell">
+        <div className="cb-shell-inner">
+          <main>
+            <div className="cb-section"><HeroSection /></div>
+            <div className="cb-section"><ProblemFrame /></div>
+            <div className="cb-section"><HowItWorks /></div>
+            <div className="cb-section"><Features /></div>
+            <div className="cb-section"><WhyChooseUs /></div>
+            <div className="cb-section"><NewPricing /></div>
+            <div className="cb-section"><FaqSection /></div>
+            <div className="cb-section"><CTASection /></div>
+          </main>
+          <Footer />
+        </div>
       </div>
     </div>
   );
 }
-

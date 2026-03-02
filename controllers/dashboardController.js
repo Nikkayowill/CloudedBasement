@@ -1,6 +1,7 @@
 const pool = require('../db');
 const { getDashboardHead, getFooter, getScripts, getResponsiveNav, escapeHtml, getDashboardLayoutStart, getDashboardLayoutEnd } = require('../src/utils/helpers');
 const { getUserServer, hasSuccessfulPayment } = require('../src/utils/db-helpers');
+const { isTrialAvailable } = require('../src/utils/db-helpers');
 const { PAYMENT_STATUS, SERVER_STATUS } = require('../src/utils/constants');
 const serverUpdates = require('../services/serverUpdates');
 const { sendEmail } = require('../services/email');
@@ -332,12 +333,12 @@ const submitSupportTicket = async (req, res) => {
 
       const html = `
         <h2>New Support Ticket #${ticketId}</h2>
-        <p><strong>From:</strong> ${userEmail} (User ID: ${userId})</p>
+        <p><strong>From:</strong> ${escapeHtml(userEmail)} (User ID: ${userId})</p>
         <p><strong>Priority:</strong> ${priority.toUpperCase()}</p>
-        <p><strong>Subject:</strong> ${subject.trim()}</p>
+        <p><strong>Subject:</strong> ${escapeHtml(subject.trim())}</p>
         <hr style="border: 1px solid #ddd; margin: 20px 0;">
         <p><strong>Description:</strong></p>
-        <p style="white-space: pre-wrap; background: #f5f5f5; padding: 15px; border-radius: 5px;">${description.trim()}</p>
+        <p style="white-space: pre-wrap; background: #f5f5f5; padding: 15px; border-radius: 5px;">${escapeHtml(description.trim())}</p>
       `;
       const text = `New Support Ticket #${ticketId}\nFrom: ${userEmail} (User ID: ${userId})\nPriority: ${priority}\nSubject: ${subject.trim()}\n\nDescription:\n${description.trim()}`;
 
@@ -457,11 +458,31 @@ const getCredentials = async (req, res) => {
       return res.status(404).json({ error: 'No server found' });
     }
     
-    const credentialType = req.query.type; // 'ssh', 'postgres', 'mongodb', or 'all'
-    
-    const response = {};
-    
-    if (credentialType === 'ssh' || credentialType === 'all') {
+        const credentialType = req.query.type; // 'ssh', 'postgres', 'mongodb', 'webhook', or 'all'
+        const response = {};
+        if (credentialType === 'webhook') {
+            // Audit log for webhook credential access
+            try {
+                const { logAdminAction } = require('../services/auditLog');
+                await logAdminAction(
+                  req.session.userId,
+                  req.session.userEmail || '',
+                  'accessed_webhook_secret',
+                  '',
+                  '',
+                  ''
+                );
+            } catch (auditErr) {
+                console.error('[AUDIT] Failed to log webhook credential access:', auditErr);
+            }
+            // Return the GitHub webhook secret
+            if (server.github_webhook_secret) {
+                return res.json({ secret: server.github_webhook_secret });
+            } else {
+                return res.status(404).json({ error: 'Webhook secret not found' });
+            }
+        }
+        if (credentialType === 'ssh' || credentialType === 'all') {
       response.ssh = {
         username: server.ssh_username || 'root',
         password: server.ssh_password || '',
@@ -473,12 +494,12 @@ const getCredentials = async (req, res) => {
     if (credentialType === 'postgres' || credentialType === 'all') {
       if (server.postgres_installed && server.postgres_db_password) {
         response.postgres = {
-          host: server.ip_address || 'localhost',
-          port: '5432',
-          database: server.postgres_db_name || 'app_db',
-          username: server.postgres_db_user || 'basement_user',
-          password: server.postgres_db_password || '',
-          connectionString: `postgresql://${server.postgres_db_user || 'basement_user'}:${server.postgres_db_password || ''}@${server.ip_address || 'localhost'}:5432/${server.postgres_db_name || 'app_db'}`
+             host: server.ip_address || 'localhost',
+             port: '5432',
+             database: server.postgres_db_name || 'app_db',
+             username: server.postgres_db_user || 'basement_user',
+             password: server.postgres_db_password || '',
+             connectionString: `postgresql://${encodeURIComponent(server.postgres_db_user || 'basement_user')}:${encodeURIComponent(server.postgres_db_password || '')}@${server.ip_address || 'localhost'}:5432/${encodeURIComponent(server.postgres_db_name || 'app_db')}`
         };
       }
     }
@@ -513,6 +534,46 @@ const getDashboardData = async (req, res) => {
     try {
         const userId = req.session.userId;
 
+        // Admin-only demo mode: return realistic fake data, skip all DB queries
+        const isDemoMode = req.query.demo === 'true' && req.session.userRole === 'admin';
+        if (isDemoMode) {
+            const demoPlan = req.query.demoPlan || 'pro';
+            const now = Date.now();
+            return res.json({
+                userEmail:        req.session.userEmail,
+                userRole:         req.session.userRole,
+                plan:             demoPlan,
+                hasPaid:          true,
+                hasServer:        true,
+                isProvisioning:   false,
+                isDemo:           true,
+                emailConfirmed:   true,
+                trialAvailable:   false,
+                serverStatus:     'running',
+                serverName:       'basement-core',
+                serverId:         999,
+                ipAddress:        '143.198.167.42',
+                ipv6Address:      '2604:a880:800:c1::1a9:d001',
+                sshUsername:      'root',
+                postgresInstalled: true,
+                mongodbInstalled:  false,
+                siteCount:        3,
+                siteLimit:        5,
+                paymentInterval:  'monthly',
+                deployments: [
+                    { id: 101, git_url: 'https://github.com/demo-user/my-saas-app',   branch: 'main',       status: 'success', subdomain: 'my-saas-app',   deployed_at: new Date(now - 2 * 3600 * 1000),      created_at: new Date(now - 2 * 3600 * 1000),      deployment_type: 'github' },
+                    { id: 100, git_url: 'https://github.com/demo-user/landing-page',  branch: 'main',       status: 'success', subdomain: 'landing-page',  deployed_at: new Date(now - 3 * 86400 * 1000),    created_at: new Date(now - 3 * 86400 * 1000),    deployment_type: 'github' },
+                    { id: 99,  git_url: 'https://github.com/demo-user/api-backend',   branch: 'production', status: 'success', subdomain: 'api-backend',   deployed_at: new Date(now - 5 * 86400 * 1000),    created_at: new Date(now - 5 * 86400 * 1000),    deployment_type: 'github' },
+                ],
+                domains: [
+                    { id: 201, domain: 'myapp.com',     ssl_enabled: true, verified: true, created_at: new Date(now - 10 * 86400 * 1000) },
+                    { id: 202, domain: 'api.myapp.com', ssl_enabled: true, verified: true, created_at: new Date(now -  8 * 86400 * 1000) },
+                ],
+                liveSiteUrl: 'https://myapp.com',
+                csrfToken: typeof req.csrfToken === 'function' ? req.csrfToken() : '',
+            });
+        }
+
         const hasPaid = await hasSuccessfulPayment(userId);
         const server  = await getUserServer(userId);
         const hasServer = !!server;
@@ -538,13 +599,10 @@ const getDashboardData = async (req, res) => {
             [server.id]
         ) : { rows: [{ count: 0 }] };
 
-        // Trial eligibility (mirrors /start-trial check)
+        // Trial eligibility (shared logic)
         let trialAvailable = false;
         if (!hasServer && !hasPaid) {
-            const trialRow = await pool.query(
-                'SELECT trial_used, browser_fingerprint FROM users WHERE id = $1', [userId]
-            );
-            trialAvailable = !trialRow.rows[0]?.trial_used && !!trialRow.rows[0]?.browser_fingerprint;
+            trialAvailable = await isTrialAvailable(userId, req.ip, pool);
         }
 
         const isProvisioning = server?.status === 'provisioning';
@@ -556,12 +614,13 @@ const getDashboardData = async (req, res) => {
             : domains.length > 0 ? `http://${domains[0].domain}` : `http://${server?.ip_address || ''}`;
 
         res.json({
-            userEmail:    req.session.userEmail,
-            userRole:     req.session.userRole,
-            plan:         plan.toString(),
+            userEmail:      req.session.userEmail,
+            userRole:       req.session.userRole,
+            plan:           plan.toString(),
             hasPaid,
             hasServer,
             isProvisioning,
+            emailConfirmed: !!req.session.emailConfirmed,
             trialAvailable,
             serverStatus: server?.status || (isProvisioning ? 'provisioning' : 'unknown'),
             serverName:   server?.hostname || 'basement-core',
@@ -1221,9 +1280,8 @@ ${getDashboardLayoutStart(layoutOptions)}
                 }
             </div>
             
-            ${data.autoDeployEnabled && data.githubWebhookSecret ? `
+            ${data.autoDeployEnabled ? `
             <p class="text-sm text-[var(--dash-text-secondary)] mb-4">Add this webhook to your GitHub repository:</p>
-            
             <div class="space-y-4">
                 <div>
                     <label class="block text-xs text-[var(--dash-text-muted)] mb-2">Webhook URL</label>
@@ -1232,19 +1290,17 @@ ${getDashboardLayoutStart(layoutOptions)}
                         <button onclick="navigator.clipboard.writeText('https://cloudedbasement.ca/webhook/github/${data.serverId}')" class="dash-btn dash-btn-primary px-3 w-full sm:w-auto">Copy</button>
                     </div>
                 </div>
-                
                 <div>
                     <label class="block text-xs text-[var(--dash-text-muted)] mb-2">Secret</label>
                     <div class="flex flex-col sm:flex-row gap-2">
                         <code id="webhookSecret" class="flex-1 px-3 py-2 bg-[var(--dash-bg)] border border-[var(--dash-card-border)] rounded-lg text-[var(--dash-accent)] text-xs font-mono">••••••••••••••••</code>
                         <div class="flex gap-2">
-                            <button onclick="toggleWebhookSecret()" class="dash-btn dash-btn-secondary px-3 flex-1 sm:flex-initial">Show</button>
-                            <button onclick="navigator.clipboard.writeText('${data.githubWebhookSecret}')" class="dash-btn dash-btn-primary px-3 flex-1 sm:flex-initial">Copy</button>
+                            <button onclick="fetchWebhookSecret()" class="dash-btn dash-btn-secondary px-3 flex-1 sm:flex-initial">Show</button>
+                            <button onclick="copyWebhookSecret()" class="dash-btn dash-btn-primary px-3 flex-1 sm:flex-initial">Copy</button>
                         </div>
                     </div>
                 </div>
             </div>
-            
             <div class="mt-6 p-4 bg-[var(--dash-bg)] border border-[var(--dash-card-border)] rounded-lg">
                 <p class="text-xs text-[var(--dash-text-secondary)] font-medium mb-2">Setup Instructions:</p>
                 <ol class="text-xs text-[var(--dash-text-muted)] space-y-1 list-decimal list-inside">
@@ -1255,20 +1311,37 @@ ${getDashboardLayoutStart(layoutOptions)}
                     <li>Select "Just the push event"</li>
                 </ol>
             </div>
-            
             <form action="/disable-auto-deploy" method="POST" class="mt-6">
                 <input type="hidden" name="_csrf" value="${data.csrfToken}">
                 <button type="submit" class="dash-btn dash-btn-danger">Disable Auto-Deploy</button>
             </form>
-            
             <script nonce="${getNonce()}">
-                function toggleWebhookSecret() {
+                async function fetchWebhookSecret() {
                     const el = document.getElementById('webhookSecret');
-                    if (el.textContent.includes('•')) {
-                        el.textContent = '${data.githubWebhookSecret}';
-                    } else {
+                    if (!el.textContent.includes('•')) {
                         el.textContent = '••••••••••••••••';
+                        return;
                     }
+                    try {
+                        const resp = await fetch('/api/credentials?type=webhook', { credentials: 'include' });
+                        const data = await resp.json();
+                        if (data.secret) {
+                            el.textContent = data.secret;
+                        } else {
+                            el.textContent = 'Error';
+                        }
+                    } catch (e) {
+                        el.textContent = 'Error';
+                    }
+                }
+                async function copyWebhookSecret() {
+                    try {
+                        const resp = await fetch('/api/credentials?type=webhook', { credentials: 'include' });
+                        const data = await resp.json();
+                        if (data.secret) {
+                            await navigator.clipboard.writeText(data.secret);
+                        }
+                    } catch (e) {}
                 }
             </script>
             ` : `

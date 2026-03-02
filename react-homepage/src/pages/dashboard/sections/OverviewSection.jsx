@@ -46,7 +46,7 @@ const CTAbtn = { padding: '0.25rem 0.625rem', borderRadius: '0.3125rem', backgro
 
 function GetStartedCard({ data, onNav }) {
   const domainCount = data.domains?.length ?? 0;
-
+  // Add email confirmation step after payment
   const steps = [
     {
       id: 'account',
@@ -54,10 +54,27 @@ function GetStartedCard({ data, onNav }) {
       done: true,
     },
     {
-      id: 'server',
-      label: 'Set up a server',
+      id: 'email',
+      label: 'Confirm your email',
+      done: !!data.emailConfirmed,
+      cta: !data.emailConfirmed ? { label: 'Resend confirmation', href: '/resend-confirmation' } : undefined,
+      extra: !data.emailConfirmed ? (
+        <div style={{ color: '#facc15', fontSize: '0.75rem', marginTop: 4 }}>
+          Please check your inbox and click the link to verify your email before continuing.<br />
+          {data.userEmail && data.userEmail.trim() ? (
+            <span style={{ color: '#a1a1a1' }}>Email: <b>{data.userEmail}</b></span>
+          ) : (
+            <span style={{ color: '#a1a1a1' }}>Email not provided</span>
+          )}
+        </div>
+      ) : null,
+    },
+    {
+      id: 'payment',
+      label: 'Choose a plan',
       done: !!(data.hasPaid || data.hasServer || data.isProvisioning),
-      cta: { label: 'Choose a plan', href: '/pay' },
+      cta: data.emailConfirmed ? { label: 'Choose a plan', href: '/pay' } : undefined,
+      hidden: !data.emailConfirmed,
     },
     {
       id: 'deploy',
@@ -73,11 +90,40 @@ function GetStartedCard({ data, onNav }) {
     },
   ];
 
-  const doneCount = steps.filter(s => s.done).length;
-  if (doneCount === steps.length) return null;
+  const visibleSteps = steps.filter(s => !s.hidden);
+  const doneCount = visibleSteps.filter(s => s.done).length;
+  if (doneCount === visibleSteps.length) {
+    return (
+      <div style={{
+        border: '1px solid rgba(34,197,94,0.18)',
+        borderRadius: '0.625rem',
+        marginBottom: '1.25rem',
+        background: 'rgba(34,197,94,0.07)',
+        color: '#22c55e',
+        padding: '1.5rem 1.25rem',
+        textAlign: 'center',
+        fontWeight: 500,
+        fontSize: '1.05rem',
+        letterSpacing: '0.01em',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '0.5rem',
+      }}>
+        <svg width="32" height="32" viewBox="0 0 20 20" fill="none" style={{ marginBottom: 6 }}>
+          <circle cx="10" cy="10" r="9" stroke="#22c55e" strokeWidth="2" fill="rgba(34,197,94,0.08)" />
+          <path d="M6 10.5l2.5 2.5L14 8" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        Your server is ready!
+        <div style={{ color: '#a1a1a1', fontWeight: 400, fontSize: '0.95rem', marginTop: 2 }}>
+          Welcome to your dashboard. You can now deploy apps, manage domains, and explore all features.
+        </div>
+      </div>
+    );
+  }
 
-  const activeIdx = steps.findIndex(s => !s.done);
-  const pct = Math.round((doneCount / steps.length) * 100);
+  const activeIdx = visibleSteps.findIndex(s => !s.done);
+  const pct = Math.round((doneCount / visibleSteps.length) * 100);
 
   return (
     <div style={{ border: '1px solid rgba(255,255,255,0.07)', borderRadius: '0.625rem', marginBottom: '1.25rem', overflow: 'hidden' }}>
@@ -87,7 +133,7 @@ function GetStartedCard({ data, onNav }) {
           Get Started
         </span>
         <span style={{ fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)', fontVariantNumeric: 'tabular-nums' }}>
-          {doneCount} / {steps.length} complete
+          {doneCount} / {visibleSteps.length} complete
         </span>
       </div>
 
@@ -98,45 +144,52 @@ function GetStartedCard({ data, onNav }) {
 
       {/* Steps */}
       <div style={{ padding: '0.5rem 1.25rem 0.75rem' }}>
-        {steps.map((step, i) => {
+        {visibleSteps.map((step, i) => {
           const isActive = i === activeIdx;
           return (
             <div key={step.id} style={{
-              display: 'flex', alignItems: 'center', gap: '0.75rem',
+              display: 'flex',
+              gap: '0.75rem',
               padding: '0.5rem 0',
-              borderBottom: i < steps.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+              borderBottom: i < visibleSteps.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
             }}>
-              {/* State icon */}
-              {step.done ? (
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, color: '#22c55e' }}>
-                  <circle cx="8" cy="8" r="7.25" stroke="currentColor" strokeWidth="1.5" fill="rgba(34,197,94,0.1)" />
-                  <path d="M5 8l2.5 2.5L11 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              ) : isActive ? (
-                <span style={{ width: '1rem', height: '1rem', borderRadius: '50%', border: '2px solid #3b82f6', flexShrink: 0, display: 'inline-block' }} />
-              ) : (
-                <span style={{ width: '1rem', height: '1rem', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.12)', flexShrink: 0, display: 'inline-block' }} />
-              )}
-
-              {/* Label */}
-              <span style={{
-                flex: 1, fontSize: '0.8125rem',
-                color: step.done
-                  ? 'var(--dash-text-muted, #525252)'
-                  : isActive
-                    ? 'var(--dash-text-primary, #fafafa)'
-                    : 'var(--dash-text-secondary, #a1a1a1)',
-              }}>
-                {step.label}
-              </span>
-
-              {/* CTA — only on the current active step */}
-              {isActive && step.cta && (
-                step.cta.href ? (
-                  <a href={step.cta.href} style={CTAbtn}>{step.cta.label} →</a>
+              <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: '0.75rem' }}>
+                {/* State icon */}
+                {step.done ? (
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, color: '#22c55e' }}>
+                    <circle cx="8" cy="8" r="7.25" stroke="currentColor" strokeWidth="1.5" fill="rgba(34,197,94,0.1)" />
+                    <path d="M5 8l2.5 2.5L11 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                ) : isActive ? (
+                  <span style={{ width: '1rem', height: '1rem', borderRadius: '50%', border: '2px solid #3b82f6', flexShrink: 0, display: 'inline-block' }} />
                 ) : (
-                  <button onClick={step.cta.onClick} style={CTAbtn}>{step.cta.label} →</button>
-                )
+                  <span style={{ width: '1rem', height: '1rem', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.12)', flexShrink: 0, display: 'inline-block' }} />
+                )}
+                {/* Label */}
+                <span style={{
+                  flex: 1, fontSize: '0.8125rem',
+                  color: step.done
+                    ? 'var(--dash-text-muted, #525252)'
+                    : isActive
+                      ? 'var(--dash-text-primary, #fafafa)'
+                      : 'var(--dash-text-secondary, #a1a1a1)',
+                }}>
+                  {step.label}
+                </span>
+                {/* CTA — only on the current active step */}
+                {isActive && step.cta && (
+                  step.cta.href ? (
+                    <a href={step.cta.href} style={CTAbtn}>{step.cta.label} →</a>
+                  ) : (
+                    <button onClick={step.cta.onClick} style={CTAbtn}>{step.cta.label} →</button>
+                  )
+                )}
+              </div>
+              {/* Extra info for email step */}
+              {step.extra && isActive && (
+                <div style={{ marginLeft: 28 }}>{step.extra}</div>
               )}
             </div>
           );

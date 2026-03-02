@@ -1,3 +1,24 @@
+/**
+ * Check if user is eligible for a trial (no prior trial, unique fingerprint/IP, no recent abuse)
+ * @param {number} userId - User ID
+ * @param {string} ipAddress - User IP address
+ * @param {object} pool - DB pool
+ * @returns {boolean} True if trial is available
+ */
+async function isTrialAvailable(userId, ipAddress, pool) {
+  // Check if user has used trial or has a fingerprint
+  const userRow = await pool.query('SELECT trial_used, browser_fingerprint FROM users WHERE id = $1', [userId]);
+  if (!userRow.rows[0] || userRow.rows[0].trial_used || !userRow.rows[0].browser_fingerprint) return false;
+
+  // Check for recent trial abuse by fingerprint or IP (90-day lookback)
+  const { browser_fingerprint } = userRow.rows[0];
+  const recentTrials = await pool.query(
+    `SELECT id FROM users WHERE (browser_fingerprint = $1 OR last_ip = $2)
+      AND trial_used = true AND updated_at > NOW() - INTERVAL '90 days'`,
+    [browser_fingerprint, ipAddress]
+  );
+  return recentTrials.rowCount === 0;
+}
 // Database helper functions to reduce duplication across controllers
 const pool = require('../../db');
 
@@ -131,4 +152,5 @@ module.exports = {
   updateServerStatus,
   appendDeploymentOutput,
   updateDeploymentStatus
+  ,isTrialAvailable
 };

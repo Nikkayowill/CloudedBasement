@@ -12,13 +12,13 @@ export default function CTASection() {
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl p-10 backdrop-blur-md bg-opacity-40 rounded-xl z-0" />
         <div className="relative z-10 p-10 w-full max-w-xl text-center">
           <p className="funnel-kicker mb-5">Deploy now</p>
-          <h2 className="funnel-heading-2 mb-6">Your server is already&nbsp;waiting.</h2>
+          <h2 className="funnel-heading-2 mb-6">Launch your managed VPS today.</h2>
           <p className="mb-10">
-            Stop configuring. Start shipping. 3-day free trial — no credit card, no&nbsp;commitment.
+            Get automated cloud hosting with GitHub deploys, WordPress support, and full server control. Start your 3-day free trial.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <a href="/register" className="funnel-btn funnel-btn-primary">Start Free Trial</a>
-            <a href="/docs" className="funnel-btn funnel-btn-subtle">Read the docs →</a>
+            <a href="/docs" className="funnel-btn funnel-btn-subtle">Read deployment docs -&gt;</a>
           </div>
         </div>
       </div>

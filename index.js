@@ -151,9 +151,14 @@ app.get('/health', async (req, res) => {
   }
 });
 
-// React SPA homepage
+// React SPA homepage — redirect authenticated users straight to the dashboard
 // app.get('/', pagesController.showHome); // original server-rendered route kept as reference
-app.get('/', (_req, res) => res.sendFile(path.join(__dirname, 'react-homepage/dist/index.html')));
+app.get('/', (req, res) => {
+  if (req.session && req.session.userId) {
+    return res.redirect('/dashboard');
+  }
+  res.sendFile(path.join(__dirname, 'react-homepage/dist/index.html'));
+});
 
 // Feature routers
 app.use(require('./routes/pages'));
@@ -163,6 +168,7 @@ app.use(require('./routes/servers'));
 app.use(require('./routes/payments'));
 app.use(require('./routes/wordpress'));
 app.use(require('./routes/onboarding'));
+app.use(require('./routes/gettingStarted'));
 app.use('/admin', require('./routes/admin'));
 
 // 404 error page - must be last route
