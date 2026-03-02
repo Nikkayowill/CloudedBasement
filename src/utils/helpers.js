@@ -12,7 +12,7 @@ function escapeHtml(unsafe) {
 }
 
 const SITE_URL = 'https://cloudedbasement.ca';
-const OG_IMAGE  = `${SITE_URL}/Minimalist%20Logo%20Suite%20for%20Clouded%20Basement.png`;
+const OG_IMAGE  = `${SITE_URL}/images/og-image.png`;
 
 // Safely embed JSON-LD in a <script> tag — escapes </script> sequences
 function safeJsonLD(obj) {
