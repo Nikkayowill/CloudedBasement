@@ -1,8 +1,19 @@
 const { getHTMLHead, getScripts, getFooter, getResponsiveNav } = require('../../src/utils/helpers');
 
 exports.showAbout = (req, res) => {
+  const jsonLD = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: 'Kayo Williams',
+    jobTitle: 'Founder & Developer',
+    worksFor: { '@type': 'Organization', name: 'Clouded Basement', url: 'https://cloudedbasement.ca' }
+  };
   res.send(`
-${getHTMLHead('About - Clouded Basement')}
+${getHTMLHead('About Clouded Basement — Managed VPS Hosting for Developers', {
+    description: 'Clouded Basement is a managed VPS platform built by a developer for developers. Full server control, GitHub auto-deploy, and automatic SSL — without hours of manual setup.',
+    canonical: 'https://cloudedbasement.ca/about',
+    jsonLD
+  })}
     ${getResponsiveNav(req)}
     
     <main class="bg-black min-h-screen pt-36 sm:pt-40 pb-20">

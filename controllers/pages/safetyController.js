@@ -2,7 +2,10 @@ const { getHTMLHead, getScripts, getFooter, getResponsiveNav } = require('../../
 
 exports.showSafety = (req, res) => {
   res.send(`
-${getHTMLHead('Security & Trust - Clouded Basement')}
+${getHTMLHead('Security & Trust — Clouded Basement', {
+    description: 'How Clouded Basement protects your data, payments, and infrastructure. Stripe PCI-DSS payments, bcrypt password hashing, CSRF protection, HTTPS everywhere, and DigitalOcean infrastructure.',
+    canonical: 'https://cloudedbasement.ca/is-this-safe'
+  })}
     <link rel="stylesheet" href="/css/docs.css">
     ${getResponsiveNav(req)}
 

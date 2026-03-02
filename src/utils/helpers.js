@@ -11,8 +11,49 @@ function escapeHtml(unsafe) {
     .replace(/'/g, "&#039;");
 }
 
+const SITE_URL = 'https://cloudedbasement.ca';
+const OG_IMAGE  = `${SITE_URL}/Minimalist%20Logo%20Suite%20for%20Clouded%20Basement.png`;
+
+// Safely embed JSON-LD in a <script> tag — escapes </script> sequences
+function safeJsonLD(obj) {
+  return JSON.stringify(obj).replace(/<\//g, '<\\/');
+}
+
+// Global JSON-LD schemas added to every public page
+const GLOBAL_SCHEMAS = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Clouded Basement',
+    url: SITE_URL,
+    logo: `${SITE_URL}/CB-logo-icon.svg`,
+    description: 'Managed VPS hosting with GitHub auto-deploy, automatic SSL, and full root access.',
+    sameAs: ['https://github.com/Nikkayowill/CloudedBasement'],
+    contactPoint: { '@type': 'ContactPoint', contactType: 'customer support', url: `${SITE_URL}/contact` }
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Clouded Basement',
+    url: SITE_URL
+  }
+];
+
 // HTML Head with CSS links
-function getHTMLHead(title) {
+// opts: { description, canonical, ogType, noindex, jsonLD }
+function getHTMLHead(title, opts = {}) {
+  const {
+    description = 'Managed VPS hosting with GitHub auto-deploy, automatic SSL, and full root access. Real servers from $15/mo — 3-day free trial.',
+    canonical   = null,
+    ogType      = 'website',
+    noindex     = false,
+    jsonLD      = null,   // page-specific schema object (added alongside globals)
+  } = opts;
+
+  const robots  = noindex ? 'noindex, nofollow' : 'index, follow';
+  const schemas = jsonLD ? [...GLOBAL_SCHEMAS, jsonLD] : GLOBAL_SCHEMAS;
+  const ldTags  = schemas.map(s => `<script type="application/ld+json">${safeJsonLD(s)}</script>`).join('\n    ');
+
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -20,6 +61,23 @@ function getHTMLHead(title) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${escapeHtml(title)}</title>
+    <meta name="description" content="${escapeHtml(description)}">
+    <meta name="robots" content="${robots}">
+    ${canonical ? `<link rel="canonical" href="${escapeHtml(canonical)}">` : ''}
+    <!-- Open Graph -->
+    <meta property="og:type" content="${escapeHtml(ogType || 'website')}">
+    <meta property="og:site_name" content="Clouded Basement">
+    <meta property="og:title" content="${escapeHtml(title)}">
+    <meta property="og:description" content="${escapeHtml(description)}">
+    <meta property="og:image" content="${OG_IMAGE}">
+    ${canonical ? `<meta property="og:url" content="${escapeHtml(canonical)}">` : ''}
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${escapeHtml(title)}">
+    <meta name="twitter:description" content="${escapeHtml(description)}">
+    <meta name="twitter:image" content="${OG_IMAGE}">
+    <!-- Structured Data -->
+    ${ldTags}
     <link rel="icon" type="image/svg+xml" href="/Favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -33,7 +91,7 @@ function getHTMLHead(title) {
 `;
 }
 
-// Dashboard specific head
+// Dashboard specific head — always noindex (authenticated pages)
 function getDashboardHead(title) {
   return `
 <!DOCTYPE html>
@@ -42,6 +100,7 @@ function getDashboardHead(title) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${escapeHtml(title)}</title>
+    <meta name="robots" content="noindex, nofollow">
     <link rel="icon" type="image/svg+xml" href="/Favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -158,7 +217,7 @@ function getResponsiveNav(req) {
       <li><a href="/admin" class="uppercase tracking-wider text-gray-400 text-xs transition-all duration-300 hover:text-blue-400 hover:scale-110 hover:drop-shadow-[0_0_12px_rgba(0,102,255,0.8)]">Admin</a></li>
       <li><a href="/docs" class="uppercase tracking-wider text-gray-400 text-xs transition-all duration-300 hover:text-blue-400 hover:scale-110 hover:drop-shadow-[0_0_12px_rgba(0,102,255,0.8)]">Docs</a></li>
       <li><a href="/logout" class="uppercase tracking-wider text-gray-400 text-xs transition-all duration-300 hover:text-blue-400 hover:scale-110 hover:drop-shadow-[0_0_12px_rgba(0,102,255,0.8)]">Logout</a></li>
-      ${userInitial ? `<li class="ml-4"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-lg shadow-blue-500/30 border border-blue-400/20 hover:scale-110 hover:shadow-[0_0_20px_rgba(0,102,255,0.6)] transition-all duration-300 cursor-pointer" title="${req.session.userEmail}">${userInitial}</div></li>` : ''}
+      ${userInitial ? `<li class="ml-4"><div class="w-9 h-9 rounded-full bg-linear-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-lg shadow-blue-500/30 border border-blue-400/20 hover:scale-110 hover:shadow-[0_0_20px_rgba(0,102,255,0.6)] transition-all duration-300 cursor-pointer" title="${req.session.userEmail}">${userInitial}</div></li>` : ''}
     `;
   } else {
     navLinks = `
@@ -166,7 +225,7 @@ function getResponsiveNav(req) {
       <li><a href="/docs" class="uppercase tracking-wider text-gray-400 text-xs transition-all duration-300 hover:text-blue-400 hover:scale-110 hover:drop-shadow-[0_0_12px_rgba(0,102,255,0.8)]">Docs</a></li>
       <li><a href="/pricing" class="uppercase tracking-wider text-gray-400 text-xs transition-all duration-300 hover:text-blue-400 hover:scale-110 hover:drop-shadow-[0_0_12px_rgba(0,102,255,0.8)]">Pricing</a></li>
       ${getAuthLinks(req)}
-      ${userInitial ? `<li class="ml-4"><div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-lg shadow-blue-500/30 border border-blue-400/20 hover:scale-110 hover:shadow-[0_0_20px_rgba(0,102,255,0.6)] transition-all duration-300 cursor-pointer" title="${req.session.userEmail}">${userInitial}</div></li>` : ''}
+      ${userInitial ? `<li class="ml-4"><div class="w-9 h-9 rounded-full bg-linear-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-lg shadow-blue-500/30 border border-blue-400/20 hover:scale-110 hover:shadow-[0_0_20px_rgba(0,102,255,0.6)] transition-all duration-300 cursor-pointer" title="${req.session.userEmail}">${userInitial}</div></li>` : ''}
     `;
   }
 
@@ -256,7 +315,7 @@ function getDashboardLayoutStart(options = {}) {
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
             </svg>
           </button>
-          <h1 id="section-title" class="text-lg font-medium text-[var(--dash-text-primary)]">${escapeHtml(pageTitle)}</h1>
+          <h1 id="section-title" class="text-lg font-medium text-(--dash-text-primary)">${escapeHtml(pageTitle)}</h1>
         </header>
   `;
 }

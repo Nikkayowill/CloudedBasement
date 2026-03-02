@@ -2,7 +2,10 @@ const { getHTMLHead, getScripts, getFooter, getResponsiveNav } = require('../../
 
 exports.showDocs = (_req, res) => {
   res.send(`
-${getHTMLHead('Documentation - Clouded Basement')}
+${getHTMLHead('Documentation — Clouded Basement', {
+    description: 'Clouded Basement documentation: setup guides, GitHub deployment instructions, custom domains, SSL, environment variables, and more.',
+    canonical: 'https://cloudedbasement.ca/docs'
+  })}
     ${getResponsiveNav(_req)}
     <main class="bg-gray-950 min-h-screen py-16 px-4">
       <section class="max-w-5xl mx-auto">

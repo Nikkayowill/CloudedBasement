@@ -2,7 +2,10 @@ const { getHTMLHead, getScripts, getFooter, getResponsiveNav } = require('../../
 
 exports.showPrivacy = (req, res) => {
     res.send(`
-${getHTMLHead('Privacy Policy - Basement')}
+${getHTMLHead('Privacy Policy — Clouded Basement', {
+    description: 'Privacy Policy for Clouded Basement. Learn how we collect, use, and protect your personal data.',
+    canonical: 'https://cloudedbasement.ca/privacy'
+  })}
     <link rel="stylesheet" href="/css/docs.css">
     ${getResponsiveNav(req)}
 

@@ -5,7 +5,10 @@ const { validateEmailDomain } = require('../../src/utils/emailValidation');
 
 exports.showContact = (req, res) => {
   res.send(`
-${getHTMLHead('Contact - Basement')}
+${getHTMLHead('Contact Clouded Basement — Get in Touch', {
+    description: 'Get in touch with the Clouded Basement team. Questions about pricing, features, your server, or anything else? We respond within 24 hours.',
+    canonical: 'https://cloudedbasement.ca/contact'
+  })}
   ${getResponsiveNav(req)}
   
   <main class="bg-black min-h-screen pt-24 pb-16">

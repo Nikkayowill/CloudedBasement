@@ -160,6 +160,35 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'react-homepage/dist/index.html'));
 });
 
+// Sitemap — must come before feature routers to avoid route conflicts
+app.get('/sitemap.xml', (_req, res) => {
+  const base = 'https://cloudedbasement.ca';
+  const today = new Date().toISOString().split('T')[0];
+  const pages = [
+    { loc: '/',             changefreq: 'weekly',  priority: '1.0' },
+    { loc: '/pricing',      changefreq: 'monthly', priority: '0.9' },
+    { loc: '/compare',      changefreq: 'monthly', priority: '0.8' },
+    { loc: '/docs',         changefreq: 'weekly',  priority: '0.8' },
+    { loc: '/faq',          changefreq: 'monthly', priority: '0.7' },
+    { loc: '/about',        changefreq: 'monthly', priority: '0.7' },
+    { loc: '/is-this-safe', changefreq: 'monthly', priority: '0.6' },
+    { loc: '/contact',      changefreq: 'yearly',  priority: '0.5' },
+    { loc: '/terms',        changefreq: 'yearly',  priority: '0.3' },
+    { loc: '/privacy',      changefreq: 'yearly',  priority: '0.3' },
+  ];
+  const urls = pages.map(p => `
+  <url>
+    <loc>${base}${p.loc}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>${p.changefreq}</changefreq>
+    <priority>${p.priority}</priority>
+  </url>`).join('');
+  res.header('Content-Type', 'application/xml');
+  res.send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}
+</urlset>`);
+});
+
 // Feature routers
 app.use(require('./routes/pages'));
 app.use(require('./routes/auth'));

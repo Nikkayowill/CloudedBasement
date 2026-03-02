@@ -52,8 +52,26 @@ exports.showPricing = async (req, res) => {
   }
   // If logged in AND trial used - no banner shown
   
+  const jsonLD = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'Clouded Basement',
+    applicationCategory: 'WebApplication',
+    operatingSystem: 'Any',
+    description: 'Managed VPS hosting with GitHub auto-deploy, automatic SSL, and full root access.',
+    url: 'https://cloudedbasement.ca',
+    offers: [
+      { '@type': 'Offer', name: 'Basic', price: '15.00', priceCurrency: 'USD', description: '1 GB RAM, 1 vCPU, 25 GB SSD, 2 sites, GitHub auto-deploy' },
+      { '@type': 'Offer', name: 'Pro',   price: '35.00', priceCurrency: 'USD', description: '2 GB RAM, 2 vCPUs, 60 GB SSD, 5 sites, GitHub auto-deploy, weekly backups' },
+      { '@type': 'Offer', name: 'Premium', price: '65.00', priceCurrency: 'USD', description: '4 GB RAM, 2 vCPUs, 80 GB SSD, 10 sites, GitHub auto-deploy, daily backups' }
+    ]
+  };
   res.send(`
-${getHTMLHead('Pricing - Basement')}
+${getHTMLHead('Pricing — Managed VPS Hosting from $15/mo | Clouded Basement', {
+    description: 'Simple, transparent pricing from $15/month. Managed VPS with GitHub auto-deploy, automatic SSL, and full root access. 3-day free trial, no credit card required.',
+    canonical: 'https://cloudedbasement.ca/pricing',
+    jsonLD
+  })}
     ${getResponsiveNav(req)}
     
     <main class="bg-black min-h-screen pt-24 pb-16">
