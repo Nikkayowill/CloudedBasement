@@ -1,25 +1,25 @@
 const LINKS = {
   Product: [
-    { label: 'Features',     href: '/#features'   },
-    { label: 'Pricing',      href: '/#pricing'    },
-    { label: 'Docs',         href: '/docs'         },
-    { label: 'Compare',      href: '/compare'      },
+    { label: 'Features', href: '/#features' },
+    { label: 'Pricing', href: '/#pricing' },
+    { label: 'Docs', href: '/docs' },
+    { label: 'Compare', href: '/compare' },
     { label: 'Is this safe?', href: '/is-this-safe' },
   ],
   Company: [
-    { label: 'About',   href: '/about'   },
+    { label: 'About', href: '/about' },
     { label: 'Contact', href: '/contact' },
   ],
   Legal: [
-    { label: 'Privacy Policy',   href: '/privacy' },
-    { label: 'Terms of Service', href: '/terms'   },
+    { label: 'Privacy Policy', href: '/privacy' },
+    { label: 'Terms of Service', href: '/terms' },
   ],
 };
 
 export default function Footer() {
   return (
     <footer className="funnel-footer">
-      {/* .cb parent handles max-width — no inner wrapper needed */}
+      {/* .cb parent handles max-width - no inner wrapper needed */}
       <div className="funnel-footer-grid mb-10">
         {/* Brand */}
         <div>
@@ -31,7 +31,7 @@ export default function Footer() {
             />
           </a>
           <p className="funnel-body-sm" style={{ maxWidth: '16rem' }}>
-            Managed Node.js hosting that gets out of your way.
+            Managed VPS hosting with cloud automation for developers, startups, and growing businesses.
           </p>
         </div>
 
@@ -66,11 +66,11 @@ export default function Footer() {
         justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem',
       }}>
         <p className="funnel-body-sm" style={{ color: '#4b5563' }}>
-          © {new Date().getFullYear()} Clouded Basement. All rights reserved.
+          &copy; {new Date().getFullYear()} Clouded Basement. All rights reserved.
         </p>
         <div style={{ display: 'flex', gap: '1.5rem' }}>
           <a href="/privacy" className="funnel-body-sm" style={{ color: '#4b5563', textDecoration: 'none' }}>Privacy</a>
-          <a href="/terms"   className="funnel-body-sm" style={{ color: '#4b5563', textDecoration: 'none' }}>Terms</a>
+          <a href="/terms" className="funnel-body-sm" style={{ color: '#4b5563', textDecoration: 'none' }}>Terms</a>
         </div>
       </div>
     </footer>

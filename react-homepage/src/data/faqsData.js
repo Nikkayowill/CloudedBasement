@@ -1,22 +1,22 @@
 export const faqsData = [
   {
     q: 'What is Clouded Basement?',
-    a: 'A managed hosting platform. You get a real Ubuntu server on DigitalOcean — pre-configured with Nginx, SSL, and GitHub auto-deploy. We handle the setup and maintenance. You just ship code.',
+    a: 'Clouded Basement is managed VPS hosting for developers, startups, and small businesses. You get a real Ubuntu cloud server with automation for deploys, SSL, and maintenance.',
   },
   {
     q: 'How do I deploy my first app?',
-    a: 'Sign up, start your free trial, and connect your GitHub repo from the dashboard. Push to main and your app is live within minutes. No YAML files, no Dockerfiles required.',
+    a: 'Create your server, connect your GitHub repo, and push to your main branch. Your app is built and deployed automatically with live logs in the dashboard.',
   },
   {
-    q: 'What languages and frameworks are supported?',
-    a: 'Node.js, Python, Go, and Rust are pre-installed. Any framework that runs on Linux works — Express, Next.js, FastAPI, Gin, and more. Static sites too.',
+    q: 'Can I host WordPress and custom apps on the same server?',
+    a: 'Yes. You can run WordPress, Node.js, Python, and other Linux web apps on one managed VPS with full server control and domain-level SSL.',
   },
   {
     q: 'Do I get database support?',
-    a: 'Yes. Install PostgreSQL or MongoDB from the dashboard in one click. We generate credentials and give you a ready-to-use connection string.',
+    a: 'Yes. Install PostgreSQL or MongoDB in one click from the dashboard. We generate credentials and provide ready-to-use connection details.',
   },
   {
     q: 'Can I cancel anytime?',
-    a: "Yes. No contracts, no lock-in. Cancel from your dashboard and you won't be charged again. Your 3-day free trial requires no credit card.",
+    a: 'Yes. There are no long-term contracts and no platform lock-in. Cancel anytime from your dashboard, and your trial starts with no credit card required.',
   },
 ];

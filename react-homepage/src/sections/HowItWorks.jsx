@@ -1,38 +1,37 @@
 import { useState, useEffect, useRef } from 'react';
 
 // Dashboard design tokens
-const BG     = '#0a0a0a';
-const CARD   = '#111111';
+const BG = '#0a0a0a';
+const CARD = '#111111';
 const BORDER = '#262626';
-const TEXT   = '#fafafa';
-const MUTED  = '#a1a1a1';
-const DIM    = '#525252';
+const TEXT = '#fafafa';
+const MUTED = '#a1a1a1';
+const DIM = '#525252';
 const ACCENT = '#3b82f6';
 
 const STEPS = [
   {
     n: '01',
-    title: 'Paste your repo URL',
-    body: 'Drop your GitHub, GitLab, or Bitbucket URL into the dashboard and hit Deploy. We clone, install, and serve it.',
+    title: 'Connect your Git repository',
+    body: 'Paste your GitHub repo URL, choose your branch, and start deploy. We handle server setup, dependencies, and web server configuration.',
   },
   {
     n: '02',
-    title: 'Watch it build',
-    body: 'Live logs stream as your app clones, installs, and starts. Enable auto-deploy once — every future push ships automatically.',
+    title: 'Automate cloud server deploys',
+    body: 'Watch real-time build logs while your app installs and boots. Enable auto-deploy once and every push ships to your managed VPS.',
   },
   {
     n: '03',
-    title: "You're live",
-    body: "Your app is running. Add a custom domain and SSL is handled automatically. The dashboard tracks status, sites, and deploy history.",
+    title: 'Go live with full control',
+    body: 'Your app is online. Add domains, enable SSL, host WordPress, and manage everything from one dashboard with full SSH and root access.',
   },
 ];
 
-// ─── Panel 1: Deploy input ───────────────────────────────────────────────────
 function DeployPanel() {
   return (
     <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
       <p style={{ fontSize: '0.6875rem', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: DIM }}>
-        Deploy from Git
+        Git-based deployment
       </p>
       <div style={{ display: 'flex', gap: '0.5rem' }}>
         <input
@@ -59,7 +58,6 @@ function DeployPanel() {
   );
 }
 
-// ─── Panel 2: Deploy logs ────────────────────────────────────────────────────
 const LOG_LINES = [
   { text: '$ git clone https://github.com/alex/my-saas-app', color: DIM },
   { text: "Cloning into 'my-saas-app'...", color: MUTED },
@@ -67,7 +65,7 @@ const LOG_LINES = [
   { text: 'added 312 packages in 4.2s', color: MUTED },
   { text: '$ npm start', color: DIM },
   { text: 'Server listening on port 3000', color: MUTED },
-  { text: '✓ App deployed successfully', color: '#4ade80' },
+  { text: 'App deployed successfully', color: '#4ade80' },
 ];
 
 function LogsPanel() {
@@ -76,7 +74,7 @@ function LogsPanel() {
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
         <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: ACCENT, boxShadow: `0 0 5px ${ACCENT}` }} />
         <p style={{ fontSize: '0.6875rem', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: DIM }}>
-          Deploying my-saas-app
+          Deploying managed VPS app
         </p>
       </div>
       <div style={{
@@ -93,7 +91,6 @@ function LogsPanel() {
   );
 }
 
-// ─── Panel 3: Live server ────────────────────────────────────────────────────
 function LivePanel() {
   const rowStyle = {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -128,7 +125,7 @@ function LivePanel() {
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-          <span style={{ fontSize: '0.6875rem' }}>🔒</span>
+          <span style={{ fontSize: '0.6875rem' }}>SSL</span>
           <span style={{ fontSize: '0.75rem', color: TEXT }}>myapp.com</span>
         </div>
         <span style={{ fontSize: '0.625rem', color: '#22c55e', fontWeight: 600 }}>SSL active</span>
@@ -165,7 +162,6 @@ function PanelChrome({ activeIdx }) {
   );
 }
 
-// ─── Main section ────────────────────────────────────────────────────────────
 export default function HowItWorks() {
   const [active, setActive] = useState(0);
   const sectionRef = useRef(null);
@@ -173,42 +169,34 @@ export default function HowItWorks() {
   useEffect(() => {
     const handleScroll = () => {
       if (!sectionRef.current) return;
-      // On mobile (< 768px) the section isn't sticky — skip scroll logic
       if (window.innerWidth < 768) return;
 
-      const rect       = sectionRef.current.getBoundingClientRect();
-      const sectionH   = sectionRef.current.offsetHeight;
-      const vh         = window.innerHeight;
-      const scrolled   = -rect.top;          // px scrolled into this section
-      const scrollable = sectionH - vh;      // total scrollable distance
+      const rect = sectionRef.current.getBoundingClientRect();
+      const sectionH = sectionRef.current.offsetHeight;
+      const vh = window.innerHeight;
+      const scrolled = -rect.top;
+      const scrollable = sectionH - vh;
       if (scrollable <= 0) return;
 
       const progress = Math.max(0, Math.min(1, scrolled / scrollable));
-      const step     = Math.min(STEPS.length - 1, Math.floor(progress * STEPS.length));
+      const step = Math.min(STEPS.length - 1, Math.floor(progress * STEPS.length));
       setActive(step);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // run once on mount in case already scrolled
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   return (
-    // hiw-section: height:350vh on md+, auto on mobile (from index.css)
     <section ref={sectionRef} className="hiw-section">
-      {/* hiw-sticky: position:sticky top:0 height:100vh on md+, static on mobile */}
       <div className="hiw-sticky border-b-faint" style={{ display: 'flex', flexDirection: 'column' }}>
-
-        {/* Title row */}
         <div className="pt-14 px-10 pb-10 border-b-dim shrink-0">
           <p className="funnel-kicker mb-3">How it works</p>
-          <h2 className="funnel-heading-2">Three steps to live</h2>
+          <h2 className="funnel-heading-2">Three steps to automated cloud hosting</h2>
         </div>
 
-        {/* Two-col */}
         <div className="grid grid-cols-1 md:grid-cols-2" style={{ flex: 1, minHeight: 0 }}>
-
-          {/* Steps */}
           <div className="border-r-faint py-8 px-10 flex flex-col justify-center">
             {STEPS.map((step, i) => {
               const isActive = active === i;
@@ -222,7 +210,6 @@ export default function HowItWorks() {
                     transition: 'opacity 400ms ease',
                   }}
                 >
-                  {/* Step number circle — all styles are state-driven, keep as inline */}
                   <div style={{
                     width: '2.25rem', height: '2.25rem', borderRadius: '50%', flexShrink: 0,
                     border: isActive ? `1px solid ${ACCENT}` : '1px solid rgba(255,255,255,0.1)',
@@ -243,7 +230,6 @@ export default function HowItWorks() {
             })}
           </div>
 
-          {/* Panel */}
           <div className="py-8 px-10 flex items-center justify-center">
             <PanelChrome activeIdx={active} />
           </div>

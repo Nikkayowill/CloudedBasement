@@ -53,14 +53,14 @@ export default function ResponsiveNav() {
         }}>
           {/* Logo */}
           <a href="/" style={{
-            color: '#fff', textDecoration: 'none',
-            fontWeight: 700, fontSize: '1rem', letterSpacing: '-0.02em',
+            display: 'flex', alignItems: 'center',
             marginRight: 'auto', flexShrink: 0,
+            height: '3.5rem',
           }}>
             <img
-              src="/Minimalist%20Logo%20Suite%20for%20Clouded%20Basement.png"
-              alt="Clouded Basement"
-              style={{ height: '3rem', width: 'auto' }}
+              src="/CB-logo-icon.svg"
+              alt="Clouded Basement Logo"
+              style={{ height: '2rem', width: '2rem', marginRight: '0.5rem', display: 'block' }}
             />
           </a>
 
@@ -103,7 +103,7 @@ export default function ResponsiveNav() {
             <a href="/register"
                className="funnel-btn funnel-btn-primary"
                style={{ padding: '0.375rem 0.875rem', fontSize: '0.875rem' }}>
-              Get started
+              Start free trial
             </a>
           </div>
 
@@ -154,7 +154,7 @@ export default function ResponsiveNav() {
             className="funnel-btn funnel-btn-primary"
             style={{ marginTop: '0.5rem' }}
           >
-            Get started
+            Start free trial
           </a>
           <button
             onClick={() => setMobileOpen(false)}
