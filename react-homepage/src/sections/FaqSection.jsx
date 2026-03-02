@@ -12,7 +12,7 @@ function FaqItem({ q, a }) {
         onClick={() => setOpen((o) => !o)}
         className="w-full flex items-center justify-between gap-4 py-5 bg-transparent border-none cursor-pointer text-left"
       >
-        <span className="funnel-heading-3" style={{ fontWeight: 500 }}>{q}</span>
+        <span className="funnel-heading-3 font-medium">{q}</span>
         <ChevronDownIcon
           size={18}
           className="shrink-0 text-gray-500"
@@ -22,7 +22,6 @@ function FaqItem({ q, a }) {
           }}
         />
       </button>
-      {/* maxHeight trick: only way to CSS-animate from 0 to auto height */}
       <div style={{
         overflow: 'hidden',
         maxHeight: open ? '20rem' : '0',
@@ -36,17 +35,15 @@ function FaqItem({ q, a }) {
 
 export default function FaqSection() {
   return (
-    <section id="faq" className="border-b-faint">
-      {/* Section title row */}
-      <div className="pt-28 pb-20 px-10 border-b-dim">
+    <section id="faq">
+      <div className="cb-title-row">
         <SectionTitle
           text1="FAQ"
-          text2="Common questions"
-          text3="Everything you need to know before you commit."
+          text2="Managed VPS hosting questions"
+          text3="Clear answers for developers, startups, and small businesses moving to automated cloud hosting."
         />
       </div>
 
-      {/* FAQ accordion — prose-width centered */}
       <div className="pt-16 px-10 pb-28 max-w-2xl mx-auto">
         <div className="reveal">
           {faqsData.map((item) => (
