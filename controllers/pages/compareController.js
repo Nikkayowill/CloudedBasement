@@ -2,7 +2,10 @@ const { getHTMLHead, getScripts, getFooter, getResponsiveNav } = require('../../
 
 exports.showCompare = (req, res) => {
   res.send(`
-${getHTMLHead('Compare Hosting Platforms - Clouded Basement vs Heroku, Render, DigitalOcean')}
+${getHTMLHead('Compare Hosting Platforms — Clouded Basement vs Heroku, Render, Railway, DigitalOcean', {
+    description: 'Honest feature comparison: Clouded Basement vs Heroku, Render, Railway, and DIY VPS. Get full root SSH access plus managed GitHub deployments — the best of both worlds.',
+    canonical: 'https://cloudedbasement.ca/compare'
+  })}
     ${getResponsiveNav(req)}
     
     <main class="bg-black min-h-screen pt-24 pb-16">

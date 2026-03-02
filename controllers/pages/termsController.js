@@ -2,7 +2,10 @@ const { getHTMLHead, getScripts, getFooter, getResponsiveNav } = require('../../
 
 exports.showTerms = (req, res) => {
   res.send(`
-${getHTMLHead('Terms of Service - Basement')}
+${getHTMLHead('Terms of Service — Clouded Basement', {
+    description: 'Terms of Service for Clouded Basement managed VPS hosting. Read our terms before using the platform.',
+    canonical: 'https://cloudedbasement.ca/terms'
+  })}
     <link rel="stylesheet" href="/css/docs.css">
     ${getResponsiveNav(req)}
 

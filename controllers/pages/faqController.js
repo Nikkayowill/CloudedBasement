@@ -1,8 +1,38 @@
 const { getHTMLHead, getScripts, getFooter, getResponsiveNav } = require('../../src/utils/helpers');
 
 exports.showFaq = (req, res) => {
+  const jsonLD = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: "Why wouldn't I just use DigitalOcean directly?",
+        acceptedAnswer: { '@type': 'Answer', text: "DigitalOcean Droplets require you to install and maintain everything yourself — Nginx, SSL, runtimes, and deployments. Clouded Basement automates provisioning and deployment while giving you full root access to your own server, saving setup time without losing control." }
+      },
+      {
+        '@type': 'Question',
+        name: 'Do I actually own my server?',
+        acceptedAnswer: { '@type': 'Answer', text: 'Yes. Every VPS is fully yours, with root access and a dedicated IP. You can install anything, modify the configuration, or migrate it elsewhere at any time.' }
+      },
+      {
+        '@type': 'Question',
+        name: 'What happens if I cancel?',
+        acceptedAnswer: { '@type': 'Answer', text: 'You can cancel anytime. Your server stays active until the end of your billing period so you can back up your data or migrate. No contracts, no cancellation fees.' }
+      },
+      {
+        '@type': 'Question',
+        name: 'How is Clouded Basement different from Heroku or Vercel?',
+        acceptedAnswer: { '@type': 'Answer', text: 'Unlike PaaS platforms, Clouded Basement gives you full server control with automated setup and deployment. You avoid vendor lock-in while still enjoying one-click provisioning, SSL, and GitHub deployments.' }
+      }
+    ]
+  };
   res.send(`
-${getHTMLHead('FAQ - Basement')}
+${getHTMLHead('FAQ — Clouded Basement Managed VPS Hosting', {
+    description: 'Frequently asked questions about Clouded Basement. Learn how it compares to DigitalOcean, Heroku, and Render — and get answers about pricing, server ownership, and cancellation.',
+    canonical: 'https://cloudedbasement.ca/faq',
+    jsonLD
+  })}
     ${getResponsiveNav(req)}
     
     <main class="bg-black min-h-screen pt-24 pb-16">
