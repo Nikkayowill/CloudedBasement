@@ -103,11 +103,12 @@ function SidebarInner({ nav, active, onNav, userEmail, initial, plan, planStyle,
           >
             Docs
           </a>
-          <form method="POST" action="/logout" style={{ display: 'inline' }}>
+          <form method="GET" action="/logout" style={{ display: 'inline' }}>
             <input type="hidden" name="_csrf" value={csrfToken || ''} />
             <button
               type="submit"
-              className="text-[rgba(120,120,120,1)] no-underline transition-colors duration-150 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2DA7DF]/70"
+              className="text-red-500 no-underline bg-transparent border-none p-0 m-0"
+              style={{ background: 'none', border: 'none', padding: 0, margin: 0 }}
             >
               Logout
             </button>

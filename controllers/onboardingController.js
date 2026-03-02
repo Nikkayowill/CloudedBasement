@@ -33,17 +33,19 @@ exports.showChoice = async (req, res) => {
       return res.redirect('/pricing?error=payment_required');
     }
 
-    // Fetch the most recent successful payment for plan info
+    // Fetch the most recent successful payment for plan info.
+    // Note: payment_interval is NOT stored in the payments table — it is
+    // forwarded as a query-param by /payment-success → /onboarding/choose.
     const paymentResult = await pool.query(
-      `SELECT plan, payment_interval
+      `SELECT plan
          FROM payments
         WHERE user_id = $1 AND status = 'succeeded'
         ORDER BY created_at DESC
         LIMIT 1`,
       [userId]
     );
-    const plan           = paymentResult.rows[0]?.plan           || 'basic';
-    const paymentInterval = paymentResult.rows[0]?.payment_interval || 'monthly';
+    const plan           = paymentResult.rows[0]?.plan || 'basic';
+    const paymentInterval = req.query.interval === 'yearly' ? 'yearly' : 'monthly';
 
     const csrfToken = typeof req.csrfToken === 'function' ? req.csrfToken() : '';
 
@@ -228,9 +230,11 @@ exports.provisionNodejs = async (req, res) => {
   const userId = req.session.userId;
 
   try {
-    // Re-verify payment server-side — never trust client-supplied plan/interval
+    // Re-verify payment server-side — never trust client-supplied plan.
+    // interval comes from the hidden form input rendered by showChoice, which
+    // itself reads from req.query.interval (forwarded from /payment-success).
     const paymentResult = await pool.query(
-      `SELECT plan, payment_interval, stripe_payment_id
+      `SELECT plan, stripe_payment_id
          FROM payments
         WHERE user_id = $1 AND status = 'succeeded'
         ORDER BY created_at DESC
@@ -248,7 +252,9 @@ exports.provisionNodejs = async (req, res) => {
       return res.redirect('/dashboard');
     }
 
-    const { plan, payment_interval: interval, stripe_payment_id: chargeId } = paymentResult.rows[0];
+    const { plan, stripe_payment_id: chargeId } = paymentResult.rows[0];
+    // interval was forwarded from /payment-success via the hidden form input
+    const interval = req.body.interval === 'yearly' ? 'yearly' : 'monthly';
 
     // Kick off async Node.js provisioning — same call the webhook used to make
     await createRealServer(userId, plan, chargeId, interval);
