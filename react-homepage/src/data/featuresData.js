@@ -3,37 +3,42 @@ import { GitBranchIcon, LockIcon, DatabaseIcon, GlobeIcon, ArchiveIcon, Terminal
 export const featuresData = [
   {
     Icon: GitBranchIcon,
-    title: 'Push to deploy',
-    body: 'Connect your GitHub repo once. Every push to main triggers a fresh deploy — no CI pipelines, no build configs, no waiting. Your code goes from commit to live in seconds.',
+    title: 'GitHub auto-deploys',
+    body: 'Connect your repository once and push to deploy automatically. Ideal for teams that want fast, repeatable releases on managed VPS hosting.',
   },
   {
     Icon: DatabaseIcon,
     title: 'One-click databases',
-    body: 'Install PostgreSQL or MongoDB from your dashboard. Credentials generated, connection string ready. No manual setup, no separate billing — it just runs on your server.',
+    body: 'Install PostgreSQL or MongoDB from your dashboard with ready-to-use credentials and connection strings. No manual server setup required.',
   },
   {
     Icon: LockIcon,
-    title: 'Automatic SSL & custom domains',
-    body: "Point your DNS, we handle the rest. Every domain gets a Let's Encrypt certificate, provisioned and renewed automatically. Up to 10 custom domains per server.",
+    title: 'Automatic SSL and domains',
+    body: "Point DNS and go live with automatic Let's Encrypt SSL. Host multiple domains on one managed cloud server without certificate busywork.",
   },
   {
     Icon: TerminalIcon,
     title: 'Full root access',
-    body: "It's your server. SSH in, install anything, configure everything. No abstractions hiding what's running. You get the control of a VPS without the setup tax.",
+    body: 'Use SSH and root access to install any runtime, package, or service. You keep full VPS control while automation handles routine ops.',
   },
   {
     Icon: ArchiveIcon,
     title: 'Automatic backups',
-    body: 'Weekly snapshots on Pro, daily on Premium — retained for 7 days and restorable in one click. Sleep well knowing your data has a safety net.',
+    body: 'Get scheduled snapshots with one-click restore, so production apps and client websites stay protected when releases go wrong.',
   },
   {
     Icon: CodeIcon,
-    title: 'Multi-language',
-    body: 'Node.js, Python, Go, and Rust are pre-installed on every server. Any framework that runs on Linux works — Express, Next.js, FastAPI, Gin, and more.',
+    title: 'Developer-ready runtimes',
+    body: 'Run Node.js, Python, Go, Rust, and popular Linux web frameworks on the same server. Perfect for startup MVPs and growing SaaS apps.',
   },
   {
     Icon: LayersIcon,
-    title: 'Multi-site hosting',
-    body: 'Run up to 10 sites on one server. Each domain gets its own Nginx config and SSL certificate. One plan, multiple projects.',
+    title: 'Multi-site VPS hosting',
+    body: 'Host multiple projects, client apps, or WordPress sites on one server with isolated domain routing and automated SSL.',
+  },
+  {
+    Icon: GlobeIcon,
+    title: 'No vendor lock-in',
+    body: 'Your stack runs on standard Ubuntu infrastructure, so you can migrate anytime without rewriting your app for a proprietary platform.',
   },
 ];
