@@ -1,12 +1,8 @@
-import CloudSVG from '../components/CloudSVG';
 
 export default function CTASection() {
   return (
     <section className="relative flex flex-col items-center justify-center min-h-[32rem] overflow-hidden bg-transparent">
-      {/* Cloud image block */}
-      <div className="absolute inset-0 w-full h-full pointer-events-none select-none">
-        <CloudSVG />
-      </div>
+    
       {/* CTA content block with blur overlay */}
       <div className="flex items-center justify-center relative">
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl p-10 backdrop-blur-md bg-opacity-40 rounded-xl z-0" />
