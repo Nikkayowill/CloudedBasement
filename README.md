@@ -1,229 +1,57 @@
-# Clouded Basement - Cloud Hosting Platform
-**Last Updated:** January 31, 2026
+# Clouded Basement (`server-ui`)
 
----
+Clouded Basement is a Node.js/Express platform that provisions and manages DigitalOcean droplets, handles Stripe billing, and provides a dashboard for deployment, domains, SSL, and server operations.
 
-## 🎯 WHAT THIS IS
+## Quick start
 
-**Fully automated cloud hosting platform** with one-touch VPS provisioning, Git deployment, and SSL automation.
-
-**Live:** cloudedbasement.ca  
-**Status:** Production-ready with full automation
-
----
-
-## 💰 PRICING
-
-### Three Plans:
-- **Basic:** $15/month - 1GB RAM, 1 CPU, 25GB storage, 2 sites
-- **Pro:** $35/month - 2GB RAM, 2 CPUs, 50GB storage, 5 sites
-- **Premium:** $75/month - 4GB RAM, 2 CPUs, 80GB storage, 10 sites
-
-### Payment Options:
-- **Monthly:** Pay monthly, cancel anytime
-- **Yearly:** Pay upfront, save 10%
-
----
-
-## ✅ WHAT'S WORKING (FULLY AUTOMATED)
-
-### 🚀 Server Provisioning
-- ✅ Stripe payment webhook triggers automatic droplet creation
-- ✅ Ubuntu 22.04 + Nginx + Certbot pre-installed
-- ✅ Secure SSH password auto-generated
-- ✅ IP polling with 5-minute timeout
-- ✅ Welcome email sent when ready
-- ✅ Auto-refund if provisioning fails
-- ✅ One server per customer (database constraint)
-
-### 📦 Git Deployment
-- ✅ Auto-detects project type (React/Vue/Node/Python/Static)
-- ✅ Clones repo via SSH
-- ✅ Installs dependencies (npm/pip)
-- ✅ Builds production assets
-- ✅ Deploys to Nginx
-- ✅ Real-time deployment logs
-- ✅ Deployment history tracking
-
-### 🌐 Custom Domains + SSL
-- ✅ Add unlimited domains from dashboard
-- ✅ DNS configuration instructions displayed
-- ✅ One-click SSL via Let's Encrypt
-- ✅ Automated certbot execution via SSH
-- ✅ SSL status tracking (pending/active/failed)
-- ✅ Auto-renewal configured
-
-### 🎛️ Server Management
-- ✅ Start/Stop/Restart via DigitalOcean API
-- ✅ Delete server + destroy droplet
-- ✅ Real-time status (provisioning/running/stopped/failed)
-- ✅ SSH credentials displayed
-- ✅ Server specs tracking
-
-### 🎫 Support System
-- ✅ Submit tickets from dashboard
-- ✅ Priority levels (low/medium/high/critical)
-- ✅ Ticket history
-- ✅ Status tracking
-
-### 🔐 Account Features
-- ✅ Email confirmation required
-- ✅ Change password (with verification)
-- ✅ Role-based access (user/admin)
-- ✅ Session management
-- ✅ CSRF protection on all forms
-
-### 💳 Payment + Billing
-- ✅ Stripe Checkout integration
-- ✅ Webhook handling (payments + refunds)
-- ✅ Payment history tracking
-- ✅ Automatic refunds on failures
-
-### 🔧 Admin Controls
-- ✅ View all users, servers, payments
-- ✅ Manually destroy droplets
-- ✅ Delete user records
-- ✅ Audit logging
-
-### ⚙️ Background Jobs
-- ✅ DigitalOcean sync (hourly) - marks deleted droplets
-- ✅ IP polling system with cleanup
-- ✅ Email notifications
-- ✅ Graceful shutdown handling
-
----
-
-## 🧪 TESTING CHECKLIST
-
-### Before Production Deploy:
-- [ ] Test full payment flow (Stripe test mode)
-- [ ] Verify server auto-provisioning (2-5 min)
-- [ ] Test Git deployment (React/Node/Python)
-- [ ] Test custom domain + SSL
-- [ ] Verify email sending works
-- [ ] Test server controls (start/stop/restart)
-- [ ] Test delete server flow
-- [ ] Mobile responsive check
-- [ ] Cross-browser testing
-- [ ] Load testing (concurrent users)
-
----
-
-## 📊 CUSTOMER JOURNEY (AUTOMATED)
-
-### Payment → Server Flow:
-```
-1. Customer completes Stripe checkout ✅
-2. Webhook fires instantly ✅
-3. Payment recorded in database ✅
-4. DigitalOcean droplet creation triggered ✅
-5. Ubuntu + Nginx + Certbot installed ✅
-6. IP polling starts (10-sec intervals, 5-min max) ✅
-7. Server status: "provisioning" → "running" ✅
-8. Welcome email sent with SSH credentials ✅
-9. Customer can deploy immediately ✅
-```
-
-### If Provisioning Fails:
-```
-1. Status set to "failed" ✅
-2. Automatic Stripe refund issued ✅
-3. Payment status updated to "refunded" ✅
-4. Customer notified (manual for now) ⚠️
-```
-
----
-
-## 🛠️ TECH STACK
-
-- **Backend:** Express.js 5.2.1, Node.js
-- **Database:** PostgreSQL (connection pooling, session storage)
-- **Payments:** Stripe (webhooks + Checkout)
-- **Infrastructure:** DigitalOcean API
-- **Frontend:** Server-rendered HTML + Tailwind CSS 3.x + Flowbite 2.5.2
-- **Process Manager:** systemd on Ubuntu
-- **Security:** Helmet, CSRF, rate limiting, bcrypt, parameterized queries
-
----
-
-## 📁 PROJECT STRUCTURE
-
-```
-/controllers - Route handlers (auth, pages, dashboard, admin, payment, server)
-/middleware - auth, rateLimiter, errorHandler, logger
-/services - digitalocean, email, auditLog
-/routes - Express routers
-/public/css - Tailwind + brand utilities (global.css: 155 lines)
-/db/schema - PostgreSQL tables
-/docs - Documentation (this folder)
-helpers.js - HTML generators (head, nav, footer, scripts)
-index.js - Main Express app
-```
-
----
-
-## ⚠️ KNOWN GAPS
-
-### High Priority:
-- [ ] Email sending needs end-to-end testing
-- [ ] Privacy policy + TOS legal review
-- [ ] Password reset flow (not implemented)
-- [ ] Mobile device testing (real hardware)
-- [ ] Production monitoring/alerts
-
-### Medium Priority:
-- [ ] Billing history page
-- [ ] Usage metrics dashboard
-- [ ] Plan upgrade/downgrade (currently one server per customer)
-- [ ] Backup/restore functionality
-
-### Low Priority:
-- [ ] Custom server specs
-- [ ] Multiple servers per user
-- [ ] Team collaboration features
-
----
-
-## 🚀 DEPLOYMENT
-
+1. Install dependencies:
 ```bash
-# Local changes → GitHub
-git add .
-git commit -m "description"
-git push origin main
-
-# Production server
-ssh deploy@68.183.203.226
-cd ~/server-ui
-git pull origin main
-sudo systemctl restart cloudedbasement.service
+npm install
 ```
+2. Copy and configure environment variables:
+```bash
+cp .env.example .env
+```
+3. Build homepage assets (required for `/` and `/dashboard`):
+```bash
+cd react-homepage
+npm install
+npm run build
+cd ..
+```
+4. Start the server:
+```bash
+npm run dev
+```
+5. Open `http://localhost:3000`.
 
-**Service:** cloudedbasement.service (systemd)  
-**Logs:** `journalctl -u cloudedbasement.service -f`
+## Core capabilities (verified in current codebase)
 
----
+- Authentication: email/password auth, email confirmation, password reset, Google OAuth.
+- Billing: Stripe payment intent + checkout session flows, webhook handling, plan upgrades.
+- Provisioning: DigitalOcean droplet creation and lifecycle management.
+- Deployments: Git deploy flow for supported repositories and project-type detection.
+- WordPress: managed WordPress provisioning path and status APIs.
+- Domains/SSL: custom domain tracking, SSL enablement, SSL state reconciliation jobs.
+- Admin tooling: user/server management, update rollout workflows, domain CRUD.
+- Security controls: Helmet CSP, CSRF, rate limiting, secure sessions, webhook signature verification.
 
-## 📖 DOCUMENTATION
+## Important notes
 
-- **README.md** - Project status, customer onboarding flow
-- **docs/README.md** - Complete implementation details
-- **docs/DEV-CHEATSHEET.md** - Git workflow
-- **docs/DEPLOYMENT.md** - Production deployment
-- **docs/SECURITY.md** - Security measures
-- **docs/TESTING-GUIDE.md** - How to test
-- **docs/REFACTORING.md** - MVC refactor details
-- **HANDOFF-PROMPT.md** - Complete handoff for new AI agents
+- `npm test` is currently a placeholder in `package.json`.
+- Automated E2E tests exist under `tests/ui` (Cypress); API tests under `tests/api` are starter scaffolds and not wired into a passing test suite.
+- Background jobs are started in-process from `index.js`.
 
----
+## Documentation map
 
-## 🔗 IMPORTANT LINKS
-
-- **Production:** https://cloudedbasement.ca
-- **GitHub:** https://github.com/Nikkayowill/server-ui
-- **Server:** deploy@68.183.203.226
-- **Stripe Dashboard:** stripe.com/dashboard
-
----
-
-**Questions? Check docs/ folder or just start testing. The best way to find issues is to use your own product.**
+- [`docs/README.md`](docs/README.md) - documentation index
+- [`docs/QUICKSTART.md`](docs/QUICKSTART.md) - local developer onboarding
+- [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md) - required and optional env vars
+- [`docs/API-REFERENCE.md`](docs/API-REFERENCE.md) - routes and webhook endpoints
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) - system design and data flows
+- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) - production deployment runbook
+- [`docs/SECURITY.md`](docs/SECURITY.md) - security posture and operational controls
+- [`docs/TESTING.md`](docs/TESTING.md) - test strategy and current gaps
+- [`docs/OPERATIONS.md`](docs/OPERATIONS.md) - background jobs and routine operations
+- [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) - common failures and remediation
+- [`docs/INVENTORY.md`](docs/INVENTORY.md) - documentation inventory and relevance audit
