@@ -12,5 +12,4 @@ nul
 HTML5Template/
 .claude/
 
-# Ignore build outputs
-react-homepage/dist/
+# react-homepage/dist/ — committed intentionally (CI/CD builds on push to main)
