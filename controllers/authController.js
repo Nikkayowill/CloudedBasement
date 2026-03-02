@@ -170,6 +170,7 @@ ${getHTMLHead('Register - Basement')}
     ${getFooter()}
     <script src="/js/form-validation.js"></script>
     <script src="/js/password-generator.js"></script>
+    <script src="/js/password-strength.js"></script>
     ${getScripts('nav.js', 'fingerprint.js')}
     <script nonce="${getNonce()}">
       const botInput = document.getElementById('botCode');
@@ -428,8 +429,6 @@ ${getHTMLHead('Login - Basement')}
     </main>
     
     ${getFooter()}
-    <script src="https://cdn.jsdelivr.net/npm/zxcvbn@4.4.2/dist/zxcvbn.js"></script>
-    <script src="/js/password-strength.js"></script>
     ${getScripts('nav.js')}
   `);
 };
@@ -558,8 +557,6 @@ ${getHTMLHead('Invalid Token - Basement')}
       </div>
     </main>
     ${getFooter()}
-    <script src="https://cdn.jsdelivr.net/npm/zxcvbn@4.4.2/dist/zxcvbn.js"></script>
-    <script src="/js/password-strength.js"></script>
     ${getScripts('nav.js')}
       `);
     }
@@ -580,8 +577,6 @@ ${getHTMLHead('Token Expired - Basement')}
       </div>
     </main>
     ${getFooter()}
-    <script src="https://cdn.jsdelivr.net/npm/zxcvbn@4.4.2/dist/zxcvbn.js"></script>
-    <script src="/js/password-strength.js"></script>
     ${getScripts('nav.js')}
       `);
     }
@@ -1097,6 +1092,7 @@ ${getHTMLHead('Reset Password - Basement')}
     ${getFooter()}
     <script src="/js/form-validation.js"></script>
     <script src="/js/password-generator.js"></script>
+    <script src="/js/password-strength.js"></script>
     ${getScripts('nav.js')}
     `);
   } catch (error) {
