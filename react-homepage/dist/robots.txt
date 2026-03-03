@@ -23,5 +23,4 @@ Allow: /terms
 Allow: /privacy
 Allow: /login
 Allow: /register
-
 Sitemap: https://cloudedbasement.ca/sitemap.xml
