@@ -1,0 +1,27 @@
+User-agent: *
+
+# Block authenticated and private application routes
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /onboarding
+Disallow: /getting-started
+Disallow: /logout
+Disallow: /pay
+Disallow: /webhook/
+Disallow: /health
+
+# Allow all public marketing and content pages
+Allow: /
+Allow: /about
+Allow: /pricing
+Allow: /compare
+Allow: /faq
+Allow: /docs
+Allow: /contact
+Allow: /is-this-safe
+Allow: /terms
+Allow: /privacy
+Allow: /login
+Allow: /register
+
+Sitemap: https://cloudedbasement.ca/sitemap.xml

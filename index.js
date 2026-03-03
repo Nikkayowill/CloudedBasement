@@ -19,6 +19,7 @@ if (process.env.SENTRY_DSN) {
 }
 
 const path = require('path');
+const fs   = require('fs');
 const express = require('express');
 // express-rate-limit used via middleware/rateLimiter, not directly
 const helmet = require('helmet');
@@ -151,13 +152,51 @@ app.get('/health', async (req, res) => {
   }
 });
 
-// React SPA homepage — redirect authenticated users straight to the dashboard
+// SSR homepage — render React to string on the server, hydrate on the client.
+// Falls back to plain SPA if the server bundle hasn't been built yet.
 // app.get('/', pagesController.showHome); // original server-rendered route kept as reference
-app.get('/', (req, res) => {
+
+const SSR_BUNDLE   = path.join(__dirname, 'react-homepage/dist-server/entry-server.js');
+const SPA_TEMPLATE = path.join(__dirname, 'react-homepage/dist/index.html');
+
+let _ssrRender;          // cached once per process
+let _spaTemplate;        // read once per process
+
+async function loadSSR() {
+  if (_ssrRender !== undefined) return _ssrRender;
+  try {
+    const mod  = await import(SSR_BUNDLE);
+    _ssrRender = mod.render;
+  } catch {
+    console.warn('[SSR] dist-server bundle not found — serving SPA fallback');
+    _ssrRender = null;
+  }
+  return _ssrRender;
+}
+
+app.get('/', async (req, res) => {
   if (req.session && req.session.userId) {
     return res.redirect('/dashboard');
   }
-  res.sendFile(path.join(__dirname, 'react-homepage/dist/index.html'));
+
+  const render = await loadSSR();
+
+  if (!render) {
+    return res.sendFile(SPA_TEMPLATE);
+  }
+
+  try {
+    _spaTemplate = _spaTemplate || fs.readFileSync(SPA_TEMPLATE, 'utf-8');
+    const appHtml = render(req.url);
+    const html    = _spaTemplate.replace(
+      '<div id="root"></div>',
+      `<div id="root">${appHtml}</div>`
+    );
+    res.send(html);
+  } catch (err) {
+    console.error('[SSR] Render error — falling back to SPA:', err.message);
+    res.sendFile(SPA_TEMPLATE);
+  }
 });
 
 // Sitemap — must come before feature routers to avoid route conflicts
