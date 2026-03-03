@@ -40,6 +40,7 @@ const logger = require('./middleware/logger');
 const { runMigrations } = require('./migrations/run-migrations');
 const { passport, initializeGoogleAuth } = require('./services/googleAuth');
 const { nonceMiddleware } = require('./src/utils/nonce');
+const { getGoogleAnalyticsTags } = require('./src/utils/helpers');
 
 const app = express();
 
@@ -66,7 +67,7 @@ app.use(helmet({
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:"],
       frameSrc: ["https://js.stripe.com", "https://hooks.stripe.com"],
-      connectSrc: ["'self'", "https://api.stripe.com", "https://m.stripe.com", "https://r.stripe.com", "https://q.stripe.com"],
+      connectSrc: ["'self'", "https://api.stripe.com", "https://m.stripe.com", "https://r.stripe.com", "https://q.stripe.com", "https://www.google-analytics.com", "https://region1.google-analytics.com"],
       baseUri: ["'self'"],
       formAction: ["'self'"],
       scriptSrcAttr: ["'unsafe-inline'"],
@@ -75,7 +76,7 @@ app.use(helmet({
 }));
 
 app.use(express.static('public'));
-app.use(express.static(path.join(__dirname, 'react-homepage/dist')));
+app.use(express.static(path.join(__dirname, 'react-homepage/dist'), { index: false }));
 
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
@@ -174,7 +175,33 @@ async function loadSSR() {
   return _ssrRender;
 }
 
-app.get('/', async (req, res) => {
+function stripStaticGoogleAnalytics(html) {
+  return html
+    .replace(/<!--\s*Google tag \(gtag\.js\)\s*-->\s*/gi, '')
+    .replace(/<script[^>]*src="https:\/\/www\.googletagmanager\.com\/gtag\/js\?id=[^"]+"[^>]*><\/script>\s*/gi, '')
+    .replace(/<script[^>]*>\s*window\.dataLayer\s*=\s*window\.dataLayer\s*\|\|\s*\[\]\s*;[\s\S]*?gtag\('config'[\s\S]*?<\/script>\s*/gi, '');
+}
+
+function addNonceToAllScriptTags(html, nonce) {
+  if (!nonce) return html;
+  return html.replace(/<script(?![^>]*\bnonce=)/gi, `<script nonce="${nonce}"`);
+}
+
+function renderReactHtml(req, appHtml = null) {
+  _spaTemplate = _spaTemplate || fs.readFileSync(SPA_TEMPLATE, 'utf-8');
+  let html = _spaTemplate;
+
+  if (appHtml !== null) {
+    html = html.replace('<div id="root"></div>', `<div id="root">${appHtml}</div>`);
+  }
+
+  html = stripStaticGoogleAnalytics(html);
+  html = html.replace('</head>', `${getGoogleAnalyticsTags()}\n  </head>`);
+  html = addNonceToAllScriptTags(html, req.res?.locals?.nonce || '');
+  return html;
+}
+
+app.get(['/', '/index.html'], async (req, res) => {
   if (req.session && req.session.userId) {
     return res.redirect('/dashboard');
   }
@@ -182,20 +209,16 @@ app.get('/', async (req, res) => {
   const render = await loadSSR();
 
   if (!render) {
-    return res.sendFile(SPA_TEMPLATE);
+    return res.send(renderReactHtml(req));
   }
 
   try {
-    _spaTemplate = _spaTemplate || fs.readFileSync(SPA_TEMPLATE, 'utf-8');
     const appHtml = render(req.url);
-    const html    = _spaTemplate.replace(
-      '<div id="root"></div>',
-      `<div id="root">${appHtml}</div>`
-    );
+    const html = renderReactHtml(req, appHtml);
     res.send(html);
   } catch (err) {
     console.error('[SSR] Render error — falling back to SPA:', err.message);
-    res.sendFile(SPA_TEMPLATE);
+    res.send(renderReactHtml(req));
   }
 });
 
