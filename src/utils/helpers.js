@@ -13,10 +13,36 @@ function escapeHtml(unsafe) {
 
 const SITE_URL = 'https://cloudedbasement.ca';
 const OG_IMAGE  = `${SITE_URL}/images/og-image.png`;
+const GA_MEASUREMENT_ID = (
+  process.env.GA4_MEASUREMENT_ID ||
+  process.env.GA_MEASUREMENT_ID ||
+  process.env.GOOGLE_ANALYTICS_ID ||
+  'G-MC17BEPM6W'
+).trim();
 
 // Safely embed JSON-LD in a <script> tag — escapes </script> sequences
 function safeJsonLD(obj) {
   return JSON.stringify(obj).replace(/<\//g, '<\\/');
+}
+
+function getNonceAttr() {
+  const nonce = getNonce();
+  return nonce ? ` nonce="${escapeHtml(nonce)}"` : '';
+}
+
+function getGoogleAnalyticsTags() {
+  if (!GA_MEASUREMENT_ID) return '';
+  const nonceAttr = getNonceAttr();
+  const id = escapeHtml(GA_MEASUREMENT_ID);
+  return `
+    <!-- Google tag (gtag.js) -->
+    <script${nonceAttr} async src="https://www.googletagmanager.com/gtag/js?id=${id}"></script>
+    <script${nonceAttr}>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '${id}');
+    </script>`;
 }
 
 // Global JSON-LD schemas added to every public page
@@ -52,7 +78,9 @@ function getHTMLHead(title, opts = {}) {
 
   const robots  = noindex ? 'noindex, nofollow' : 'index, follow';
   const schemas = jsonLD ? [...GLOBAL_SCHEMAS, jsonLD] : GLOBAL_SCHEMAS;
-  const ldTags  = schemas.map(s => `<script type="application/ld+json">${safeJsonLD(s)}</script>`).join('\n    ');
+  const nonceAttr = getNonceAttr();
+  const ldTags  = schemas.map(s => `<script${nonceAttr} type="application/ld+json">${safeJsonLD(s)}</script>`).join('\n    ');
+  const gaTags = getGoogleAnalyticsTags();
 
   return `
 <!DOCTYPE html>
@@ -85,6 +113,7 @@ function getHTMLHead(title, opts = {}) {
     <link rel="stylesheet" href="/css/tailwind.css">
     <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet" integrity="sha384-+Bl0lf5p8/ohqkq+KZo/rczUOIZfQpTE+zDHmmjdpnuuLiXwLaTmgCPIYAho9GqV" crossorigin="anonymous" />
     <link rel="stylesheet" href="/css/global.css">
+    ${gaTags}
 </head>
 <body>
 <div class="spotlight"></div>
@@ -370,6 +399,7 @@ function getDashboardLayoutEnd() {
 module.exports = {
   escapeHtml,
   getHTMLHead,
+  getGoogleAnalyticsTags,
   getDashboardHead,
   getScripts,
   getFooter,
