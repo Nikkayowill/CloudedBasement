@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import LenisScroll from './components/LenisScroll';
 import HomePage from './HomePage';
 
@@ -35,21 +35,21 @@ function HomeWrapper() {
   );
 }
 
+// App is router-agnostic — the router provider lives in the entry files.
+// Server entry wraps with StaticRouter; client entry wraps with BrowserRouter.
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<HomeWrapper />} />
-        <Route
-          path="/dashboard"
-          element={
-            <Suspense fallback={null}>
-              <DashboardPage />
-            </Suspense>
-          }
-        />
-      </Routes>
-    </BrowserRouter>
+    <Routes>
+      <Route path="/" element={<HomeWrapper />} />
+      <Route
+        path="/dashboard"
+        element={
+          <Suspense fallback={null}>
+            <DashboardPage />
+          </Suspense>
+        }
+      />
+    </Routes>
   );
 }
 

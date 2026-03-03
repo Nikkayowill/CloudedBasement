@@ -1,18 +1,23 @@
 import { useEffect } from 'react';
-import Lenis from 'lenis';
 
+// Dynamic import keeps Lenis out of the server bundle entirely.
+// useEffect never runs during SSR, so this is safe.
 export default function LenisScroll() {
   useEffect(() => {
-    const lenis = new Lenis({ duration: 1.2, smoothWheel: true, smoothTouch: false });
-    let raf;
-    function loop(time) {
-      lenis.raf(time);
+    let lenis, raf;
+
+    import('lenis').then(({ default: Lenis }) => {
+      lenis = new Lenis({ duration: 1.2, smoothWheel: true, smoothTouch: false });
+      function loop(time) {
+        lenis.raf(time);
+        raf = requestAnimationFrame(loop);
+      }
       raf = requestAnimationFrame(loop);
-    }
-    raf = requestAnimationFrame(loop);
+    });
+
     return () => {
-      lenis.destroy();
-      cancelAnimationFrame(raf);
+      if (lenis) lenis.destroy();
+      if (raf) cancelAnimationFrame(raf);
     };
   }, []);
 
