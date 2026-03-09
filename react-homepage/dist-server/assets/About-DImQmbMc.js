@@ -1,0 +1,98 @@
+import { jsxs, jsx } from "react/jsx-runtime";
+import { R as ResponsiveNav, F as Footer } from "../entry-server.js";
+import "react-dom/server";
+import "react-router-dom";
+import "react";
+import "lucide-react";
+function About() {
+  return /* @__PURE__ */ jsxs("div", { className: "funnel", children: [
+    /* @__PURE__ */ jsx(ResponsiveNav, {}),
+    /* @__PURE__ */ jsx("main", { className: "pt-14", children: /* @__PURE__ */ jsx("section", { className: "funnel-section", children: /* @__PURE__ */ jsxs("div", { className: "funnel-prose", children: [
+      /* @__PURE__ */ jsx("h1", { className: "funnel-heading-1 mb-4", children: "About Clouded Basement" }),
+      /* @__PURE__ */ jsx("p", { className: "funnel-body mb-16 lg:mb-20", children: "Reliable VPS hosting made simple. Full server control without the hassle." }),
+      /* @__PURE__ */ jsxs("div", { className: "mb-16 lg:mb-20", children: [
+        /* @__PURE__ */ jsx("p", { className: "funnel-body", children: "Clouded Basement provides developers with full VPS control without the hassle. Deploy your applications quickly, with automated setup and monitoring, while keeping access to the underlying system." }),
+        /* @__PURE__ */ jsx("p", { className: "funnel-body mt-5", children: "Whether you want a testing environment or a production deployment, Clouded Basement handles the hard parts so you can focus on building." })
+      ] }),
+      /* @__PURE__ */ jsx("div", { className: "h-px bg-linear-to-r from-transparent via-blue-500/30 to-transparent mb-16 lg:mb-20" }),
+      /* @__PURE__ */ jsxs("div", { className: "mb-16 lg:mb-20", children: [
+        /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row items-start gap-6 sm:gap-8 mb-8", children: [
+          /* @__PURE__ */ jsx("div", { className: "w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden ring-1 ring-white/10 shrink-0", children: /* @__PURE__ */ jsx(
+            "img",
+            {
+              src: "/hero%20personal%20portfolio.jpg",
+              alt: "Kayo Williams",
+              className: "w-full h-full object-cover"
+            }
+          ) }),
+          /* @__PURE__ */ jsxs("div", { className: "pt-1", children: [
+            /* @__PURE__ */ jsx("h2", { className: "funnel-heading-2 mb-1", children: "Kayo Williams" }),
+            /* @__PURE__ */ jsx("p", { className: "funnel-kicker", children: "Founder & Developer" })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsx("p", { className: "funnel-body", children: "Before tech, I worked in the trades for an oil and heating company. Diagnosing complex systems, troubleshooting under pressure, and solving problems methodically were part of the job — skills I now apply to building and maintaining infrastructure." }),
+        /* @__PURE__ */ jsx("p", { className: "funnel-body mt-5", children: "Clouded Basement is my way of creating a platform that's both reliable and usable, designed from the ground up with real-world developer needs in mind." })
+      ] }),
+      /* @__PURE__ */ jsx("div", { className: "h-px bg-linear-to-r from-transparent via-blue-500/30 to-transparent mb-16 lg:mb-20" }),
+      /* @__PURE__ */ jsxs("div", { className: "mb-16 lg:mb-20", children: [
+        /* @__PURE__ */ jsx("h2", { className: "funnel-heading-2 mb-6", children: "Why Clouded Basement exists" }),
+        /* @__PURE__ */ jsx("p", { className: "funnel-body mb-8", children: "Deploying apps shouldn't be this painful. Most platforms hide too much of the system, and managing a raw VPS means hours of manual configuration. Clouded Basement sits in the middle." }),
+        /* @__PURE__ */ jsx("div", { className: "space-y-3 pl-1", children: [
+          "A real VPS with full SSH and root access",
+          "Automated provisioning, updates, and monitoring",
+          "GitHub integration — connect your repo, click deploy, your site is live",
+          "Free subdomain included with every server",
+          "Custom domains with automatic SSL via Let's Encrypt",
+          "Nginx, Node.js, and Python pre-installed and ready",
+          "Hardened security out of the box — firewall, rate limiting, security headers"
+        ].map((item) => /* @__PURE__ */ jsxs("div", { className: "flex items-start gap-3", children: [
+          /* @__PURE__ */ jsx("span", { className: "text-blue-400 mt-1.5 text-xs", children: "●" }),
+          /* @__PURE__ */ jsx("p", { className: "funnel-body-sm", style: { color: "#d1d5db" }, children: item })
+        ] }, item)) }),
+        /* @__PURE__ */ jsx("p", { className: "funnel-body-sm mt-8 italic", style: { color: "#6b7280" }, children: "You retain control, but without spending hours on setup." })
+      ] }),
+      /* @__PURE__ */ jsx("div", { className: "h-px bg-linear-to-r from-transparent via-blue-500/30 to-transparent mb-16 lg:mb-20" }),
+      /* @__PURE__ */ jsxs("div", { className: "mb-16 lg:mb-20", children: [
+        /* @__PURE__ */ jsx("h2", { className: "funnel-heading-2 mb-6", children: "Technology & reliability" }),
+        /* @__PURE__ */ jsx("p", { className: "funnel-body mb-6", children: "Built with stability and maintainability as priorities. Automation ensures smooth operations, while critical tasks are monitored to guarantee predictable performance." }),
+        /* @__PURE__ */ jsx("p", { className: "funnel-body-sm", style: { color: "#6b7280" }, children: "Node.js · Express · PostgreSQL · Stripe · DigitalOcean · Ubuntu LTS · Let's Encrypt · Nginx · Helmet · bcrypt" })
+      ] }),
+      /* @__PURE__ */ jsx("div", { className: "h-px bg-linear-to-r from-transparent via-blue-500/30 to-transparent mb-16 lg:mb-20" }),
+      /* @__PURE__ */ jsxs("div", { className: "mb-16 lg:mb-20", children: [
+        /* @__PURE__ */ jsx("h2", { className: "funnel-heading-2 mb-6", children: "Our approach" }),
+        /* @__PURE__ */ jsx("p", { className: "funnel-body", children: "We're not competing with hyperscale providers. The goal is simple: a hosting platform that works reliably and reduces friction, letting developers focus on their projects." }),
+        /* @__PURE__ */ jsx("p", { className: "funnel-body mt-5", children: "New features are added gradually, guided by real user needs and practical considerations — not arbitrary checklists." })
+      ] }),
+      /* @__PURE__ */ jsx("div", { className: "h-px bg-linear-to-r from-transparent via-blue-500/30 to-transparent mb-16 lg:mb-20" }),
+      /* @__PURE__ */ jsx("div", { className: "mb-16 lg:mb-20", children: /* @__PURE__ */ jsx("div", { className: "flex flex-col sm:flex-row gap-6 sm:gap-12", children: [
+        { label: "GitHub", href: "https://github.com/Nikkayowill/CloudedBasement", external: true },
+        { label: "Documentation", href: "/docs", external: false },
+        { label: "Pricing", href: "/pricing", external: false }
+      ].map((link) => /* @__PURE__ */ jsxs(
+        "a",
+        {
+          href: link.href,
+          target: link.external ? "_blank" : void 0,
+          rel: link.external ? "noopener noreferrer" : void 0,
+          className: "funnel-body-sm group",
+          style: { color: "#9ca3af", textDecoration: "none" },
+          children: [
+            link.label,
+            " ",
+            /* @__PURE__ */ jsx("span", { className: "inline-block transition-transform group-hover:translate-x-0.5", children: "→" })
+          ]
+        },
+        link.label
+      )) }) }),
+      /* @__PURE__ */ jsxs("div", { className: "pt-12 funnel-divider", children: [
+        /* @__PURE__ */ jsx("h3", { className: "funnel-heading-3 mb-3", children: "Get in touch" }),
+        /* @__PURE__ */ jsx("p", { className: "funnel-body-sm mb-6", children: "Questions about the platform, tech details, or just want to connect? Clouded Basement is maintained steadily with reliability and clarity as priorities." }),
+        /* @__PURE__ */ jsx("a", { href: "/contact", className: "funnel-body-sm", style: { color: "#60a5fa", textDecoration: "none" }, children: "Contact us →" })
+      ] })
+    ] }) }) }),
+    /* @__PURE__ */ jsx(Footer, {})
+  ] });
+}
+export {
+  About as default
+};
