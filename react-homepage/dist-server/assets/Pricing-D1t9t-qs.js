@@ -195,26 +195,30 @@ function Pricing() {
             ]
           }
         ),
-        detailsOpen && /* @__PURE__ */ jsx(
+        detailsOpen && /* @__PURE__ */ jsxs(
           "div",
           {
             id: "feature-comparison",
             role: "region",
+            "aria-labelledby": "feature-comparison-heading",
             className: "overflow-x-auto mt-6",
-            children: /* @__PURE__ */ jsxs("table", { className: "w-full text-sm", children: [
-              /* @__PURE__ */ jsx("thead", { children: /* @__PURE__ */ jsxs("tr", { className: "border-b border-gray-700", children: [
-                /* @__PURE__ */ jsx("th", { className: "text-left py-3 px-4 text-gray-400 font-medium", children: "Feature" }),
-                /* @__PURE__ */ jsx("th", { className: "text-center py-3 px-4 text-gray-300", children: "Basic" }),
-                /* @__PURE__ */ jsx("th", { className: "text-center py-3 px-4 text-blue-400", children: "Pro" }),
-                /* @__PURE__ */ jsx("th", { className: "text-center py-3 px-4 text-purple-400", children: "Premium" })
-              ] }) }),
-              /* @__PURE__ */ jsx("tbody", { className: "text-gray-300", children: FULL_FEATURES.map((f) => /* @__PURE__ */ jsxs("tr", { className: "border-b border-gray-800", children: [
-                /* @__PURE__ */ jsx("td", { className: "py-2 px-4", children: f.label }),
-                /* @__PURE__ */ jsx("td", { className: `text-center ${f.basic === "✓" ? "text-green-400" : "text-gray-500"}`, children: f.basic }),
-                /* @__PURE__ */ jsx("td", { className: `text-center ${f.pro === "✓" ? "text-green-400" : "text-gray-500"}`, children: f.pro }),
-                /* @__PURE__ */ jsx("td", { className: `text-center ${f.premium === "✓" ? "text-green-400" : "text-gray-500"}`, children: f.premium })
-              ] }, f.label)) })
-            ] })
+            children: [
+              /* @__PURE__ */ jsx("h3", { id: "feature-comparison-heading", className: "sr-only", children: "Feature comparison" }),
+              /* @__PURE__ */ jsxs("table", { className: "w-full text-sm", children: [
+                /* @__PURE__ */ jsx("thead", { children: /* @__PURE__ */ jsxs("tr", { className: "border-b border-gray-700", children: [
+                  /* @__PURE__ */ jsx("th", { className: "text-left py-3 px-4 text-gray-400 font-medium", children: "Feature" }),
+                  /* @__PURE__ */ jsx("th", { className: "text-center py-3 px-4 text-gray-300", children: "Basic" }),
+                  /* @__PURE__ */ jsx("th", { className: "text-center py-3 px-4 text-blue-400", children: "Pro" }),
+                  /* @__PURE__ */ jsx("th", { className: "text-center py-3 px-4 text-purple-400", children: "Premium" })
+                ] }) }),
+                /* @__PURE__ */ jsx("tbody", { className: "text-gray-300", children: FULL_FEATURES.map((f) => /* @__PURE__ */ jsxs("tr", { className: "border-b border-gray-800", children: [
+                  /* @__PURE__ */ jsx("td", { className: "py-2 px-4", children: f.label }),
+                  /* @__PURE__ */ jsx("td", { className: `text-center ${f.basic === "✓" ? "text-green-400" : "text-gray-500"}`, children: f.basic }),
+                  /* @__PURE__ */ jsx("td", { className: `text-center ${f.pro === "✓" ? "text-green-400" : "text-gray-500"}`, children: f.pro }),
+                  /* @__PURE__ */ jsx("td", { className: `text-center ${f.premium === "✓" ? "text-green-400" : "text-gray-500"}`, children: f.premium })
+                ] }, f.label)) })
+              ] })
+            ]
           }
         )
       ] }) }),

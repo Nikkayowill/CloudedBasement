@@ -15,12 +15,10 @@ function DocLayout({ toc, children }) {
       },
       { rootMargin: "-80px 0px -60% 0px", threshold: 0 }
     );
-    if (Array.isArray(toc)) {
-      toc.forEach(({ id }) => {
-        const el = document.getElementById(id);
-        if (el) observerRef.current.observe(el);
-      });
-    }
+    toc.forEach(({ id }) => {
+      const el = document.getElementById(id);
+      if (el) observerRef.current.observe(el);
+    });
     return () => observerRef.current?.disconnect();
   }, [toc]);
   useEffect(() => {
@@ -47,7 +45,7 @@ function DocLayout({ toc, children }) {
       ] }),
       /* @__PURE__ */ jsx(Footer, {})
     ] }),
-    !mobileTocOpen && /* @__PURE__ */ jsx(
+    /* @__PURE__ */ jsx(
       "button",
       {
         onClick: () => setMobileTocOpen((o) => !o),

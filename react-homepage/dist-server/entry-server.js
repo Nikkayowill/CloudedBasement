@@ -585,7 +585,7 @@ function HeroSection() {
         /* @__PURE__ */ jsx("p", { className: "funnel-body mb-8 max-w-[30rem]", children: "Launch a developer-friendly cloud server with GitHub deploys, WordPress support, free SSL, and full root access in minutes." }),
         /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row gap-3 justify-center items-center md:justify-start md:items-start", children: [
           /* @__PURE__ */ jsx("a", { href: "/register", className: "funnel-btn funnel-btn-primary", children: "Start Free Trial" }),
-          /* @__PURE__ */ jsx("a", { href: "#how-it-works", className: "funnel-btn funnel-btn-subtle", children: "See the setup flow ->" })
+          /* @__PURE__ */ jsx("a", { href: "/docs", className: "funnel-btn funnel-btn-subtle", children: "Documentation" })
         ] })
       ] }),
       /* @__PURE__ */ jsxs("div", { className: "cb-content-pad py-28 md:py-32 mt-20 md:mt-28 flex flex-col items-center justify-center gap-4", children: [
@@ -1487,7 +1487,7 @@ const Contact = lazy(() => import("./assets/Contact-Dd08wz_I.js"));
 const Docs = lazy(() => import("./assets/Docs-Dci7T0tI.js"));
 const Faq = lazy(() => import("./assets/Faq-DkFaiQmO.js"));
 const Login = lazy(() => import("./assets/Login-C1W7LZ5x.js"));
-const Pricing = lazy(() => import("./assets/Pricing-CQacFN6Y.js"));
+const Pricing = lazy(() => import("./assets/Pricing-D1t9t-qs.js"));
 const Privacy = lazy(() => import("./assets/Privacy-Co18hrtw.js"));
 const Register = lazy(() => import("./assets/Register-DBDLnFCJ.js"));
 const Safety = lazy(() => import("./assets/Safety-CQgf-xXi.js"));
