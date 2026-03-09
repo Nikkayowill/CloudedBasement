@@ -22,7 +22,7 @@ export default function HeroSection() {
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center md:justify-start md:items-start">
             <a href="/register" className="funnel-btn funnel-btn-primary">Start Free Trial</a>
-            <a href="#how-it-works" className="funnel-btn funnel-btn-subtle">See the setup flow -&gt;</a>
+            <a href="/docs" className="funnel-btn funnel-btn-subtle">Documentation</a>
           </div>
         </div>
 
