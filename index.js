@@ -19,7 +19,6 @@ if (process.env.SENTRY_DSN) {
 }
 
 const path = require('path');
-const fs   = require('fs');
 const express = require('express');
 // express-rate-limit used via middleware/rateLimiter, not directly
 const helmet = require('helmet');
@@ -40,7 +39,7 @@ const logger = require('./middleware/logger');
 const { runMigrations } = require('./migrations/run-migrations');
 const { passport, initializeGoogleAuth } = require('./services/googleAuth');
 const { nonceMiddleware } = require('./src/utils/nonce');
-const { getGoogleAnalyticsTags } = require('./src/utils/helpers');
+const { renderReactHtml: _renderReactHtml } = require('./src/utils/reactSPA');
 
 const app = express();
 
@@ -155,13 +154,9 @@ app.get('/health', async (req, res) => {
 
 // SSR homepage — render React to string on the server, hydrate on the client.
 // Falls back to plain SPA if the server bundle hasn't been built yet.
-// app.get('/', pagesController.showHome); // original server-rendered route kept as reference
+const SSR_BUNDLE = path.join(__dirname, 'react-homepage/dist-server/entry-server.js');
 
-const SSR_BUNDLE   = path.join(__dirname, 'react-homepage/dist-server/entry-server.js');
-const SPA_TEMPLATE = path.join(__dirname, 'react-homepage/dist/index.html');
-
-let _ssrRender;          // cached once per process
-let _spaTemplate;        // read once per process
+let _ssrRender; // cached once per process
 
 async function loadSSR() {
   if (_ssrRender !== undefined) return _ssrRender;
@@ -175,30 +170,8 @@ async function loadSSR() {
   return _ssrRender;
 }
 
-function stripStaticGoogleAnalytics(html) {
-  return html
-    .replace(/<!--\s*Google tag \(gtag\.js\)\s*-->\s*/gi, '')
-    .replace(/<script[^>]*src="https:\/\/www\.googletagmanager\.com\/gtag\/js\?id=[^"]+"[^>]*><\/script>\s*/gi, '')
-    .replace(/<script[^>]*>\s*window\.dataLayer\s*=\s*window\.dataLayer\s*\|\|\s*\[\]\s*;[\s\S]*?gtag\('config'[\s\S]*?<\/script>\s*/gi, '');
-}
-
-function addNonceToAllScriptTags(html, nonce) {
-  if (!nonce) return html;
-  return html.replace(/<script(?![^>]*\bnonce=)/gi, `<script nonce="${nonce}"`);
-}
-
 function renderReactHtml(req, appHtml = null) {
-  _spaTemplate = _spaTemplate || fs.readFileSync(SPA_TEMPLATE, 'utf-8');
-  let html = _spaTemplate;
-
-  if (appHtml !== null) {
-    html = html.replace('<div id="root"></div>', `<div id="root">${appHtml}</div>`);
-  }
-
-  html = stripStaticGoogleAnalytics(html);
-  html = html.replace('</head>', `${getGoogleAnalyticsTags()}\n  </head>`);
-  html = addNonceToAllScriptTags(html, req.res?.locals?.nonce || '');
-  return html;
+  return _renderReactHtml(req.res?.locals?.nonce || '', appHtml);
 }
 
 app.get(['/', '/index.html'], async (req, res) => {
