@@ -4,11 +4,32 @@ const csrf = require('../middleware/csrf');
 const { emailVerifyLimiter, loginLimiter, registrationLimiter } = require('../middleware/rateLimiter');
 const authController = require('../controllers/authController');
 const { passport } = require('../services/googleAuth');
+const { renderReactHtml } = require('../src/utils/reactSPA');
 
 const router = Router();
 
+function serveSPA(req, res) {
+  res.send(renderReactHtml(res.locals.nonce));
+}
+
+function generateBotCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    code += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return code;
+}
+
+// ── Bot challenge — React register page fetches this to get the human-check code
+router.get('/api/auth/bot-challenge', (req, res) => {
+  const botCode = generateBotCode();
+  req.session.botCode = botCode;
+  res.json({ botCode });
+});
+
 // ── Registration ──────────────────────────────────────────────────────────────
-router.get('/register', csrf, authController.showRegister);
+router.get('/register', serveSPA);
 router.post('/register',
   registrationLimiter,
   csrf,
@@ -21,7 +42,7 @@ router.post('/register',
 );
 
 // ── Login / logout ────────────────────────────────────────────────────────────
-router.get('/login', csrf, authController.showLogin);
+router.get('/login', serveSPA);
 router.post('/login',
   loginLimiter,
   csrf,
