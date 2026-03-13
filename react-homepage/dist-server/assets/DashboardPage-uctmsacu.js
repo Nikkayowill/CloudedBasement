@@ -1,5 +1,5 @@
 import { jsxs, jsx, Fragment } from "react/jsx-runtime";
-import { useState, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 const PLAN_COLORS = {
   premium: { bg: "rgba(45,167,223,0.22)", color: "#7fd6ff" },
   pro: { bg: "rgba(45,167,223,0.16)", color: "#5cc8f3" },
@@ -114,6 +114,93 @@ function SidebarInner({ nav, active, onNav, userEmail, initial, plan, planStyle,
           )
         ] })
       ] })
+    ] })
+  ] });
+}
+function metricColor(val) {
+  if (val === null) return "#525252";
+  if (val >= 85) return "#ef4444";
+  if (val >= 60) return "#eab308";
+  return "#22c55e";
+}
+function MetricTile({ label, value, unit = "%", showBar = true }) {
+  const isAvailable = value !== null;
+  const color = showBar ? metricColor(value) : "#60a5fa";
+  return /* @__PURE__ */ jsxs("div", { style: {
+    background: "#111111",
+    border: "1px solid rgba(255,255,255,0.06)",
+    borderRadius: "0.625rem",
+    padding: "0.875rem 1rem",
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.375rem",
+    minWidth: 0
+  }, children: [
+    /* @__PURE__ */ jsx("span", { style: { fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#525252" }, children: label }),
+    /* @__PURE__ */ jsx("span", { style: {
+      fontSize: "1.375rem",
+      fontWeight: 700,
+      lineHeight: 1,
+      fontFamily: "JetBrains Mono, monospace",
+      color: isAvailable ? color : "#525252"
+    }, children: isAvailable ? `${value}${unit}` : "—" }),
+    showBar && /* @__PURE__ */ jsx("div", { style: { height: "3px", background: "rgba(255,255,255,0.05)", borderRadius: 99, overflow: "hidden", marginTop: "0.25rem" }, children: /* @__PURE__ */ jsx("div", { style: {
+      height: "100%",
+      width: isAvailable ? `${Math.min(value, 100)}%` : "0%",
+      background: color,
+      borderRadius: 99,
+      transition: "width 0.6s ease, background 0.3s ease",
+      boxShadow: isAvailable && value >= 60 ? `0 0 6px ${color}60` : "none"
+    } }) })
+  ] });
+}
+function MetricsSkeleton() {
+  return /* @__PURE__ */ jsx("div", { className: "metrics-grid", style: { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0.625rem", marginBottom: "1.25rem" }, children: [0, 1, 2, 3].map((i) => /* @__PURE__ */ jsxs("div", { style: {
+    background: "#111111",
+    border: "1px solid rgba(255,255,255,0.06)",
+    borderRadius: "0.625rem",
+    padding: "0.875rem 1rem",
+    height: "5rem"
+  }, children: [
+    /* @__PURE__ */ jsx("div", { style: { height: "0.5rem", width: "40%", background: "rgba(255,255,255,0.06)", borderRadius: 4, marginBottom: "0.625rem", animation: "pulse 1.5s ease-in-out infinite" } }),
+    /* @__PURE__ */ jsx("div", { style: { height: "1.25rem", width: "55%", background: "rgba(255,255,255,0.04)", borderRadius: 4 } }),
+    /* @__PURE__ */ jsx("style", { children: `@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }` })
+  ] }, i)) });
+}
+function MetricsGrid() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch("/api/metrics", { credentials: "same-origin" });
+      const json = await res.json();
+      setData(json);
+    } catch {
+      setData({ available: false });
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+  useEffect(() => {
+    load();
+    const id = setInterval(load, 3e4);
+    return () => clearInterval(id);
+  }, [load]);
+  if (loading) return /* @__PURE__ */ jsx(MetricsSkeleton, {});
+  if (!data?.available) return null;
+  return /* @__PURE__ */ jsxs("div", { style: { marginBottom: "1.25rem" }, children: [
+    /* @__PURE__ */ jsx("style", { children: `
+        @media (max-width: 520px) { .metrics-grid { grid-template-columns: repeat(2, 1fr) !important; } }
+      ` }),
+    /* @__PURE__ */ jsxs("div", { className: "metrics-grid", style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(4, 1fr)",
+      gap: "0.625rem"
+    }, children: [
+      /* @__PURE__ */ jsx(MetricTile, { label: "CPU", value: data.cpu, unit: "%", showBar: true }),
+      /* @__PURE__ */ jsx(MetricTile, { label: "Memory", value: data.memory, unit: "%", showBar: true }),
+      /* @__PURE__ */ jsx(MetricTile, { label: "Disk", value: data.disk, unit: "%", showBar: true }),
+      /* @__PURE__ */ jsx(MetricTile, { label: "Uptime", value: data.uptime, unit: "", showBar: false })
     ] })
   ] });
 }
@@ -337,6 +424,7 @@ function OverviewSection({ data, onNav }) {
         /* @__PURE__ */ jsx("p", { style: { fontSize: "0.9375rem", fontWeight: 500, color: "var(--dash-text-primary, #fafafa)", marginBottom: "0.375rem" }, children: "Setting up your server…" }),
         /* @__PURE__ */ jsx("p", { style: { fontSize: "0.8125rem", color: "var(--dash-text-secondary, #a1a1a1)" }, children: "Usually takes 2–3 minutes. This page will refresh automatically." })
       ] }),
+      hasServer && serverStatus === "running" && /* @__PURE__ */ jsx(MetricsGrid, {}),
       (hasServer || isProvisioning && hasServer) && /* @__PURE__ */ jsxs("div", { style: { border: "1px solid rgba(255,255,255,0.07)", borderRadius: "0.625rem" }, children: [
         /* @__PURE__ */ jsxs("div", { style: {
           display: "flex",

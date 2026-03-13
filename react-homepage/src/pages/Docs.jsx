@@ -174,7 +174,7 @@ export default function Docs() {
                   </div>
                   <div>
                     <h3 className="text-base font-semibold text-white mb-1">Where can I find my invoices?</h3>
-                    <p className="text-base text-gray-300 mb-0">All invoices and payment history are available in the Billing & Plans section of your dashboard.</p>
+                    <p className="text-base text-gray-300 mb-0">Invoices are securely generated and stored by Stripe. You can view and download your invoices through the Stripe billing portal or from Stripe-generated links sent to your email after each payment. For direct access, use the <b>View Invoices</b> link in the Billing & Plans section.</p>
                   </div>
                 </div>
               </section>

@@ -1,3 +1,120 @@
+import { useState, useEffect, useCallback } from 'react';
+
+// ── Metrics Grid ──────────────────────────────────────────────────────────────
+
+function metricColor(val) {
+  if (val === null) return '#525252';
+  if (val >= 85) return '#ef4444';
+  if (val >= 60) return '#eab308';
+  return '#22c55e';
+}
+
+function MetricTile({ label, value, unit = '%', showBar = true }) {
+  const isAvailable = value !== null;
+  const color = showBar ? metricColor(value) : '#60a5fa';
+
+  return (
+    <div style={{
+      background: '#111111',
+      border: '1px solid rgba(255,255,255,0.06)',
+      borderRadius: '0.625rem',
+      padding: '0.875rem 1rem',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '0.375rem',
+      minWidth: 0,
+    }}>
+      <span style={{ fontSize: '0.6875rem', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#525252' }}>
+        {label}
+      </span>
+      <span style={{
+        fontSize: '1.375rem', fontWeight: 700, lineHeight: 1,
+        fontFamily: 'JetBrains Mono, monospace',
+        color: isAvailable ? color : '#525252',
+      }}>
+        {isAvailable ? `${value}${unit}` : '—'}
+      </span>
+      {showBar && (
+        <div style={{ height: '3px', background: 'rgba(255,255,255,0.05)', borderRadius: 99, overflow: 'hidden', marginTop: '0.25rem' }}>
+          <div style={{
+            height: '100%',
+            width: isAvailable ? `${Math.min(value, 100)}%` : '0%',
+            background: color,
+            borderRadius: 99,
+            transition: 'width 0.6s ease, background 0.3s ease',
+            boxShadow: isAvailable && value >= 60 ? `0 0 6px ${color}60` : 'none',
+          }} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MetricsSkeleton() {
+  return (
+    <div className="metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.625rem', marginBottom: '1.25rem' }}>
+      {[0,1,2,3].map(i => (
+        <div key={i} style={{
+          background: '#111111', border: '1px solid rgba(255,255,255,0.06)',
+          borderRadius: '0.625rem', padding: '0.875rem 1rem', height: '5rem',
+        }}>
+          <div style={{ height: '0.5rem', width: '40%', background: 'rgba(255,255,255,0.06)', borderRadius: 4, marginBottom: '0.625rem', animation: 'pulse 1.5s ease-in-out infinite' }} />
+          <div style={{ height: '1.25rem', width: '55%', background: 'rgba(255,255,255,0.04)', borderRadius: 4 }} />
+          <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }`}</style>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function MetricsGrid() {
+  const [data, setData]     = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    try {
+      const res  = await fetch('/api/metrics', { credentials: 'same-origin' });
+      const json = await res.json();
+      setData(json);
+    } catch {
+      setData({ available: false });
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+    const id = setInterval(load, 30_000);
+    return () => clearInterval(id);
+  }, [load]);
+
+  if (loading) return <MetricsSkeleton />;
+
+  // If metrics aren't available (no server / DO API unreachable), render nothing
+  if (!data?.available) return null;
+
+  return (
+    <div style={{ marginBottom: '1.25rem' }}>
+      <style>{`
+        @media (max-width: 520px) { .metrics-grid { grid-template-columns: repeat(2, 1fr) !important; } }
+      `}</style>
+      <div className="metrics-grid" style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: '0.625rem',
+      }}>
+        <MetricTile label="CPU"    value={data.cpu}    unit="%" showBar />
+        <MetricTile label="Memory" value={data.memory} unit="%" showBar />
+        <MetricTile label="Disk"   value={data.disk}   unit="%" showBar />
+        <MetricTile label="Uptime" value={data.uptime} unit=""  showBar={false} />
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 // Section header shared across dashboard sections
 function SectionHeader({ title }) {
   return (
@@ -271,6 +388,9 @@ export default function OverviewSection({ data, onNav }) {
             </p>
           </div>
         )}
+
+        {/* Live metrics — only rendered when server is running */}
+        {hasServer && serverStatus === 'running' && <MetricsGrid />}
 
         {/* Server card */}
         {(hasServer || (isProvisioning && hasServer)) && (

@@ -1480,11 +1480,11 @@ function HomePage() {
     ] }) })
   ] });
 }
-const DashboardPage = lazy(() => import("./assets/DashboardPage-Dx5eOPA8.js"));
+const DashboardPage = lazy(() => import("./assets/DashboardPage-uctmsacu.js"));
 const About = lazy(() => import("./assets/About-DImQmbMc.js"));
 const Compare = lazy(() => import("./assets/Compare-Cz_Y25j_.js"));
 const Contact = lazy(() => import("./assets/Contact-Dd08wz_I.js"));
-const Docs = lazy(() => import("./assets/Docs-BaLs0lPF.js"));
+const Docs = lazy(() => import("./assets/Docs-CTaKbbhm.js"));
 const Faq = lazy(() => import("./assets/Faq-DkFaiQmO.js"));
 const Login = lazy(() => import("./assets/Login-C1W7LZ5x.js"));
 const Pricing = lazy(() => import("./assets/Pricing-D1t9t-qs.js"));

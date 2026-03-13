@@ -731,7 +731,79 @@ const getDeploymentStatus = async (req, res) => {
   }
 };
 
-module.exports = { showDashboard: exports.showDashboard, getDashboardData, submitSupportTicket, changePassword, applyUpdates, getCredentials, getEnvVars, createEnvVar, deleteEnvVar, getDeploymentStatus };
+// ── VPS Metrics ───────────────────────────────────────────────────────────────
+// 30-second in-memory cache per droplet — avoids hammering the DO API.
+const _metricsCache = new Map();
+
+const getMetrics = async (req, res) => {
+  try {
+    const userId = req.session.userId;
+
+    // Security: only the authenticated user's own running server
+    const result = await pool.query(
+      `SELECT droplet_id, created_at
+         FROM servers
+        WHERE user_id = $1 AND status = 'running'
+        ORDER BY created_at DESC LIMIT 1`,
+      [userId]
+    );
+
+    const row = result.rows[0];
+    if (!row?.droplet_id) return res.json({ available: false });
+
+    const { droplet_id, created_at } = row;
+    const cacheKey = `m_${droplet_id}`;
+    const cached = _metricsCache.get(cacheKey);
+    if (cached && Date.now() - cached.ts < 30_000) return res.json(cached.data);
+
+    const now   = Math.floor(Date.now() / 1000);
+    const start = now - 600; // last 10 minutes — enough for a stable reading
+    const headers = { Authorization: `Bearer ${process.env.DIGITAL_OCEAN_TOKEN}` };
+
+    // Fire all three requests in parallel; if one fails it returns null
+    const hit = (type) =>
+      require('axios').get(
+        `https://api.digitalocean.com/v2/monitoring/metrics/droplet/${type}`,
+        { params: { host_id: String(droplet_id), start, end: now }, headers, timeout: 8000 }
+      ).catch(() => null);
+
+    const [cpuRes, memRes, diskRes] = await Promise.all([
+      hit('cpu'),
+      hit('memory_utilization_percent'),
+      hit('filesystem_utilization'),
+    ]);
+
+    // Pick the last data-point from a time-series result
+    const latest = (res) => {
+      const values = res?.data?.data?.result?.[0]?.values;
+      if (!values?.length) return null;
+      const v = parseFloat(values[values.length - 1][1]);
+      return isNaN(v) ? null : Math.round(v);
+    };
+
+    // Uptime is simple: VPS servers are always-on, so time since provisioning is accurate
+    const ms   = Date.now() - new Date(created_at).getTime();
+    const days = Math.floor(ms / 86_400_000);
+    const hrs  = Math.floor((ms % 86_400_000) / 3_600_000);
+    const uptime = days > 0 ? `${days}d ${hrs}h` : `${hrs}h`;
+
+    const data = {
+      available: true,
+      cpu:    latest(cpuRes),
+      memory: latest(memRes),
+      disk:   latest(diskRes),
+      uptime,
+    };
+
+    _metricsCache.set(cacheKey, { data, ts: Date.now() });
+    res.json(data);
+  } catch (err) {
+    console.error('[metrics]', err.message);
+    res.json({ available: false });
+  }
+};
+
+module.exports = { showDashboard: exports.showDashboard, getDashboardData, submitSupportTicket, changePassword, applyUpdates, getCredentials, getEnvVars, createEnvVar, deleteEnvVar, getDeploymentStatus, getMetrics };
 
 /**
  * Dashboard Template Builder - Tech-View Design

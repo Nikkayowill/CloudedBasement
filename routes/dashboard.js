@@ -36,6 +36,9 @@ router.get('/api/env-vars', requireAuth, csrf, dashboardController.getEnvVars);
 router.post('/api/env-vars', requireAuth, csrf, dashboardController.createEnvVar);
 router.delete('/api/env-vars/:id', requireAuth, csrf, dashboardController.deleteEnvVar);
 
+// VPS metrics — proxied so the DO API key never reaches the client
+router.get('/api/metrics', requireAuth, dashboardController.getMetrics);
+
 // Deployment status polling
 router.get('/api/deployment-status/:id', requireAuth, dashboardController.getDeploymentStatus);
 

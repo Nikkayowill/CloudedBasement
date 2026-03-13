@@ -605,7 +605,11 @@ function Docs() {
               ] }),
               /* @__PURE__ */ jsxs("div", { children: [
                 /* @__PURE__ */ jsx("h3", { className: "text-base font-semibold text-white mb-1", children: "Where can I find my invoices?" }),
-                /* @__PURE__ */ jsx("p", { className: "text-base text-gray-300 mb-0", children: "All invoices and payment history are available in the Billing & Plans section of your dashboard." })
+                /* @__PURE__ */ jsxs("p", { className: "text-base text-gray-300 mb-0", children: [
+                  "Invoices are securely generated and stored by Stripe. You can view and download your invoices through the Stripe billing portal or from Stripe-generated links sent to your email after each payment. For direct access, use the ",
+                  /* @__PURE__ */ jsx("b", { children: "View Invoices" }),
+                  " link in the Billing & Plans section."
+                ] })
               ] })
             ] })
           ] }),
