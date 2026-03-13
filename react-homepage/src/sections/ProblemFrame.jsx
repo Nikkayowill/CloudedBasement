@@ -105,7 +105,7 @@ export default function ProblemFrame() {
   return (
     <section>
       <div className="cb-title-row">
-        <div className="text-center mb-16">
+        <div className="text-center mb-10">
           <p className="text-brand text-lg font-semibold mb-4">The hidden cost of DIY cloud hosting</p>
           <h2 className="text-3xl md:text-4xl font-bold mb-5 text-white">
             Build your product, not your server stack.
@@ -116,15 +116,15 @@ export default function ProblemFrame() {
       <div className="cb-split cb-split-2">
         <div className="cb-content-pad py-12 flex flex-col justify-center items-center">
           <div className="max-w-xl w-full">
-            <p className="text-base md:text-lg text-gray-200 mb-4 text-center">
+            <p className="text-base md:text-lg text-gray-200 mb-4 lg:text-left text-center">
               Most launches slow down on infrastructure tasks, not product work.<br />
               SSL setup, reverse proxies, deploy pipelines, and server patching can drain weeks from small teams.
             </p>
-            <p className="text-base md:text-lg text-gray-300 mb-4 text-center">
+            <p className="text-base md:text-lg text-gray-300 mb-4 lg:text-left text-center">
               Serverless can be limiting for full-stack apps and WordPress.<br />
               Raw VPS hosting gives control, but leaves setup and maintenance on you.
             </p>
-            <p className="text-base md:text-lg text-gray-400 text-center">
+            <p className="text-base md:text-lg text-gray-400 lg:text-left text-center">
               <span className="font-semibold text-brand">Clouded Basement gives you both:</span> managed VPS automation with full server control, so startups and developers can ship faster.
             </p>
           </div>

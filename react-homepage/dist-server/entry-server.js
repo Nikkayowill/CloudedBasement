@@ -689,23 +689,23 @@ function TerminalCard() {
 }
 function ProblemFrame() {
   return /* @__PURE__ */ jsxs("section", { children: [
-    /* @__PURE__ */ jsx("div", { className: "cb-title-row", children: /* @__PURE__ */ jsxs("div", { className: "text-center mb-16", children: [
+    /* @__PURE__ */ jsx("div", { className: "cb-title-row", children: /* @__PURE__ */ jsxs("div", { className: "text-center mb-10", children: [
       /* @__PURE__ */ jsx("p", { className: "text-brand text-lg font-semibold mb-4", children: "The hidden cost of DIY cloud hosting" }),
       /* @__PURE__ */ jsx("h2", { className: "text-3xl md:text-4xl font-bold mb-5 text-white", children: "Build your product, not your server stack." })
     ] }) }),
     /* @__PURE__ */ jsxs("div", { className: "cb-split cb-split-2", children: [
       /* @__PURE__ */ jsx("div", { className: "cb-content-pad py-12 flex flex-col justify-center items-center", children: /* @__PURE__ */ jsxs("div", { className: "max-w-xl w-full", children: [
-        /* @__PURE__ */ jsxs("p", { className: "text-base md:text-lg text-gray-200 mb-4 text-center", children: [
+        /* @__PURE__ */ jsxs("p", { className: "text-base md:text-lg text-gray-200 mb-4 lg:text-left text-center", children: [
           "Most launches slow down on infrastructure tasks, not product work.",
           /* @__PURE__ */ jsx("br", {}),
           "SSL setup, reverse proxies, deploy pipelines, and server patching can drain weeks from small teams."
         ] }),
-        /* @__PURE__ */ jsxs("p", { className: "text-base md:text-lg text-gray-300 mb-4 text-center", children: [
+        /* @__PURE__ */ jsxs("p", { className: "text-base md:text-lg text-gray-300 mb-4 lg:text-left text-center", children: [
           "Serverless can be limiting for full-stack apps and WordPress.",
           /* @__PURE__ */ jsx("br", {}),
           "Raw VPS hosting gives control, but leaves setup and maintenance on you."
         ] }),
-        /* @__PURE__ */ jsxs("p", { className: "text-base md:text-lg text-gray-400 text-center", children: [
+        /* @__PURE__ */ jsxs("p", { className: "text-base md:text-lg text-gray-400 lg:text-left text-center", children: [
           /* @__PURE__ */ jsx("span", { className: "font-semibold text-brand", children: "Clouded Basement gives you both:" }),
           " managed VPS automation with full server control, so startups and developers can ship faster."
         ] })
@@ -1393,7 +1393,7 @@ function CTASection() {
       /* @__PURE__ */ jsx("p", { className: "mb-10", children: "Get automated cloud hosting with GitHub deploys, WordPress support, and full server control. Start your 3-day free trial." }),
       /* @__PURE__ */ jsxs("div", { className: "flex flex-col sm:flex-row gap-4 justify-center items-center", children: [
         /* @__PURE__ */ jsx("a", { href: "/register", className: "funnel-btn funnel-btn-primary", children: "Start Free Trial" }),
-        /* @__PURE__ */ jsx("a", { href: "/docs", className: "funnel-btn funnel-btn-subtle", children: "Read deployment docs ->" })
+        /* @__PURE__ */ jsx("a", { href: "/docs", className: "funnel-btn funnel-btn-subtle", children: "Read Documentation" })
       ] })
     ] })
   ] }) });
@@ -1484,7 +1484,7 @@ const DashboardPage = lazy(() => import("./assets/DashboardPage-Dx5eOPA8.js"));
 const About = lazy(() => import("./assets/About-DImQmbMc.js"));
 const Compare = lazy(() => import("./assets/Compare-Cz_Y25j_.js"));
 const Contact = lazy(() => import("./assets/Contact-Dd08wz_I.js"));
-const Docs = lazy(() => import("./assets/Docs-Dci7T0tI.js"));
+const Docs = lazy(() => import("./assets/Docs-BaLs0lPF.js"));
 const Faq = lazy(() => import("./assets/Faq-DkFaiQmO.js"));
 const Login = lazy(() => import("./assets/Login-C1W7LZ5x.js"));
 const Pricing = lazy(() => import("./assets/Pricing-D1t9t-qs.js"));

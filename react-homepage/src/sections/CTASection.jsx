@@ -14,7 +14,7 @@ export default function CTASection() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <a href="/register" className="funnel-btn funnel-btn-primary">Start Free Trial</a>
-            <a href="/docs" className="funnel-btn funnel-btn-subtle">Read deployment docs -&gt;</a>
+            <a href="/docs" className="funnel-btn funnel-btn-subtle">Read Documentation</a>
           </div>
         </div>
       </div>
