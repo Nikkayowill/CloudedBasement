@@ -69,7 +69,7 @@ app.use(helmet({
       connectSrc: ["'self'", "https://api.stripe.com", "https://m.stripe.com", "https://r.stripe.com", "https://q.stripe.com", "https://www.google-analytics.com", "https://region1.google-analytics.com"],
       baseUri: ["'self'"],
       formAction: ["'self'"],
-      scriptSrcAttr: ["'unsafe-inline'"],
+      scriptSrcAttr: ["'none'"],
     },
   },
 }));

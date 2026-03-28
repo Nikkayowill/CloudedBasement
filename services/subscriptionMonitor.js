@@ -16,11 +16,14 @@ async function destroyDroplet(dropletId, serverId) {
       `https://api.digitalocean.com/v2/droplets/${dropletId}`,
       { headers: { 'Authorization': `Bearer ${process.env.DIGITALOCEAN_TOKEN}` } }
     );
-    
-    // Delete server record from database
-    await pool.query('DELETE FROM servers WHERE id = $1', [serverId]);
-    
-    console.log(`[Subscription Monitor] Destroyed droplet ${dropletId} and deleted server ${serverId}`);
+
+    // Soft-delete: mark as deleted to preserve audit trail
+    await pool.query(
+      'UPDATE servers SET status = $1, cancelled_at = CURRENT_TIMESTAMP WHERE id = $2',
+      ['deleted', serverId]
+    );
+
+    console.log(`[Subscription Monitor] Destroyed droplet ${dropletId} and soft-deleted server ${serverId}`);
     return true;
   } catch (error) {
     console.error(`[Subscription Monitor] Failed to destroy droplet ${dropletId}:`, error.response?.data || error.message);

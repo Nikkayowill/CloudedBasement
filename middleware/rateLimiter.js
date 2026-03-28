@@ -56,6 +56,14 @@ const registrationLimiter = rateLimit({
   legacyHeaders: false
 });
 
+const twoFALimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // 10 TOTP attempts per 15 minutes per IP
+  message: 'Too many 2FA attempts, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
 module.exports = {
   generalLimiter,
   contactLimiter,
@@ -63,5 +71,6 @@ module.exports = {
   emailVerifyLimiter,
   deploymentLimiter,
   loginLimiter,
-  registrationLimiter
+  registrationLimiter,
+  twoFALimiter
 };

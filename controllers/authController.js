@@ -275,47 +275,48 @@ const handleLogin = async (req, res) => {
         return res.redirect('/dashboard');
       }
     });
-  // GET /auth/2fa/prompt - Show 2FA code entry page
-  exports.show2FAPrompt = (req, res) => {
-    if (!req.session.pending2FAUserId) return res.redirect('/login');
-    res.send(`
-      ${getHTMLHead('2FA Verification - Basement')}
-      <main class="bg-black min-h-screen flex items-center justify-center py-12 px-4">
-        <div class="max-w-md w-full bg-gray-900/80 backdrop-blur-xl border border-blue-500/30 rounded p-6 shadow">
-          <h1 class="text-2xl font-bold text-white text-center mb-6">TWO-FACTOR AUTHENTICATION</h1>
-          <form id="2faLoginForm" class="space-y-4">
-            <input type="text" id="2faLoginCode" maxlength="6" placeholder="Enter 6-digit code" class="w-full px-4 py-2 rounded-lg text-white bg-black border border-gray-700 text-center font-mono" />
-            <button type="submit" class="w-full py-2.5 bg-blue-600 text-white font-bold rounded hover:bg-blue-500 transition-all">Verify</button>
-            <div id="2faLoginError" class="text-red-400 text-xs mt-2"></div>
-          </form>
-        </div>
-      </main>
-      <script nonce="${getNonce()}">
-        document.getElementById('2faLoginForm').addEventListener('submit', async function(e) {
-          e.preventDefault();
-          const code = document.getElementById('2faLoginCode').value.trim();
-          const errorDiv = document.getElementById('2faLoginError');
-          errorDiv.textContent = '';
-          if (!code) { errorDiv.textContent = 'Enter code.'; return; }
-          const res = await fetch('/auth/2fa/verify-login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code })
-          });
-          const result = await res.json();
-          if (result.success) {
-            window.location.href = '/dashboard';
-          } else {
-            errorDiv.textContent = result.error || 'Invalid code.';
-          }
-        });
-      </script>
-    `);
-  };
   } catch (error) {
     console.error('Login error:', error);
     return res.redirect('/login?error=An error occurred. Please try again.');
   }
+};
+
+// GET /auth/2fa/prompt - Show 2FA code entry page
+const show2FAPrompt = (req, res) => {
+  if (!req.session.pending2FAUserId) return res.redirect('/login');
+  res.send(`
+    ${getHTMLHead('2FA Verification - Basement')}
+    <main class="bg-black min-h-screen flex items-center justify-center py-12 px-4">
+      <div class="max-w-md w-full bg-gray-900/80 backdrop-blur-xl border border-blue-500/30 rounded p-6 shadow">
+        <h1 class="text-2xl font-bold text-white text-center mb-6">TWO-FACTOR AUTHENTICATION</h1>
+        <form id="2faLoginForm" class="space-y-4">
+          <input type="text" id="2faLoginCode" maxlength="6" placeholder="Enter 6-digit code" class="w-full px-4 py-2 rounded-lg text-white bg-black border border-gray-700 text-center font-mono" />
+          <button type="submit" class="w-full py-2.5 bg-blue-600 text-white font-bold rounded hover:bg-blue-500 transition-all">Verify</button>
+          <div id="2faLoginError" class="text-red-400 text-xs mt-2"></div>
+        </form>
+      </div>
+    </main>
+    <script nonce="${getNonce()}">
+      document.getElementById('2faLoginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const code = document.getElementById('2faLoginCode').value.trim();
+        const errorDiv = document.getElementById('2faLoginError');
+        errorDiv.textContent = '';
+        if (!code) { errorDiv.textContent = 'Enter code.'; return; }
+        const res = await fetch('/auth/2fa/verify-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code })
+        });
+        const result = await res.json();
+        if (result.success) {
+          window.location.href = '/dashboard';
+        } else {
+          errorDiv.textContent = result.error || 'Invalid code.';
+        }
+      });
+    </script>
+  `);
 };
 
 // GET /confirm-email/:token - Verify email token and activate account
@@ -955,5 +956,11 @@ module.exports = {
   showForgotPassword,
   handleForgotPassword,
   showResetPassword,
-  handleResetPassword
+  handleResetPassword,
+  // 2FA
+  show2FASetup: exports.show2FASetup,
+  verify2FASetup: exports.verify2FASetup,
+  disable2FA: exports.disable2FA,
+  verify2FALogin: exports.verify2FALogin,
+  show2FAPrompt,
 };

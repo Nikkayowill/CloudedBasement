@@ -42,5 +42,14 @@
   "devDependencies": {
     "nodemon": "^3.1.11",
     "tailwindcss": "^4.1.18"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@sentry-internal/node-cpu-profiler",
+      "bcrypt",
+      "cpu-features",
+      "esbuild",
+      "ssh2"
+    ]
   }
 }

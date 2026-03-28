@@ -87,10 +87,10 @@ exports.serverAction = async (req, res) => {
       }
     }
 
-    // Update database status
+    // Update database status (scoped by server ID to be safe)
     await pool.query(
-      'UPDATE servers SET status = $1 WHERE user_id = $2',
-      [newStatus, userId]
+      'UPDATE servers SET status = $1 WHERE id = $2 AND user_id = $3',
+      [newStatus, server.id, userId]
     );
 
     res.redirect('/dashboard?success=' + successMessage);
@@ -891,7 +891,7 @@ WantedBy=multi-user.target`;
   // Show URLs (subdomain is primary, IP is backup)
   if (subdomain) {
     output += `\n🚀 Your backend is live at: http://${subdomain}.cloudedbasement.ca/\n`;
-    output += `   (also accessible via: http://${conn.config.host}/)\\n`;
+    output += `   (also accessible via: http://${conn.config.host}/)\n`;
   } else {
     output += `\n🚀 Your backend is live!\n`;
   }
@@ -974,7 +974,7 @@ WantedBy=multi-user.target`;
   // Show URLs (subdomain is primary, IP is backup)
   if (subdomain) {
     output += `\n🐍 Your Python app is live at: http://${subdomain}.cloudedbasement.ca/\n`;
-    output += `   (also accessible via: http://${conn.config.host}/)\\n`;
+    output += `   (also accessible via: http://${conn.config.host}/)\n`;
   } else {
     output += `\n🐍 Your Python app is live!\n`;
   }

@@ -1,0 +1,9 @@
+packages:
+  - 'react-homepage'
+
+onlyBuiltDependencies:
+  - '@sentry-internal/node-cpu-profiler'
+  - bcrypt
+  - cpu-features
+  - esbuild
+  - ssh2

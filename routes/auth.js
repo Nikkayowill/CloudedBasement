@@ -1,7 +1,8 @@
 const { Router } = require('express');
 const { body } = require('express-validator');
 const csrf = require('../middleware/csrf');
-const { emailVerifyLimiter, loginLimiter, registrationLimiter } = require('../middleware/rateLimiter');
+const { emailVerifyLimiter, loginLimiter, registrationLimiter, twoFALimiter } = require('../middleware/rateLimiter');
+const { requireAuth } = require('../middleware/auth');
 const authController = require('../controllers/authController');
 const { passport } = require('../services/googleAuth');
 const { renderReactHtml } = require('../src/utils/reactSPA');
@@ -73,6 +74,13 @@ router.get('/verify-email', csrf, authController.showVerifyEmail);
 router.post('/verify-email', emailVerifyLimiter, csrf, authController.verifyEmailCode);
 router.post('/resend-code', emailVerifyLimiter, csrf, authController.resendCode);
 router.get('/resend-confirmation', emailVerifyLimiter, authController.resendConfirmation);
+
+// ── 2FA ───────────────────────────────────────────────────────────────────────
+router.get('/auth/2fa/prompt', authController.show2FAPrompt);
+router.post('/auth/2fa/verify-login', twoFALimiter, authController.verify2FALogin);
+router.get('/auth/2fa/setup', requireAuth, authController.show2FASetup);
+router.post('/auth/2fa/verify', requireAuth, twoFALimiter, authController.verify2FASetup);
+router.post('/auth/2fa/disable', requireAuth, twoFALimiter, authController.disable2FA);
 
 // ── Password reset ────────────────────────────────────────────────────────────
 router.get('/forgot-password', csrf, authController.showForgotPassword);

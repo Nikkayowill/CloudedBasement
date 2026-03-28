@@ -73,7 +73,7 @@ ${getHTMLHead('Processing Payment - Clouded Basement')}
   const intervalShort = interval === 'yearly' ? '/year' : '/month';
 
   res.send(`
-${getHTMLHead('Checkout - Clouded  Basement')}
+${getHTMLHead('Checkout - Clouded Basement')}
     ${getResponsiveNav(req)}
     
     <main class="bg-gray-900 min-h-screen flex items-center justify-center py-24 px-4">
@@ -482,12 +482,6 @@ exports.stripeWebhook = async (req, res) => {
   const sig = req.headers['stripe-signature'];
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-  // Debug logging
-  console.log('[WEBHOOK DEBUG] Headers:', Object.keys(req.headers));
-  console.log('[WEBHOOK DEBUG] Has stripe-signature:', !!sig);
-  console.log('[WEBHOOK DEBUG] Body type:', typeof req.body);
-  console.log('[WEBHOOK DEBUG] Body is Buffer:', Buffer.isBuffer(req.body));
-
   let event;
 
   try {
@@ -495,8 +489,6 @@ exports.stripeWebhook = async (req, res) => {
     event = getStripe().webhooks.constructEvent(req.body, sig, webhookSecret);
   } catch (err) {
     console.error('Webhook signature verification failed:', err.message);
-    console.error('[WEBHOOK DEBUG] Signature:', sig ? 'present' : 'MISSING');
-    console.error('[WEBHOOK DEBUG] Secret configured:', !!webhookSecret);
     return res.status(400).send('Webhook signature verification failed');
   }
 
@@ -728,6 +720,23 @@ exports.stripeWebhook = async (req, res) => {
             break;
           }
 
+          // Record payment for all subscription invoices (idempotent)
+          const paymentIntentId = invoice.payment_intent;
+          const amountPaid = invoice.amount_paid / 100; // cents → dollars
+          if (paymentIntentId) {
+            const existingPayment = await client.query(
+              'SELECT id FROM payments WHERE stripe_payment_id = $1',
+              [paymentIntentId]
+            );
+            if (existingPayment.rows.length === 0) {
+              await client.query(
+                'INSERT INTO payments (user_id, stripe_payment_id, amount, plan, status) VALUES ($1, $2, $3, $4, $5)',
+                [userId, paymentIntentId, amountPaid, plan, 'succeeded']
+              );
+              console.log(`[WEBHOOK] Payment recorded: user ${userId}, $${amountPaid}, plan: ${plan}`);
+            }
+          }
+
           // Check if this is the first invoice (billing_reason = 'subscription_create')
           if (invoice.billing_reason === 'subscription_create') {
             console.log(`First subscription payment for user ${userId}, plan: ${plan}`);
@@ -750,8 +759,8 @@ exports.stripeWebhook = async (req, res) => {
               console.log('Updated existing server with subscription ID');
             }
           } else {
-            // Recurring payment - just log it
-            console.log(`Recurring payment received for user ${userId}, subscription: ${invoice.subscription}`);
+            // Recurring payment - already recorded above
+            console.log(`Recurring payment recorded for user ${userId}, subscription: ${invoice.subscription}`);
           }
 
           await client.query('COMMIT');
@@ -984,6 +993,25 @@ exports.upgradePlan = async (req, res) => {
     );
 
     await client.query('COMMIT');
+
+    // Resize the DigitalOcean droplet to match the new plan (best-effort, non-blocking)
+    // Upgrade: resize disk too. Downgrade: CPU/RAM only (DO won't shrink disks).
+    const PLAN_SLUGS = { basic: 's-1vcpu-1gb', pro: 's-2vcpu-2gb', premium: 's-2vcpu-4gb' };
+    const PLAN_RANK  = { basic: 0, pro: 1, premium: 2 };
+    const newSlug = PLAN_SLUGS[newPlan];
+    if (newSlug && server.droplet_id) {
+      const isUpgrade = (PLAN_RANK[newPlan] ?? 0) > (PLAN_RANK[server.plan] ?? 0);
+      const axios = require('axios');
+      axios.post(
+        `https://api.digitalocean.com/v2/droplets/${server.droplet_id}/actions`,
+        { type: 'resize', disk: isUpgrade, size: newSlug },
+        { headers: { 'Authorization': `Bearer ${process.env.DIGITALOCEAN_TOKEN}`, 'Content-Type': 'application/json' } }
+      ).then(() => {
+        console.log(`[UPGRADE] Droplet ${server.droplet_id} resize initiated → ${newSlug}`);
+      }).catch(err => {
+        console.error(`[UPGRADE] Droplet resize failed for ${server.droplet_id}:`, err.response?.data || err.message);
+      });
+    }
 
     console.log(`[UPGRADE] User ${userId} changed plan ${server.plan} → ${newPlan}`);
     res.json({ success: true, plan: newPlan, siteLimit: newLimit });
