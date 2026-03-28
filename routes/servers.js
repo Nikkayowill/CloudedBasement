@@ -32,7 +32,6 @@ router.post('/disable-domain-autodeploy', requireAuth, csrf, serverController.di
 router.post('/setup-database', requireAuth, csrf, serverController.setupDatabase);
 
 // Server provisioning
-router.post('/request-server', requireAuth, deploymentLimiter, csrf, serverController.requestServer);
 router.post('/start-trial', requireAuth, deploymentLimiter, csrf, serverController.startTrial);
 
 module.exports = router;

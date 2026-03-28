@@ -13,9 +13,6 @@ router.get('/dashboard', requireAuth, csrf, (_req, res) =>
   res.sendFile(path.join(__dirname, '..', 'react-homepage/dist/index.html'))
 );
 
-// Classic server-rendered dashboard (kept as fallback)
-router.get('/old-dashboard', requireAuth, csrf, dashboardController.showDashboard);
-
 // User actions
 router.post('/submit-ticket', requireAuth, csrf, dashboardController.submitSupportTicket);
 router.post('/change-password', requireAuth, csrf, dashboardController.changePassword);

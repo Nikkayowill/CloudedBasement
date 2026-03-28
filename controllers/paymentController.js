@@ -14,7 +14,6 @@ const { getNonce } = require('../src/utils/nonce');
 const PRICING_PLANS = {
   basic: { name: 'Basic', monthly: 1500, yearly: 16200, was: 25, description: 'Perfect for side projects', features: ['1GB RAM', '1 CPU', '25GB Storage', '2 sites'] },
   pro: { name: 'Pro', monthly: 3500, yearly: 37800, was: 60, description: 'Best Value • For production apps', features: ['2GB RAM', '2 CPUs', '60GB Storage', '5 sites'] },
-  priority: { name: 'Pro', monthly: 3500, yearly: 37800, was: 60, description: 'Best Value • For production apps', features: ['2GB RAM', '2 CPUs', '60GB Storage', '5 sites'] }, // legacy
   premium: { name: 'Premium', monthly: 6500, yearly: 70200, was: 90, description: 'For serious projects', features: ['4GB RAM', '2 CPUs', '80GB Storage', '10 sites'] }
 };
 
@@ -390,48 +389,6 @@ exports.createPaymentIntent = async (req, res) => {
   }
 };
 
-// POST /create-checkout-session - One-time payment option (redirects to Stripe Checkout)
-exports.createCheckoutSession = async (req, res) => {
-  try {
-    const plan = req.body.plan || 'basic';
-    const interval = req.body.interval || 'monthly'; // 'monthly' or 'yearly'
-
-    // Use real pricing (in cents) - same as subscriptions
-    const selectedPlan = PRICING_PLANS[plan] || PRICING_PLANS.basic;
-    const amount = interval === 'yearly' ? selectedPlan.yearly : selectedPlan.monthly;
-
-    const session = await getStripe().checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: selectedPlan.name,
-              description: `${selectedPlan.name} - ${interval === 'yearly' ? 'Yearly' : 'Monthly'} (one-time payment)`,
-            },
-            unit_amount: amount,
-          },
-          quantity: 1,
-        },
-      ],
-      mode: 'payment',
-      success_url: `${req.protocol}://${req.get('host')}/payment-success?plan=${plan}&interval=${interval}&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.protocol}://${req.get('host')}/payment-cancel`,
-      metadata: {
-        plan: plan,
-        interval: interval,
-        user_id: req.session.userId,
-        payment_type: 'one_time'
-      }
-    });
-    res.redirect(303, session.url);
-  } catch (error) {
-    console.error('Stripe error:', error);
-    res.status(500).send('Payment processing error');
-  }
-};
-
 // GET /payment-success
 exports.paymentSuccess = async (req, res) => {
   console.log('[PAYMENT-SUCCESS] User returned from Stripe checkout');
@@ -655,6 +612,9 @@ exports.stripeWebhook = async (req, res) => {
             break;
           }
 
+          // Normalize legacy plan names
+          if (plan === 'priority') plan = 'pro';
+
           // Security: Validate plan matches amount paid (in cents)
           // Use PRICING_PLANS constant for single source of truth
           const expectedMonthly = PRICING_PLANS[plan]?.monthly || PRICING_PLANS.basic.monthly;
@@ -668,7 +628,7 @@ exports.stripeWebhook = async (req, res) => {
           }
 
           // Validate plan is one of the allowed values
-          if (!['basic', 'pro', 'priority', 'premium'].includes(plan)) {
+          if (!['basic', 'pro', 'premium'].includes(plan)) {
             console.log(`⚠️ Invalid plan '${plan}', defaulting to basic`);
             plan = 'basic';
           }
@@ -1027,7 +987,6 @@ exports.upgradePlan = async (req, res) => {
 module.exports = {
   showCheckout: exports.showCheckout,
   createPaymentIntent: exports.createPaymentIntent,
-  createCheckoutSession: exports.createCheckoutSession,
   paymentSuccess: exports.paymentSuccess,
   paymentCancel: exports.paymentCancel,
   stripeWebhook: exports.stripeWebhook,

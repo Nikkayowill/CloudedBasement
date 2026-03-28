@@ -5,7 +5,7 @@ const pool = require('../db');
 const { escapeHtml } = require('../src/utils/helpers');
 const { getUserServer, verifyServerOwnership, updateServerStatus, appendDeploymentOutput, updateDeploymentStatus } = require('../src/utils/db-helpers');
 const { SERVER_STATUS, DEPLOYMENT_STATUS, TIMEOUTS, PORTS } = require('../src/utils/constants');
-const { sendDeployErrorEmail, sendServerRequestEmail } = require('../services/email');
+const { sendDeployErrorEmail } = require('../services/email');
 const { createRealServer } = require('../services/digitalocean');
 const { generateSubdomain, createDNSRecord, deleteDNSRecord } = require('../services/dns');
 const { generateNginxConfig, isValidDomainName } = require('../src/utils/nginxTemplates');
@@ -541,6 +541,22 @@ async function injectEnvVars(conn, repoName, output, deploymentId, serverId) {
   }
 }
 
+// Helper: Read PORT env var from DB for this server (falls back to defaultPort)
+async function getAppPort(serverId, defaultPort) {
+  if (!serverId) return defaultPort;
+  try {
+    const result = await pool.query(
+      "SELECT value FROM environment_variables WHERE server_id = $1 AND key = 'PORT' LIMIT 1",
+      [serverId]
+    );
+    if (result.rows.length > 0) {
+      const port = parseInt(result.rows[0].value, 10);
+      if (port > 0 && port < 65536) return port;
+    }
+  } catch (_) { /* fall through */ }
+  return defaultPort;
+}
+
 // Helper: Perform health check after deployment
 async function performHealthCheck(conn, type, output, deploymentId, serviceName = null) {
   try {
@@ -808,9 +824,10 @@ async function deployStaticHTML(conn, repoName, output, deploymentId, subdomain 
 // Deploy Node.js backend
 async function deployNodeBackend(conn, repoName, output, deploymentId, serverId, subdomain = null) {
   output += `\n[3/5] Installing dependencies...\n`;
-  
+
   // Inject environment variables
   output = await injectEnvVars(conn, repoName, output, deploymentId, serverId);
+  const appPort = await getAppPort(serverId, 3000);
   
   // Try npm install with progressively more aggressive flags
   let installSuccess = false;
@@ -851,6 +868,7 @@ WorkingDirectory=/root/${repoName}
 ExecStart=/usr/bin/node index.js
 Restart=on-failure
 Environment=NODE_ENV=production
+Environment=PORT=${appPort}
 
 [Install]
 WantedBy=multi-user.target`;
@@ -863,7 +881,7 @@ WantedBy=multi-user.target`;
   await execSSH(conn, `systemctl daemon-reload && systemctl enable ${serviceName} && systemctl restart ${serviceName}`);
   output += `✓ Application started\n`;
   await updateDeploymentOutput(deploymentId, output, 'in-progress');
-  
+
   // Configure Nginx as reverse proxy
   output += `\nConfiguring Nginx reverse proxy...\n`;
   const nginxConfig = `server {
@@ -872,7 +890,7 @@ WantedBy=multi-user.target`;
     server_name _;
 
     location / {
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://127.0.0.1:${appPort};
         proxy_http_version 1.1;
         proxy_set_header Upgrade \\$http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -883,11 +901,11 @@ WantedBy=multi-user.target`;
         proxy_cache_bypass \\$http_upgrade;
     }
 }`;
-  
+
   await execSSH(conn, `echo '${nginxConfig}' > /etc/nginx/sites-available/default`);
   await execSSH(conn, `nginx -t && systemctl reload nginx`);
-  output += `✓ Nginx configured as reverse proxy to port 3000\n`;
-  
+  output += `✓ Nginx configured as reverse proxy to port ${appPort}\n`;
+
   // Show URLs (subdomain is primary, IP is backup)
   if (subdomain) {
     output += `\n🚀 Your backend is live at: http://${subdomain}.cloudedbasement.ca/\n`;
@@ -896,17 +914,17 @@ WantedBy=multi-user.target`;
     output += `\n🚀 Your backend is live!\n`;
   }
   await updateDeploymentOutput(deploymentId, output, 'in-progress');
-  
+
   // Health check
   output = await performHealthCheck(conn, 'backend', output, deploymentId, serviceName);
-  
+
   // Setup SSL for subdomain
   if (subdomain) {
     output = await setupSubdomainSSL(conn, subdomain, output, deploymentId);
   }
-  
+
   // Set deployment_type = 'node' and app_port for future NGINX config generation
-  await pool.query('UPDATE deployments SET deployment_type = $1, app_port = $2 WHERE id = $3', ['node', 3000, deploymentId]);
+  await pool.query('UPDATE deployments SET deployment_type = $1, app_port = $2 WHERE id = $3', ['node', appPort, deploymentId]);
   
   return output;
 }
@@ -914,10 +932,11 @@ WantedBy=multi-user.target`;
 // Deploy Python app
 async function deployPythonApp(conn, repoName, output, deploymentId, serverId, subdomain = null) {
   output += `\n[3/5] Installing dependencies...\n`;
-  
+
   // Inject environment variables
   output = await injectEnvVars(conn, repoName, output, deploymentId, serverId);
-  
+  const appPort = await getAppPort(serverId, 5000);
+
   await execSSH(conn, `cd /root/${repoName} && pip3 install -r requirements.txt`);
   output += `✓ Dependencies installed\n`;
   await updateDeploymentOutput(deploymentId, output, 'in-progress');
@@ -934,6 +953,7 @@ User=root
 WorkingDirectory=/root/${repoName}
 ExecStart=/usr/bin/python3 app.py
 Restart=on-failure
+Environment=PORT=${appPort}
 
 [Install]
 WantedBy=multi-user.target`;
@@ -946,8 +966,8 @@ WantedBy=multi-user.target`;
   await execSSH(conn, `systemctl daemon-reload && systemctl enable ${serviceName} && systemctl restart ${serviceName}`);
   output += `✓ Application started\n`;
   await updateDeploymentOutput(deploymentId, output, 'in-progress');
-  
-  // Configure Nginx as reverse proxy (assuming Flask/FastAPI on port 5000)
+
+  // Configure Nginx as reverse proxy
   output += `\nConfiguring Nginx reverse proxy...\n`;
   const nginxConfig = `server {
     listen 80 default_server;
@@ -955,7 +975,7 @@ WantedBy=multi-user.target`;
     server_name _;
 
     location / {
-        proxy_pass http://127.0.0.1:5000;
+        proxy_pass http://127.0.0.1:${appPort};
         proxy_http_version 1.1;
         proxy_set_header Upgrade \\$http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -966,10 +986,10 @@ WantedBy=multi-user.target`;
         proxy_cache_bypass \\$http_upgrade;
     }
 }`;
-  
+
   await execSSH(conn, `echo '${nginxConfig}' > /etc/nginx/sites-available/default`);
   await execSSH(conn, `nginx -t && systemctl reload nginx`);
-  output += `✓ Nginx configured as reverse proxy to port 5000\n`;
+  output += `✓ Nginx configured as reverse proxy to port ${appPort}\n`;
   
   // Show URLs (subdomain is primary, IP is backup)
   if (subdomain) {
@@ -987,7 +1007,9 @@ WantedBy=multi-user.target`;
   if (subdomain) {
     output = await setupSubdomainSSL(conn, subdomain, output, deploymentId);
   }
-  
+
+  await pool.query('UPDATE deployments SET deployment_type = $1, app_port = $2 WHERE id = $3', ['python', appPort, deploymentId]);
+
   return output;
 }
 
@@ -2098,71 +2120,6 @@ exports.disableDomainAutoDeploy = async (req, res) => {
 
 
 /**
- * POST /request-server
- * Submit a manual server setup request (for users who have already paid)
- */
-exports.requestServer = async (req, res) => {
-  try {
-    const { region, server_name, use_case } = req.body;
-    const userId = req.session.userId;
-
-    // Check if user has already paid
-    const paymentCheck = await pool.query(
-      'SELECT * FROM payments WHERE user_id = $1 AND status = $2 LIMIT 1',
-      [userId, 'succeeded']
-    );
-
-    if (paymentCheck.rows.length === 0) {
-      return res.redirect('/pricing?error=payment_required');
-    }
-
-    // Check if user already has a server (exclude deleted/failed)
-    const serverCheck = await pool.query(
-      "SELECT * FROM servers WHERE user_id = $1 AND status NOT IN ('deleted', 'failed')",
-      [userId]
-    );
-
-    if (serverCheck.rows.length > 0) {
-      return res.redirect('/dashboard?error=server_exists');
-    }
-
-    // Check for existing pending request
-    const existingTicket = await pool.query(
-      'SELECT * FROM support_tickets WHERE user_id = $1 AND subject = $2 AND status IN ($3, $4)',
-      [userId, 'Server Setup Request', 'open', 'in-progress']
-    );
-
-    if (existingTicket.rows.length > 0) {
-      return res.redirect('/dashboard?error=Server request already pending');
-    }
-
-    await pool.query(
-      `INSERT INTO support_tickets (user_id, subject, description, status)
-       VALUES ($1, $2, $3, $4)`,
-      [
-        userId,
-        'Server Setup Request',
-        `Region: ${region}\nServer Name: ${server_name || 'Not specified'}\nUse Case: ${use_case || 'Not specified'}`,
-        'open'
-      ]
-    );
-
-    const userResult = await pool.query('SELECT email FROM users WHERE id = $1', [userId]);
-    const userEmail = userResult.rows[0].email;
-
-    // Fire-and-forget — don't block the redirect on email delivery
-    sendServerRequestEmail(userEmail, region, server_name || 'Default').catch(err => {
-      console.error('Failed to send server request email:', err);
-    });
-
-    res.redirect('/dashboard?success=Server request submitted successfully');
-  } catch (err) {
-    console.error('Server request error:', err);
-    res.status(500).send('Server error');
-  }
-};
-
-/**
  * POST /start-trial
  * Provision a Basic server for 3 days without payment.
  * Guards: email confirmation, daily cap, per-user, per-IP, per-fingerprint.
@@ -2270,6 +2227,5 @@ module.exports = {
   enableDomainAutoDeploy: exports.enableDomainAutoDeploy,
   disableDomainAutoDeploy: exports.disableDomainAutoDeploy,
   // Server provisioning
-  requestServer: exports.requestServer,
   startTrial: exports.startTrial,
 };
