@@ -76,11 +76,11 @@ router.post('/resend-code', emailVerifyLimiter, csrf, authController.resendCode)
 router.get('/resend-confirmation', emailVerifyLimiter, authController.resendConfirmation);
 
 // ── 2FA ───────────────────────────────────────────────────────────────────────
-router.get('/auth/2fa/prompt', authController.show2FAPrompt);
-router.post('/auth/2fa/verify-login', twoFALimiter, authController.verify2FALogin);
+router.get('/auth/2fa/prompt', csrf, authController.show2FAPrompt);
+router.post('/auth/2fa/verify-login', twoFALimiter, csrf, authController.verify2FALogin);
 router.get('/auth/2fa/setup', requireAuth, authController.show2FASetup);
-router.post('/auth/2fa/verify', requireAuth, twoFALimiter, authController.verify2FASetup);
-router.post('/auth/2fa/disable', requireAuth, twoFALimiter, authController.disable2FA);
+router.post('/auth/2fa/verify', requireAuth, twoFALimiter, csrf, authController.verify2FASetup);
+router.post('/auth/2fa/disable', requireAuth, twoFALimiter, csrf, authController.disable2FA);
 
 // ── Password reset ────────────────────────────────────────────────────────────
 router.get('/forgot-password', csrf, authController.showForgotPassword);
