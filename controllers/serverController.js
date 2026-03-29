@@ -1291,7 +1291,7 @@ async function updateDeploymentOutput(deploymentId, output, status) {
 exports.addDomain = async (req, res) => {
   try {
     const domain = req.body.domain.toLowerCase().trim();
-    const linkedSubdomain = req.body.linked_subdomain || null; // Optional: link to existing deployment
+    const linkedSubdomain = req.body.linked_subdomain || null;
     const userId = req.session.userId;
 
     // Validate domain format (supports subdomains like sub.example.com)
@@ -1300,9 +1300,9 @@ exports.addDomain = async (req, res) => {
       return res.redirect('/dashboard?error=Invalid domain format');
     }
 
-    // Get user's server
+    // Get user's server (full row needed for SSH credentials)
     const serverResult = await pool.query(
-      'SELECT id FROM servers WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1',
+      "SELECT * FROM servers WHERE user_id = $1 AND status NOT IN ('deleted', 'failed') ORDER BY created_at DESC LIMIT 1",
       [userId]
     );
 
@@ -1310,17 +1310,26 @@ exports.addDomain = async (req, res) => {
       return res.redirect('/dashboard?error=No server found');
     }
 
-    const serverId = serverResult.rows[0].id;
-    
-    // If linked_subdomain provided, verify it belongs to this user
+    const server = serverResult.rows[0];
+    server.ssh_password = decryptSshPassword(server.ssh_password, server.ssh_password_iv);
+
+    // Determine deployment type from linked subdomain (if provided)
+    let deploymentType = 'static';
+    let appPort = null;
+    let siteDirectory = '/var/www/html';
+
     if (linkedSubdomain) {
-      const depCheck = await pool.query(
-        'SELECT id FROM deployments WHERE subdomain = $1 AND user_id = $2',
+      const depResult = await pool.query(
+        'SELECT id, deployment_type, app_port FROM deployments WHERE subdomain = $1 AND user_id = $2',
         [linkedSubdomain, userId]
       );
-      if (depCheck.rows.length === 0) {
+      if (depResult.rows.length === 0) {
         return res.redirect('/dashboard?error=Invalid deployment selected');
       }
+      const dep = depResult.rows[0];
+      deploymentType = dep.deployment_type || 'static';
+      appPort = dep.app_port;
+      siteDirectory = `/var/www/sites/${linkedSubdomain}`;
     }
 
     // Check if domain already exists
@@ -1333,22 +1342,84 @@ exports.addDomain = async (req, res) => {
       return res.redirect('/dashboard?error=Domain already in use');
     }
 
-    // Store domain in database with optional linked_subdomain
+    // Insert to DB so domain appears in dashboard immediately
     await pool.query(
       'INSERT INTO domains (server_id, user_id, domain, ssl_enabled, linked_subdomain) VALUES ($1, $2, $3, $4, $5)',
-      [serverId, userId, domain, false, linkedSubdomain]
+      [server.id, userId, domain, false, linkedSubdomain]
     );
 
-    // In real implementation, this would:
-    // 1. Configure Nginx on the droplet
-    // 2. Set up SSL certificate with Let's Encrypt
-    
-    res.redirect('/dashboard?success=Domain added! Configure your DNS as shown above.');
+    // Configure Nginx on the droplet asynchronously
+    configureNginxForDomain(server, domain, deploymentType, appPort, siteDirectory).catch(err => {
+      console.error(`[DOMAIN] Nginx configuration failed for ${domain}:`, err.message);
+    });
+
+    res.redirect('/dashboard?success=Domain added! Nginx is being configured — point your DNS A record to your server IP.');
   } catch (error) {
     console.error('Add domain error:', error);
     res.redirect('/dashboard?error=Failed to add domain');
   }
 };
+
+async function configureNginxForDomain(server, domain, deploymentType, appPort, siteDirectory) {
+  const nginxResult = generateNginxConfig({
+    domain,
+    deploymentType,
+    siteDirectory,
+    port: appPort,
+  });
+
+  const configFilename = domain.replace(/\./g, '-');
+  const conn = new Client();
+
+  await new Promise((resolve, reject) => {
+    conn.on('ready', async () => {
+      try {
+        // Write Nginx config using heredoc (safe for configs with special chars)
+        const writeCmd = `cat > /etc/nginx/sites-available/${configFilename} << 'NGINXEOF'\n${nginxResult.config}\nNGINXEOF`;
+        await new Promise((res, rej) => {
+          conn.exec(writeCmd, (err, stream) => {
+            if (err) return rej(err);
+            stream.on('close', () => res());
+            stream.on('data', () => {});
+            stream.stderr.on('data', () => {});
+          });
+        });
+
+        // Enable site and reload Nginx
+        await new Promise((res, rej) => {
+          const enableCmd = `ln -sf /etc/nginx/sites-available/${configFilename} /etc/nginx/sites-enabled/${configFilename} && nginx -t && systemctl reload nginx`;
+          conn.exec(enableCmd, (err, stream) => {
+            if (err) return rej(err);
+            let stderr = '';
+            stream.on('close', (code) => {
+              if (code === 0) res();
+              else rej(new Error(`Nginx reload failed (exit ${code}): ${stderr}`));
+            });
+            stream.on('data', () => {});
+            stream.stderr.on('data', (data) => { stderr += data.toString(); });
+          });
+        });
+
+        console.log(`[DOMAIN] Nginx configured for ${domain} (${deploymentType})`);
+        conn.end();
+        resolve();
+      } catch (err) {
+        conn.end();
+        reject(err);
+      }
+    });
+
+    conn.on('error', reject);
+
+    conn.connect({
+      host: server.ip_address,
+      port: 22,
+      username: server.ssh_username || 'root',
+      password: server.ssh_password,
+      readyTimeout: 30000
+    });
+  });
+}
 
 // POST /delete-domain
 exports.deleteDomain = async (req, res) => {
@@ -1388,8 +1459,9 @@ exports.deleteDomain = async (req, res) => {
           }, 15000);
 
           conn.on('ready', () => {
-            // Remove nginx config for this domain
-            const cmd = `sudo rm -f /etc/nginx/sites-enabled/${domainName} /etc/nginx/sites-available/${domainName} && sudo nginx -t && sudo systemctl reload nginx`;
+            // Remove nginx config for this domain (filename uses hyphens, not dots)
+            const configFilename = domainName.replace(/\./g, '-');
+            const cmd = `rm -f /etc/nginx/sites-enabled/${configFilename} /etc/nginx/sites-available/${configFilename} && nginx -t && systemctl reload nginx`;
             
             conn.exec(cmd, (err, stream) => {
               if (err) {
@@ -1539,7 +1611,7 @@ async function triggerSSLCertificateForCustomer(serverId, domain, server, linked
         domain,
         deploymentType,
         siteDirectory,
-        appPort
+        port: appPort,
       });
 
       console.log(`[SSL] Generated ${deploymentType} config for ${domain} -> ${siteDirectory}`);
