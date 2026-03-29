@@ -6,6 +6,7 @@ const { escapeHtml } = require('../src/utils/helpers');
 const { getUserServer, verifyServerOwnership, updateServerStatus, appendDeploymentOutput, updateDeploymentStatus } = require('../src/utils/db-helpers');
 const { SERVER_STATUS, DEPLOYMENT_STATUS, TIMEOUTS, PORTS } = require('../src/utils/constants');
 const { sendDeployErrorEmail } = require('../services/email');
+const { decryptSshPassword } = require('../src/utils/sshCrypto');
 const { createRealServer } = require('../services/digitalocean');
 const { generateSubdomain, createDNSRecord, deleteDNSRecord } = require('../services/dns');
 const { generateNginxConfig, isValidDomainName } = require('../src/utils/nginxTemplates');
@@ -224,6 +225,7 @@ exports.deploy = async (req, res) => {
     }
 
     const server = serverResult.rows[0];
+    server.ssh_password = decryptSshPassword(server.ssh_password, server.ssh_password_iv);
 
     if (!server.ip_address || !server.ssh_password) {
       return res.redirect('/dashboard?error=Server not ready yet. Please wait for provisioning to complete.');
@@ -1360,7 +1362,7 @@ exports.deleteDomain = async (req, res) => {
 
     // Verify the domain belongs to this user
     const domainResult = await pool.query(
-      'SELECT d.id, d.domain, d.server_id, s.ip_address, s.ssh_password FROM domains d JOIN servers s ON d.server_id = s.id WHERE d.id = $1 AND d.user_id = $2',
+      'SELECT d.id, d.domain, d.server_id, s.ip_address, s.ssh_password, s.ssh_password_iv FROM domains d JOIN servers s ON d.server_id = s.id WHERE d.id = $1 AND d.user_id = $2',
       [domainId, userId]
     );
 
@@ -1369,6 +1371,7 @@ exports.deleteDomain = async (req, res) => {
     }
 
     const domain = domainResult.rows[0];
+    domain.ssh_password = decryptSshPassword(domain.ssh_password, domain.ssh_password_iv);
     const domainName = domain.domain;
 
     // Try to remove nginx config for this domain on the server
@@ -1460,6 +1463,7 @@ exports.enableSSL = async (req, res) => {
     }
 
     const server = serverResult.rows[0];
+    server.ssh_password = decryptSshPassword(server.ssh_password, server.ssh_password_iv);
 
     // SECURITY: Verify domain belongs to this user and get linked_subdomain
     const domainCheck = await pool.query(
@@ -1701,6 +1705,7 @@ exports.setupDatabase = async (req, res) => {
     }
 
     const server = serverResult.rows[0];
+    server.ssh_password = decryptSshPassword(server.ssh_password, server.ssh_password_iv);
 
     if (!server.ip_address || !server.ssh_password) {
       return res.redirect('/dashboard?error=Server not ready yet');

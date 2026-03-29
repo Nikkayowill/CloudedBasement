@@ -2,6 +2,7 @@ const pool = require('../db');
 const { getDashboardHead, getFooter, getScripts, getResponsiveNav, escapeHtml, getDashboardLayoutStart, getDashboardLayoutEnd } = require('../src/utils/helpers');
 const { getUserServer, hasSuccessfulPayment } = require('../src/utils/db-helpers');
 const { isTrialAvailable } = require('../src/utils/db-helpers');
+const { decryptSshPassword } = require('../src/utils/sshCrypto');
 const { PAYMENT_STATUS, SERVER_STATUS } = require('../src/utils/constants');
 const serverUpdates = require('../services/serverUpdates');
 const { sendEmail } = require('../services/email');
@@ -250,7 +251,7 @@ exports.showDashboard = async (req, res) => {
             ipv6Address: activeServer?.ipv6_address || '',
             serverIp: activeServer?.ip_address || '',
             sshUsername: activeServer?.ssh_username || 'root',
-            sshPassword: activeServer?.ssh_password || '',
+            sshPassword: activeServer ? decryptSshPassword(activeServer.ssh_password, activeServer.ssh_password_iv) : '',
             dropletName: activeServer?.droplet_name || `basement-${userId}-unknown`,
             userId: userId,
             serverId: activeServer?.id || null,
@@ -485,7 +486,7 @@ const getCredentials = async (req, res) => {
         if (credentialType === 'ssh' || credentialType === 'all') {
       response.ssh = {
         username: server.ssh_username || 'root',
-        password: server.ssh_password || '',
+        password: decryptSshPassword(server.ssh_password, server.ssh_password_iv) || '',
         ip: server.ip_address || '',
         command: `ssh ${server.ssh_username || 'root'}@${server.ip_address || ''}`
       };

@@ -2,6 +2,7 @@ const axios = require('axios');
 const crypto = require('crypto');
 const pool = require('../db');
 const { sendServerReadyEmail } = require('./email');
+const { encryptSshPassword } = require('../src/utils/sshCrypto');
 
 // Track active polling intervals to prevent memory leaks
 const activePolls = new Map(); // serverId -> intervalId
@@ -159,11 +160,12 @@ echo "Setup complete!" > /root/setup.log
     
     // Save to database - wrapped in try-catch to handle race condition
     try {
+      const { encrypted: encryptedPassword, iv: passwordIv } = encryptSshPassword(password);
       const result = await pool.query(
-        `INSERT INTO servers (user_id, plan, status, ip_address, ssh_username, ssh_password, specs, stripe_charge_id, droplet_id, droplet_name, is_trial, payment_interval, site_limit, stripe_subscription_id, subscription_start_date)
-         VALUES ($1, $2, 'provisioning', $3, 'root', $4, $5, $6, $7, $8, $9, $10, $11, $12, CURRENT_TIMESTAMP)
+        `INSERT INTO servers (user_id, plan, status, ip_address, ssh_username, ssh_password, ssh_password_iv, specs, stripe_charge_id, droplet_id, droplet_name, is_trial, payment_interval, site_limit, stripe_subscription_id, subscription_start_date)
+         VALUES ($1, $2, 'provisioning', $3, 'root', $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, CURRENT_TIMESTAMP)
          RETURNING *`,
-        [userId, plan, droplet.networks?.v4?.[0]?.ip_address || 'pending', password, JSON.stringify(selectedSpec), stripeChargeId, String(droplet.id), dropletName, isTrial, paymentInterval, siteLimit, stripeSubscriptionId]
+        [userId, plan, droplet.networks?.v4?.[0]?.ip_address || 'pending', encryptedPassword, passwordIv, JSON.stringify(selectedSpec), stripeChargeId, String(droplet.id), dropletName, isTrial, paymentInterval, siteLimit, stripeSubscriptionId]
       );
       
       // If this is a trial server, mark trial as used

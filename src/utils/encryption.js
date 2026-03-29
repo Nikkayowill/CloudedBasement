@@ -25,96 +25,80 @@ const ALGORITHM  = 'aes-256-gcm';
 const IV_BYTES   = 12;  // 96-bit IV — recommended for GCM
 const TAG_BYTES  = 16;  // 128-bit auth tag — GCM default
 
-// ── Key loading ───────────────────────────────────────────────────────────────
+// ── Encryptor factory ─────────────────────────────────────────────────────────
 
 /**
- * Load and validate the encryption key from env.
- * Throws a clear error at startup if the key is missing or malformed
- * so the server refuses to boot rather than silently storing plaintext.
+ * Create an { encrypt, decrypt } pair bound to a specific env var key.
+ * Throws a clear error at the point of use (not at require-time) if the key
+ * is missing or malformed, so callers can decide how to handle it.
  *
- * @returns {Buffer} 32-byte key
+ * @param {string} keyEnvVar - Name of the environment variable holding the 64-char hex key
+ * @returns {{ encrypt: Function, decrypt: Function }}
  */
-function getKey() {
-  const hex = process.env.WP_ENCRYPTION_KEY;
-  const hexPattern = /^[0-9a-fA-F]{64}$/;
-  if (!hex || hex.length !== 64 || !hexPattern.test(hex)) {
-    throw new Error(
-      'WP_ENCRYPTION_KEY must be set to a 64-character hex string (32 bytes). ' +
-      'Format validation failed. Generate one with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"'
-    );
-  }
-  return Buffer.from(hex, 'hex');
-}
-
-// ── Encrypt ───────────────────────────────────────────────────────────────────
-
-/**
- * Encrypt a plaintext string with AES-256-GCM.
- *
- * @param {string} plaintext
- * @returns {{ encrypted: Buffer, iv: Buffer }}
- *   encrypted — ciphertext + 16-byte GCM auth tag concatenated (store in BYTEA)
- *   iv        — 12-byte initialization vector (store in separate BYTEA column)
- */
-function encrypt(plaintext) {
-  const key = getKey();
-  const iv  = crypto.randomBytes(IV_BYTES);
-
-  const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
-  const ciphertext = Buffer.concat([
-    cipher.update(plaintext, 'utf8'),
-    cipher.final()
-  ]);
-  const authTag = cipher.getAuthTag(); // always 16 bytes for GCM
-
-  // Append auth tag to ciphertext — both are needed to decrypt
-  const encrypted = Buffer.concat([ciphertext, authTag]);
-
-  return { encrypted, iv };
-}
-
-// ── Decrypt ───────────────────────────────────────────────────────────────────
-
-/**
- * Decrypt a value produced by encrypt().
- * Throws if the auth tag doesn't match (tampered data).
- *
- * @param {Buffer} encryptedBuf — the BYTEA value from the database
- * @param {Buffer} ivBuf        — the IV BYTEA value from the database
- * @returns {string} plaintext
- */
-function decrypt(encryptedBuf, ivBuf) {
-  // Defensive input validation
-  if (!Buffer.isBuffer(encryptedBuf)) {
-    throw new TypeError('encryptedBuf must be a Buffer');
-  }
-  if (!Buffer.isBuffer(ivBuf)) {
-    throw new TypeError('ivBuf must be a Buffer');
-  }
-  if (encryptedBuf.length < TAG_BYTES) {
-    throw new RangeError(`encryptedBuf must be at least ${TAG_BYTES} bytes (got ${encryptedBuf.length})`);
-  }
-  if (ivBuf.length !== IV_BYTES) {
-    throw new RangeError(`ivBuf must be exactly ${IV_BYTES} bytes (got ${ivBuf.length})`);
+function createEncryptor(keyEnvVar) {
+  function getKey() {
+    const hex = process.env[keyEnvVar];
+    const hexPattern = /^[0-9a-fA-F]{64}$/;
+    if (!hex || hex.length !== 64 || !hexPattern.test(hex)) {
+      throw new Error(
+        `${keyEnvVar} must be set to a 64-character hex string (32 bytes). ` +
+        'Generate one with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"'
+      );
+    }
+    return Buffer.from(hex, 'hex');
   }
 
-  const key = getKey();
+  /**
+   * Encrypt a plaintext string with AES-256-GCM.
+   * @param {string} plaintext
+   * @returns {{ encrypted: Buffer, iv: Buffer }}
+   */
+  function encrypt(plaintext) {
+    const key = getKey();
+    const iv  = crypto.randomBytes(IV_BYTES);
 
-  // Split off the 16-byte auth tag that was appended during encrypt()
-  const authTag    = encryptedBuf.slice(encryptedBuf.length - TAG_BYTES);
-  const ciphertext = encryptedBuf.slice(0, encryptedBuf.length - TAG_BYTES);
+    const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
+    const ciphertext = Buffer.concat([
+      cipher.update(plaintext, 'utf8'),
+      cipher.final()
+    ]);
+    const authTag = cipher.getAuthTag();
 
-  const decipher = crypto.createDecipheriv(ALGORITHM, key, ivBuf);
-  decipher.setAuthTag(authTag);
+    return { encrypted: Buffer.concat([ciphertext, authTag]), iv };
+  }
 
-  const plaintext = Buffer.concat([
-    decipher.update(ciphertext),
-    decipher.final()   // throws ERR_CRYPTO_GCM_AUTH_TAG_MISMATCH if tampered
-  ]);
+  /**
+   * Decrypt a value produced by encrypt().
+   * Throws if the auth tag doesn't match (tampered data).
+   * @param {Buffer} encryptedBuf
+   * @param {Buffer} ivBuf
+   * @returns {string} plaintext
+   */
+  function decrypt(encryptedBuf, ivBuf) {
+    if (!Buffer.isBuffer(encryptedBuf)) throw new TypeError('encryptedBuf must be a Buffer');
+    if (!Buffer.isBuffer(ivBuf))        throw new TypeError('ivBuf must be a Buffer');
+    if (encryptedBuf.length < TAG_BYTES) throw new RangeError(`encryptedBuf must be at least ${TAG_BYTES} bytes`);
+    if (ivBuf.length !== IV_BYTES)       throw new RangeError(`ivBuf must be exactly ${IV_BYTES} bytes`);
 
-  return plaintext.toString('utf8');
+    const key        = getKey();
+    const authTag    = encryptedBuf.slice(encryptedBuf.length - TAG_BYTES);
+    const ciphertext = encryptedBuf.slice(0, encryptedBuf.length - TAG_BYTES);
+
+    const decipher = crypto.createDecipheriv(ALGORITHM, key, ivBuf);
+    decipher.setAuthTag(authTag);
+
+    return Buffer.concat([
+      decipher.update(ciphertext),
+      decipher.final()
+    ]).toString('utf8');
+  }
+
+  return { encrypt, decrypt };
 }
 
 // ── Exports ───────────────────────────────────────────────────────────────────
 
-module.exports = { encrypt, decrypt };
+// WordPress encryptor (backward-compat named exports)
+const _wp = createEncryptor('WP_ENCRYPTION_KEY');
+
+module.exports = { encrypt: _wp.encrypt, decrypt: _wp.decrypt, createEncryptor };
