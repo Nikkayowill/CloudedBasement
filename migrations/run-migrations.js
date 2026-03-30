@@ -63,6 +63,10 @@ async function runMigrations() {
     // Add wordpress_sites table + servers.server_type discriminator
     const { up: addWordPressSites } = require('./026-add-wordpress-sites');
     await addWordPressSites();
+
+    // Add ai_diagnosis column to deployments
+    const { up: addAiDiagnosis } = require('./028-add-ai-diagnosis');
+    await addAiDiagnosis();
     
   } catch (error) {
     // Safely rollback transaction (may not have started if error was early)

@@ -6,6 +6,7 @@ const { escapeHtml } = require('../src/utils/helpers');
 const { getUserServer, verifyServerOwnership, updateServerStatus, appendDeploymentOutput, updateDeploymentStatus } = require('../src/utils/db-helpers');
 const { SERVER_STATUS, DEPLOYMENT_STATUS, TIMEOUTS, PORTS } = require('../src/utils/constants');
 const { sendDeployErrorEmail } = require('../services/email');
+const { analyzeDeploymentFailure } = require('../services/aiDiagnosis');
 const { decryptSshPassword } = require('../src/utils/sshCrypto');
 const { createRealServer } = require('../services/digitalocean');
 const { generateSubdomain, createDNSRecord, deleteDNSRecord } = require('../services/dns');
@@ -289,17 +290,19 @@ exports.deploy = async (req, res) => {
       performDeployment(server, gitUrl, repoName, deploymentId, subdomain).catch(async (err) => {
         console.error(`[DEPLOY] Deployment #${deploymentId} failed:`, err);
         console.error(`[DEPLOY] Stack trace:`, err.stack);
+        const failureOutput = `❌ Deployment failed: ${err.message}\n\nStack trace:\n${err.stack}`;
         try {
           await pool.query(
             'UPDATE deployments SET status = $1, output = $2, deployed_at = NOW() WHERE id = $3',
-            ['failed', `❌ Deployment failed: ${err.message}\n\nStack trace:\n${err.stack}`, deploymentId]
+            ['failed', failureOutput, deploymentId]
           );
         } catch (dbErr) {
           console.error(`[DEPLOY] Failed to update deployment #${deploymentId} status:`, dbErr);
         }
+        analyzeDeploymentFailure(deploymentId, failureOutput);
       });
     });
-    
+
     res.redirect('/dashboard?success=Deployment started! Check deployment history below for progress.');
   } catch (error) {
     console.error('Deploy error:', error);
@@ -449,7 +452,10 @@ async function performDeployment(server, gitUrl, repoName, deploymentId, subdoma
     output += `\n❌ Deployment failed: ${error.message}\n`;
     output += `Error details: ${error.stack || error}\n`;
     await updateDeploymentOutput(deploymentId, output, 'failed');
-    
+
+    // AI diagnosis — fire-and-forget, never blocks
+    analyzeDeploymentFailure(deploymentId, output);
+
     // Send deploy error email to user
     try {
       const userResult = await pool.query('SELECT u.email FROM users u JOIN servers s ON s.user_id = u.id WHERE s.id = $1', [server.id]);

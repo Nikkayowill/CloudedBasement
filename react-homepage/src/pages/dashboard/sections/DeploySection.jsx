@@ -36,17 +36,56 @@ function formatDate(ts) {
   return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+function AiDiagnosis({ text }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{
+      margin: '0.5rem 1.25rem 0.75rem',
+      borderRadius: '0.375rem',
+      border: '1px solid rgba(239,68,68,0.2)',
+      background: 'rgba(239,68,68,0.04)',
+      overflow: 'hidden',
+    }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
+          padding: '0.5rem 0.75rem', background: 'none', border: 'none',
+          cursor: 'pointer', textAlign: 'left',
+        }}
+      >
+        <span style={{ fontSize: '0.75rem', color: '#f87171' }}>✦</span>
+        <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#fca5a5', letterSpacing: '0.04em' }}>
+          AI Diagnosis
+        </span>
+        <span style={{ marginLeft: 'auto', fontSize: '0.625rem', color: '#f87171', opacity: 0.7 }}>
+          {open ? '▲' : '▼'}
+        </span>
+      </button>
+      {open && (
+        <div style={{ padding: '0 0.75rem 0.75rem' }}>
+          <p style={{
+            fontSize: '0.8125rem', color: '#fecaca', lineHeight: 1.6,
+            margin: 0, whiteSpace: 'pre-wrap',
+          }}>
+            {text}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function DeploymentRow({ dep, csrfToken }) {
   const [confirming, setConfirming] = useState(false);
   const name = repoName(dep.git_url);
 
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '0.75rem 1.25rem',
-      borderBottom: '1px solid rgba(255,255,255,0.04)',
-      gap: '1rem', flexWrap: 'wrap',
-    }}>
+    <div style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0.75rem 1.25rem', gap: '1rem', flexWrap: 'wrap',
+      }}>
       {/* Left: repo info */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1875rem', minWidth: 0 }}>
         <span style={{
@@ -135,6 +174,10 @@ function DeploymentRow({ dep, csrfToken }) {
           </div>
         )}
       </div>
+      </div>
+      {dep.status === 'failed' && dep.ai_diagnosis && (
+        <AiDiagnosis text={dep.ai_diagnosis} />
+      )}
     </div>
   );
 }

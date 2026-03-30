@@ -717,7 +717,7 @@ const getDeploymentStatus = async (req, res) => {
   try {
     const deploymentId = parseInt(req.params.id);
     const result = await pool.query(
-      'SELECT status, output, deployed_at FROM deployments WHERE id = $1 AND user_id = $2',
+      'SELECT status, output, deployed_at, ai_diagnosis FROM deployments WHERE id = $1 AND user_id = $2',
       [deploymentId, req.session.userId]
     );
 
