@@ -113,9 +113,18 @@ export default function EnvSection({ data }) {
         credentials: 'same-origin',
         headers: { 'x-csrf-token': csrfToken },
       });
-      if (r.ok) setEnvVars(prev => prev.filter(v => v.id !== id));
-    } catch {
-      // silent — user can retry
+      if (r.ok) {
+        setEnvVars(prev => prev.filter(v => v.id !== id));
+      } else {
+        const errText = await r.text();
+        console.error('Failed to delete env var:', r.status, errText);
+        setApiError('Failed to delete environment variable.');
+        if (typeof window.showToastError === 'function') window.showToastError('Failed to delete environment variable.');
+      }
+    } catch (err) {
+      console.error('Error deleting env var:', err);
+      setApiError('Network error. Try again.');
+      if (typeof window.showToastError === 'function') window.showToastError('Network error. Try again.');
     } finally {
       setDeletingId(null);
     }

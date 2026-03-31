@@ -126,8 +126,40 @@ export default function DevToolsSection({ data }) {
     }
   }
 
-  function copy(text) {
-    navigator.clipboard.writeText(text);
+  async function copy(text) {
+    // Try async clipboard API
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(text);
+        // Optionally show success toast or feedback here
+        if (typeof window.showToast === 'function') window.showToast('Copied!');
+        return true;
+      } catch (err) {
+        // Optionally show error toast or feedback here
+        if (typeof window.showToastError === 'function') window.showToastError('Copy failed');
+      }
+    }
+    // Fallback for older browsers
+    try {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'absolute';
+      textarea.style.left = '-9999px';
+      document.body.appendChild(textarea);
+      textarea.select();
+      const success = document.execCommand('copy');
+      document.body.removeChild(textarea);
+      if (success) {
+        if (typeof window.showToast === 'function') window.showToast('Copied!');
+        return true;
+      } else {
+        if (typeof window.showToastError === 'function') window.showToastError('Copy failed');
+      }
+    } catch (err) {
+      if (typeof window.showToastError === 'function') window.showToastError('Copy failed');
+    }
+    return false;
   }
 
   if (!hasServer) {

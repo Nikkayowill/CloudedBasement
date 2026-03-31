@@ -101,7 +101,7 @@ function SidebarInner({ nav, active, onNav, userEmail, initial, plan, planStyle,
             children: "Docs"
           }
         ),
-        /* @__PURE__ */ jsxs("form", { method: "GET", action: "/logout", style: { display: "inline" }, children: [
+        /* @__PURE__ */ jsxs("form", { method: "POST", action: "/logout", style: { display: "inline" }, children: [
           /* @__PURE__ */ jsx("input", { type: "hidden", name: "_csrf", value: csrfToken || "" }),
           /* @__PURE__ */ jsx(
             "button",
@@ -645,6 +645,7 @@ const STATUS = {
   deploying: { color: "#eab308", label: "Deploying…" },
   pending: { color: "#eab308", label: "Pending…" }
 };
+const PREVIEW_COLOR = "#a78bfa";
 function StatusBadge({ status }) {
   const s = STATUS[status] ?? { color: "#525252", label: status ?? "Unknown" };
   return /* @__PURE__ */ jsxs("span", { style: { display: "inline-flex", alignItems: "center", gap: "0.375rem", flexShrink: 0 }, children: [
@@ -659,111 +660,164 @@ function formatDate(ts) {
   if (!ts) return "—";
   return new Date(ts).toLocaleDateString(void 0, { month: "short", day: "numeric", year: "numeric" });
 }
+function AiDiagnosis({ text }) {
+  const [open, setOpen] = useState(false);
+  return /* @__PURE__ */ jsxs("div", { style: {
+    margin: "0.5rem 1.25rem 0.75rem",
+    borderRadius: "0.375rem",
+    border: "1px solid rgba(239,68,68,0.2)",
+    background: "rgba(239,68,68,0.04)",
+    overflow: "hidden"
+  }, children: [
+    /* @__PURE__ */ jsxs(
+      "button",
+      {
+        onClick: () => setOpen((o) => !o),
+        style: {
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          gap: "0.5rem",
+          padding: "0.5rem 0.75rem",
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          textAlign: "left"
+        },
+        children: [
+          /* @__PURE__ */ jsx("span", { style: { fontSize: "0.75rem", color: "#f87171" }, children: "✦" }),
+          /* @__PURE__ */ jsx("span", { style: { fontSize: "0.6875rem", fontWeight: 600, color: "#fca5a5", letterSpacing: "0.04em" }, children: "AI Diagnosis" }),
+          /* @__PURE__ */ jsx("span", { style: { marginLeft: "auto", fontSize: "0.625rem", color: "#f87171", opacity: 0.7 }, children: open ? "▲" : "▼" })
+        ]
+      }
+    ),
+    open && /* @__PURE__ */ jsx("div", { style: { padding: "0 0.75rem 0.75rem" }, children: /* @__PURE__ */ jsx("p", { style: {
+      fontSize: "0.8125rem",
+      color: "#fecaca",
+      lineHeight: 1.6,
+      margin: 0,
+      whiteSpace: "pre-wrap"
+    }, children: text }) })
+  ] });
+}
 function DeploymentRow({ dep, csrfToken }) {
   const [confirming, setConfirming] = useState(false);
   const name = repoName(dep.git_url);
-  return /* @__PURE__ */ jsxs("div", { style: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "0.75rem 1.25rem",
-    borderBottom: "1px solid rgba(255,255,255,0.04)",
-    gap: "1rem",
-    flexWrap: "wrap"
-  }, children: [
-    /* @__PURE__ */ jsxs("div", { style: { display: "flex", flexDirection: "column", gap: "0.1875rem", minWidth: 0 }, children: [
-      /* @__PURE__ */ jsx("span", { style: {
-        fontSize: "0.875rem",
-        fontWeight: 500,
-        color: "var(--dash-text-primary, #fafafa)",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        whiteSpace: "nowrap",
-        fontFamily: "JetBrains Mono, monospace"
-      }, children: name }),
-      /* @__PURE__ */ jsxs("div", { style: { display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }, children: [
-        dep.subdomain && /* @__PURE__ */ jsxs(
-          "a",
-          {
-            href: `https://${dep.subdomain}.cloudedbasement.ca`,
-            target: "_blank",
-            rel: "noreferrer",
-            style: { fontSize: "0.6875rem", color: "#60a5fa", textDecoration: "none", fontFamily: "JetBrains Mono, monospace" },
-            children: [
-              dep.subdomain,
-              ".cloudedbasement.ca"
-            ]
-          }
-        ),
-        dep.branch && /* @__PURE__ */ jsx("span", { style: { fontSize: "0.6875rem", color: "var(--dash-text-muted, #525252)" }, children: dep.branch }),
-        /* @__PURE__ */ jsx("span", { style: { fontSize: "0.6875rem", color: "var(--dash-text-muted, #525252)" }, children: formatDate(dep.deployed_at || dep.created_at) })
-      ] })
-    ] }),
-    /* @__PURE__ */ jsxs("div", { style: { display: "flex", alignItems: "center", gap: "0.625rem", flexShrink: 0 }, children: [
-      /* @__PURE__ */ jsx(StatusBadge, { status: dep.status }),
-      /* @__PURE__ */ jsxs("form", { action: "/deploy", method: "POST", children: [
-        /* @__PURE__ */ jsx("input", { type: "hidden", name: "_csrf", value: csrfToken }),
-        /* @__PURE__ */ jsx("input", { type: "hidden", name: "git_url", value: dep.git_url }),
-        /* @__PURE__ */ jsx("button", { type: "submit", style: {
-          padding: "0.3125rem 0.625rem",
-          borderRadius: "0.3125rem",
-          background: "transparent",
-          border: "1px solid rgba(255,255,255,0.12)",
-          color: "var(--dash-text-secondary, #a1a1a1)",
-          fontSize: "0.6875rem",
-          cursor: "pointer",
-          whiteSpace: "nowrap"
-        }, children: "Redeploy" })
+  return /* @__PURE__ */ jsxs("div", { style: { borderBottom: "1px solid rgba(255,255,255,0.04)" }, children: [
+    /* @__PURE__ */ jsxs("div", { style: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: "0.75rem 1.25rem",
+      gap: "1rem",
+      flexWrap: "wrap"
+    }, children: [
+      /* @__PURE__ */ jsxs("div", { style: { display: "flex", flexDirection: "column", gap: "0.1875rem", minWidth: 0 }, children: [
+        /* @__PURE__ */ jsx("span", { style: {
+          fontSize: "0.875rem",
+          fontWeight: 500,
+          color: "var(--dash-text-primary, #fafafa)",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+          fontFamily: "JetBrains Mono, monospace"
+        }, children: name }),
+        /* @__PURE__ */ jsxs("div", { style: { display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }, children: [
+          dep.is_preview && /* @__PURE__ */ jsx("span", { style: {
+            fontSize: "0.625rem",
+            fontWeight: 600,
+            letterSpacing: "0.05em",
+            padding: "0.1rem 0.4rem",
+            borderRadius: "0.25rem",
+            background: "rgba(167,139,250,0.12)",
+            border: `1px solid rgba(167,139,250,0.3)`,
+            color: PREVIEW_COLOR,
+            textTransform: "uppercase"
+          }, children: "Preview" }),
+          dep.branch && /* @__PURE__ */ jsx("span", { style: { fontSize: "0.6875rem", color: dep.is_preview ? PREVIEW_COLOR : "var(--dash-text-muted, #525252)", fontFamily: "JetBrains Mono, monospace" }, children: dep.branch }),
+          dep.subdomain && /* @__PURE__ */ jsxs(
+            "a",
+            {
+              href: `https://${dep.subdomain}.cloudedbasement.ca`,
+              target: "_blank",
+              rel: "noreferrer",
+              style: { fontSize: "0.6875rem", color: dep.is_preview ? PREVIEW_COLOR : "#60a5fa", textDecoration: "none", fontFamily: "JetBrains Mono, monospace" },
+              children: [
+                dep.subdomain,
+                ".cloudedbasement.ca ↗"
+              ]
+            }
+          ),
+          /* @__PURE__ */ jsx("span", { style: { fontSize: "0.6875rem", color: "var(--dash-text-muted, #525252)" }, children: formatDate(dep.deployed_at || dep.created_at) })
+        ] })
       ] }),
-      !confirming ? /* @__PURE__ */ jsx(
-        "button",
-        {
-          onClick: () => setConfirming(true),
-          style: {
+      /* @__PURE__ */ jsxs("div", { style: { display: "flex", alignItems: "center", gap: "0.625rem", flexShrink: 0 }, children: [
+        /* @__PURE__ */ jsx(StatusBadge, { status: dep.status }),
+        /* @__PURE__ */ jsxs("form", { action: "/deploy", method: "POST", children: [
+          /* @__PURE__ */ jsx("input", { type: "hidden", name: "_csrf", value: csrfToken }),
+          /* @__PURE__ */ jsx("input", { type: "hidden", name: "git_url", value: dep.git_url }),
+          /* @__PURE__ */ jsx("button", { type: "submit", style: {
             padding: "0.3125rem 0.625rem",
             borderRadius: "0.3125rem",
             background: "transparent",
-            border: "1px solid rgba(239,68,68,0.3)",
-            color: "#f87171",
+            border: "1px solid rgba(255,255,255,0.12)",
+            color: "var(--dash-text-secondary, #a1a1a1)",
             fontSize: "0.6875rem",
             cursor: "pointer",
             whiteSpace: "nowrap"
-          },
-          children: "Delete"
-        }
-      ) : /* @__PURE__ */ jsxs("div", { style: { display: "flex", gap: "0.375rem", alignItems: "center" }, children: [
-        /* @__PURE__ */ jsx("span", { style: { fontSize: "0.6875rem", color: "#f87171" }, children: "Sure?" }),
-        /* @__PURE__ */ jsxs("form", { action: "/delete-deployment", method: "POST", children: [
-          /* @__PURE__ */ jsx("input", { type: "hidden", name: "_csrf", value: csrfToken }),
-          /* @__PURE__ */ jsx("input", { type: "hidden", name: "deploymentId", value: dep.id }),
-          /* @__PURE__ */ jsx("button", { type: "submit", style: {
-            padding: "0.25rem 0.5rem",
-            borderRadius: "0.25rem",
-            background: "rgba(239,68,68,0.15)",
-            border: "1px solid rgba(239,68,68,0.4)",
-            color: "#f87171",
-            fontSize: "0.6875rem",
-            cursor: "pointer"
-          }, children: "Yes" })
+          }, children: "Redeploy" })
         ] }),
-        /* @__PURE__ */ jsx(
+        !confirming ? /* @__PURE__ */ jsx(
           "button",
           {
-            onClick: () => setConfirming(false),
+            onClick: () => setConfirming(true),
             style: {
+              padding: "0.3125rem 0.625rem",
+              borderRadius: "0.3125rem",
+              background: "transparent",
+              border: "1px solid rgba(239,68,68,0.3)",
+              color: "#f87171",
+              fontSize: "0.6875rem",
+              cursor: "pointer",
+              whiteSpace: "nowrap"
+            },
+            children: "Delete"
+          }
+        ) : /* @__PURE__ */ jsxs("div", { style: { display: "flex", gap: "0.375rem", alignItems: "center" }, children: [
+          /* @__PURE__ */ jsx("span", { style: { fontSize: "0.6875rem", color: "#f87171" }, children: "Sure?" }),
+          /* @__PURE__ */ jsxs("form", { action: "/delete-deployment", method: "POST", children: [
+            /* @__PURE__ */ jsx("input", { type: "hidden", name: "_csrf", value: csrfToken }),
+            /* @__PURE__ */ jsx("input", { type: "hidden", name: "deploymentId", value: dep.id }),
+            /* @__PURE__ */ jsx("button", { type: "submit", style: {
               padding: "0.25rem 0.5rem",
               borderRadius: "0.25rem",
-              background: "transparent",
-              border: "1px solid rgba(255,255,255,0.1)",
-              color: "var(--dash-text-muted, #525252)",
+              background: "rgba(239,68,68,0.15)",
+              border: "1px solid rgba(239,68,68,0.4)",
+              color: "#f87171",
               fontSize: "0.6875rem",
               cursor: "pointer"
-            },
-            children: "No"
-          }
-        )
+            }, children: "Yes" })
+          ] }),
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              onClick: () => setConfirming(false),
+              style: {
+                padding: "0.25rem 0.5rem",
+                borderRadius: "0.25rem",
+                background: "transparent",
+                border: "1px solid rgba(255,255,255,0.1)",
+                color: "var(--dash-text-muted, #525252)",
+                fontSize: "0.6875rem",
+                cursor: "pointer"
+              },
+              children: "No"
+            }
+          )
+        ] })
       ] })
-    ] })
+    ] }),
+    dep.status === "failed" && dep.ai_diagnosis && /* @__PURE__ */ jsx(AiDiagnosis, { text: dep.ai_diagnosis })
   ] });
 }
 function DeploySection({ data }) {
@@ -1007,8 +1061,36 @@ function DevToolsSection({ data }) {
       setLoading(false);
     }
   }
-  function copy(text) {
-    navigator.clipboard.writeText(text);
+  async function copy(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(text);
+        if (typeof window.showToast === "function") window.showToast("Copied!");
+        return true;
+      } catch (err) {
+        if (typeof window.showToastError === "function") window.showToastError("Copy failed");
+      }
+    }
+    try {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "absolute";
+      textarea.style.left = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.select();
+      const success = document.execCommand("copy");
+      document.body.removeChild(textarea);
+      if (success) {
+        if (typeof window.showToast === "function") window.showToast("Copied!");
+        return true;
+      } else {
+        if (typeof window.showToastError === "function") window.showToastError("Copy failed");
+      }
+    } catch (err) {
+      if (typeof window.showToastError === "function") window.showToastError("Copy failed");
+    }
+    return false;
   }
   if (!hasServer) {
     return /* @__PURE__ */ jsxs("section", { children: [
@@ -1255,8 +1337,18 @@ function EnvSection({ data }) {
         credentials: "same-origin",
         headers: { "x-csrf-token": csrfToken }
       });
-      if (r.ok) setEnvVars((prev) => prev.filter((v) => v.id !== id));
-    } catch {
+      if (r.ok) {
+        setEnvVars((prev) => prev.filter((v) => v.id !== id));
+      } else {
+        const errText = await r.text();
+        console.error("Failed to delete env var:", r.status, errText);
+        setApiError("Failed to delete environment variable.");
+        if (typeof window.showToastError === "function") window.showToastError("Failed to delete environment variable.");
+      }
+    } catch (err) {
+      console.error("Error deleting env var:", err);
+      setApiError("Network error. Try again.");
+      if (typeof window.showToastError === "function") window.showToastError("Network error. Try again.");
     } finally {
       setDeletingId(null);
     }

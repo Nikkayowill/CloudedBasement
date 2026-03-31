@@ -103,7 +103,7 @@ function SidebarInner({ nav, active, onNav, userEmail, initial, plan, planStyle,
           >
             Docs
           </a>
-          <form method="GET" action="/logout" style={{ display: 'inline' }}>
+          <form method="POST" action="/logout" style={{ display: 'inline' }}>
             <input type="hidden" name="_csrf" value={csrfToken || ''} />
             <button
               type="submit"
