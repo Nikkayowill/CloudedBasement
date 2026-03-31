@@ -311,11 +311,12 @@ exports.deploy = async (req, res) => {
 };
 
 // Async deployment function
-async function performDeployment(server, gitUrl, repoName, deploymentId, subdomain = null) {
+async function performDeployment(server, gitUrl, repoName, deploymentId, subdomain = null, branch = null) {
   console.log(`[DEPLOY] ============================================`);
   console.log(`[DEPLOY] Starting performDeployment for deployment #${deploymentId}`);
   console.log(`[DEPLOY] Server IP: ${server.ip_address}, Repo: ${gitUrl}`);
   console.log(`[DEPLOY] Subdomain: ${subdomain ? `${subdomain}.cloudedbasement.ca` : 'none'}`);
+  console.log(`[DEPLOY] Branch: ${branch || 'auto-detect'}`);
   console.log(`[DEPLOY] ============================================`);
   
   const conn = new Client();
@@ -357,36 +358,36 @@ async function performDeployment(server, gitUrl, repoName, deploymentId, subdoma
       const [, user, repo] = match;
       output += `Repository: ${user}/${repo}\n`;
       
-      // Try main branch first, fallback to master
-      const branches = ['main', 'master'];
+      // Use specified branch, or try main then master
+      const branchesToTry = branch ? [branch] : ['main', 'master'];
       let downloadSuccess = false;
-      
-      for (const branch of branches) {
+
+      for (const tryBranch of branchesToTry) {
         try {
-          const tarballUrl = `https://github.com/${user}/${repo}/archive/refs/heads/${branch}.tar.gz`;
-          output += `Attempting to download from '${branch}' branch...\n`;
-          
+          const tarballUrl = `https://github.com/${user}/${repo}/archive/refs/heads/${tryBranch}.tar.gz`;
+          output += `Attempting to download from '${tryBranch}' branch...\n`;
+
           // Check size first (HEAD request via wget)
           const sizeCheck = await execSSH(conn, `wget --spider --server-response "${tarballUrl}" 2>&1 | grep -i "content-length" | awk '{print $2}' | tail -1`);
           const sizeInBytes = parseInt(sizeCheck.trim());
-          
+
           if (sizeInBytes > 100 * 1024 * 1024) { // 100MB limit
             throw new Error(`Repository size (${Math.round(sizeInBytes / 1024 / 1024)}MB) exceeds 100MB limit`);
           }
-          
+
           output += `Repository size: ${Math.round(sizeInBytes / 1024 / 1024)}MB\n`;
-          
+
           // Download tarball
-          await execSSH(conn, `cd /root && rm -rf ${repoName} ${repo}-${branch} && wget -q -O repo.tar.gz "${tarballUrl}"`);
-          await execSSH(conn, `cd /root && tar -xzf repo.tar.gz && mv ${repo}-${branch} ${repoName} && rm repo.tar.gz`);
-          
-          output += `✓ Repository downloaded successfully (branch: ${branch})\n`;
+          await execSSH(conn, `cd /root && rm -rf ${repoName} ${repo}-${tryBranch} && wget -q -O repo.tar.gz "${tarballUrl}"`);
+          await execSSH(conn, `cd /root && tar -xzf repo.tar.gz && mv ${repo}-${tryBranch} ${repoName} && rm repo.tar.gz`);
+
+          output += `✓ Repository downloaded successfully (branch: ${tryBranch})\n`;
           downloadSuccess = true;
           break;
         } catch (err) {
-          output += `Branch '${branch}' not found or inaccessible\n`;
-          if (branch === branches[branches.length - 1]) {
-            throw new Error(`Repository not found or is private. Make sure:\n1. Repository URL is correct\n2. Repository is public\n3. Repository has a 'main' or 'master' branch`);
+          output += `Branch '${tryBranch}' not found or inaccessible\n`;
+          if (tryBranch === branchesToTry[branchesToTry.length - 1]) {
+            throw new Error(`Repository not found or is private. Make sure:\n1. Repository URL is correct\n2. Repository is public\n3. Branch '${tryBranch}' exists and is accessible`);
           }
         }
       }
@@ -2002,34 +2003,107 @@ exports.deleteDeployment = async (req, res) => {
  * @param {string} reason - Human-readable reason for deploy log
  * @returns {Object} { deploymentId }
  */
-exports.triggerAutoDeploy = async (server, gitUrl, reason = 'Auto-deploy') => {
+exports.triggerAutoDeploy = async (server, gitUrl, reason = 'Auto-deploy', branch = null) => {
   const repoName = gitUrl.split('/').pop().replace('.git', '');
-  
+
   // Create deployment record with pending status
   const deployResult = await pool.query(
-    'INSERT INTO deployments (server_id, user_id, git_url, status, output) VALUES ($1, $2, $3, $4, $5) RETURNING id',
-    [server.id, server.user_id, gitUrl, 'pending', `🚀 ${reason}\nStarting deployment...`]
+    'INSERT INTO deployments (server_id, user_id, git_url, status, output, branch) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+    [server.id, server.user_id, gitUrl, 'pending', `🚀 ${reason}\nStarting deployment...`, branch]
   );
 
   const deploymentId = deployResult.rows[0].id;
-  console.log(`[AUTO-DEPLOY] Deployment #${deploymentId} triggered: ${gitUrl}`);
+  console.log(`[AUTO-DEPLOY] Deployment #${deploymentId} triggered: ${gitUrl} (branch: ${branch || 'auto'})`);
 
   // Perform deployment asynchronously (don't await - return immediately for GitHub)
   setImmediate(() => {
-    performDeployment(server, gitUrl, repoName, deploymentId).catch(async (err) => {
+    performDeployment(server, gitUrl, repoName, deploymentId, null, branch).catch(async (err) => {
       console.error(`[AUTO-DEPLOY] Deployment #${deploymentId} failed:`, err);
+      const failureOutput = `❌ Auto-deploy failed: ${err.message}`;
       try {
         await pool.query(
           'UPDATE deployments SET status = $1, output = $2, deployed_at = NOW() WHERE id = $3',
-          ['failed', `❌ Auto-deploy failed: ${err.message}`, deploymentId]
+          ['failed', failureOutput, deploymentId]
         );
       } catch (dbErr) {
         console.error(`[AUTO-DEPLOY] Failed to update deployment status:`, dbErr);
       }
+      analyzeDeploymentFailure(deploymentId, failureOutput);
     });
   });
 
   return { deploymentId };
+};
+
+/**
+ * Trigger a preview deployment for a non-default branch.
+ * Provisions a unique subdomain (pr-{branch}-{repo}) and deploys there.
+ * Cleans up any previous preview for the same branch+repo.
+ */
+exports.triggerPreviewDeploy = async (server, gitUrl, branch, reason = 'Preview deploy') => {
+  const repoName = gitUrl.split('/').pop().replace('.git', '');
+
+  // Sanitize branch name for use in subdomain: lowercase, replace non-alnum with hyphen, max 40 chars
+  const safeBranch = branch.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').substring(0, 40);
+  const safeRepo   = repoName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').substring(0, 20);
+  const previewSubdomain = `pr-${safeBranch}-${safeRepo}`;
+
+  // Clean up any previous preview deployment for this branch+repo
+  const existing = await pool.query(
+    `SELECT id, subdomain, dns_record_id FROM deployments
+     WHERE server_id = $1 AND git_url = $2 AND branch = $3 AND is_preview = true`,
+    [server.id, gitUrl, branch]
+  );
+  for (const old of existing.rows) {
+    if (old.dns_record_id) {
+      const { deleteDNSRecord } = require('../services/dns');
+      await deleteDNSRecord(old.subdomain).catch(err =>
+        console.error(`[PREVIEW] DNS cleanup failed for ${old.subdomain}:`, err.message)
+      );
+    }
+    await pool.query('DELETE FROM deployments WHERE id = $1', [old.id]);
+    console.log(`[PREVIEW] Cleaned up previous preview deployment #${old.id}`);
+  }
+
+  // Create DNS record for the preview subdomain
+  const { createDNSRecord } = require('../services/dns');
+  const dnsResult = await createDNSRecord(previewSubdomain, server.ip_address);
+  const dnsRecordId = dnsResult.success ? dnsResult.recordId : null;
+  if (!dnsResult.success) {
+    console.warn(`[PREVIEW] DNS record creation failed for ${previewSubdomain}: ${dnsResult.error}`);
+  }
+
+  // Create deployment record
+  const deployResult = await pool.query(
+    `INSERT INTO deployments (server_id, user_id, git_url, status, output, subdomain, dns_record_id, branch, is_preview)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true) RETURNING id`,
+    [
+      server.id, server.user_id, gitUrl, 'pending',
+      `🔍 ${reason}\nPreview: ${previewSubdomain}.cloudedbasement.ca\n`,
+      previewSubdomain, dnsRecordId, branch,
+    ]
+  );
+
+  const deploymentId = deployResult.rows[0].id;
+  console.log(`[PREVIEW] Deployment #${deploymentId} for branch '${branch}' -> ${previewSubdomain}.cloudedbasement.ca`);
+
+  setImmediate(() => {
+    performDeployment(server, gitUrl, repoName, deploymentId, previewSubdomain, branch).catch(async (err) => {
+      console.error(`[PREVIEW] Deployment #${deploymentId} failed:`, err);
+      const failureOutput = `❌ Preview deploy failed: ${err.message}`;
+      try {
+        await pool.query(
+          'UPDATE deployments SET status = $1, output = $2, deployed_at = NOW() WHERE id = $3',
+          ['failed', failureOutput, deploymentId]
+        );
+      } catch (dbErr) {
+        console.error(`[PREVIEW] Failed to update status:`, dbErr);
+      }
+      analyzeDeploymentFailure(deploymentId, failureOutput);
+    });
+  });
+
+  return { deploymentId, previewSubdomain };
 };
 
 /**
@@ -2311,4 +2385,6 @@ module.exports = {
   disableDomainAutoDeploy: exports.disableDomainAutoDeploy,
   // Server provisioning
   startTrial: exports.startTrial,
+  // Preview deployments
+  triggerPreviewDeploy: exports.triggerPreviewDeploy,
 };

@@ -67,6 +67,10 @@ async function runMigrations() {
     // Add ai_diagnosis column to deployments
     const { up: addAiDiagnosis } = require('./028-add-ai-diagnosis');
     await addAiDiagnosis();
+
+    // Add branch + is_preview columns to deployments
+    const { up: addBranchToDeployments } = require('./029-add-branch-to-deployments');
+    await addBranchToDeployments();
     
   } catch (error) {
     // Safely rollback transaction (may not have started if error was early)

@@ -17,6 +17,8 @@ const STATUS = {
   pending:   { color: '#eab308', label: 'Pending…'    },
 };
 
+const PREVIEW_COLOR = '#a78bfa'; // violet
+
 function StatusBadge({ status }) {
   const s = STATUS[status] ?? { color: '#525252', label: status ?? 'Unknown' };
   return (
@@ -97,19 +99,29 @@ function DeploymentRow({ dep, csrfToken }) {
           {name}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+          {dep.is_preview && (
+            <span style={{
+              fontSize: '0.625rem', fontWeight: 600, letterSpacing: '0.05em',
+              padding: '0.1rem 0.4rem', borderRadius: '0.25rem',
+              background: 'rgba(167,139,250,0.12)', border: `1px solid rgba(167,139,250,0.3)`,
+              color: PREVIEW_COLOR, textTransform: 'uppercase',
+            }}>
+              Preview
+            </span>
+          )}
+          {dep.branch && (
+            <span style={{ fontSize: '0.6875rem', color: dep.is_preview ? PREVIEW_COLOR : 'var(--dash-text-muted, #525252)', fontFamily: 'JetBrains Mono, monospace' }}>
+              {dep.branch}
+            </span>
+          )}
           {dep.subdomain && (
             <a
               href={`https://${dep.subdomain}.cloudedbasement.ca`}
               target="_blank" rel="noreferrer"
-              style={{ fontSize: '0.6875rem', color: '#60a5fa', textDecoration: 'none', fontFamily: 'JetBrains Mono, monospace' }}
+              style={{ fontSize: '0.6875rem', color: dep.is_preview ? PREVIEW_COLOR : '#60a5fa', textDecoration: 'none', fontFamily: 'JetBrains Mono, monospace' }}
             >
-              {dep.subdomain}.cloudedbasement.ca
+              {dep.subdomain}.cloudedbasement.ca ↗
             </a>
-          )}
-          {dep.branch && (
-            <span style={{ fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)' }}>
-              {dep.branch}
-            </span>
           )}
           <span style={{ fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)' }}>
             {formatDate(dep.deployed_at || dep.created_at)}

@@ -5,9 +5,10 @@
 
 const crypto = require('crypto');
 const pool = require('../db');
+const { deleteDNSRecord } = require('../services/dns');
 
 // Import deployment functions from serverController
-const { triggerAutoDeploy, triggerDomainAutoDeploy } = require('./serverController');
+const { triggerAutoDeploy, triggerDomainAutoDeploy, triggerPreviewDeploy } = require('./serverController');
 
 /**
  * Verify GitHub webhook signature
@@ -82,12 +83,39 @@ exports.githubWebhook = async (req, res) => {
     
     console.log(`[GITHUB WEBHOOK] Push to ${repoUrl} (${branch}) by ${pusher} - ${commits} commits`);
     
-    // Only deploy main/master branch
-    if (branch !== 'main' && branch !== 'master') {
-      console.log(`[GITHUB WEBHOOK] Ignoring push to ${branch} branch`);
-      return res.status(200).json({ message: `Ignored push to ${branch} branch` });
+    const isDefaultBranch = branch === 'main' || branch === 'master';
+
+    // Non-default branch on server-wide webhook → preview deployment
+    if (!isDefaultBranch && !domainId) {
+      if (!server.auto_deploy_enabled) {
+        return res.status(200).json({ message: 'Auto-deploy is disabled' });
+      }
+      if (!verifyGitHubSignature(rawBody, signature, server.github_webhook_secret)) {
+        return res.status(401).json({ error: 'Invalid signature' });
+      }
+
+      // Resolve git URL from most recent production deployment for this server
+      const depRow = await pool.query(
+        `SELECT git_url FROM deployments WHERE server_id = $1 AND is_preview = false ORDER BY created_at DESC LIMIT 1`,
+        [serverId]
+      );
+      const gitUrl = depRow.rows[0]?.git_url || repoUrl;
+      if (!gitUrl) {
+        return res.status(400).json({ error: 'No previous deployment found to determine repo' });
+      }
+
+      console.log(`[GITHUB WEBHOOK] Preview deploy: branch '${branch}' -> ${gitUrl}`);
+      const result = await triggerPreviewDeploy(server, gitUrl, branch, `Preview: ${commits} commit(s) by ${pusher} on '${branch}'`);
+
+      return res.status(200).json({
+        message: 'Preview deployment triggered',
+        deploymentId: result.deploymentId,
+        previewUrl: `https://${result.previewSubdomain}.cloudedbasement.ca`,
+        branch,
+        commits,
+      });
     }
-    
+
     // DOMAIN-SPECIFIC WEBHOOK
     if (domainId) {
       // Get domain info
@@ -170,12 +198,17 @@ exports.githubWebhook = async (req, res) => {
       return res.status(400).json({ error: 'No previous deployment found' });
     }
     
-    // Trigger the server-wide deployment (legacy)
-    console.log(`[GITHUB WEBHOOK] Triggering server-wide auto-deploy for ${gitUrl}`);
-    
-    const result = await triggerAutoDeploy(server, gitUrl, `Auto-deploy: ${commits} commit(s) by ${pusher}`);
-    
-    res.status(200).json({ 
+    // Trigger the server-wide deployment
+    console.log(`[GITHUB WEBHOOK] Triggering server-wide auto-deploy for ${gitUrl} (branch: ${branch})`);
+
+    const result = await triggerAutoDeploy(server, gitUrl, `Auto-deploy: ${commits} commit(s) by ${pusher}`, branch);
+
+    // Clean up any open preview deployments for this repo now that main was merged
+    cleanupPreviewsForRepo(server.id, gitUrl).catch(err =>
+      console.error('[GITHUB WEBHOOK] Preview cleanup error:', err.message)
+    );
+
+    res.status(200).json({
       message: 'Deployment triggered',
       deploymentId: result.deploymentId,
       gitUrl,
@@ -188,6 +221,27 @@ exports.githubWebhook = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+/**
+ * Delete all preview deployments for a given repo on a server.
+ * Called after a push to main/master — previews are stale at that point.
+ */
+async function cleanupPreviewsForRepo(serverId, gitUrl) {
+  const rows = await pool.query(
+    `SELECT id, subdomain, dns_record_id FROM deployments
+     WHERE server_id = $1 AND git_url = $2 AND is_preview = true`,
+    [serverId, gitUrl]
+  );
+  for (const dep of rows.rows) {
+    if (dep.dns_record_id) {
+      await deleteDNSRecord(dep.subdomain).catch(err =>
+        console.error(`[PREVIEW CLEANUP] DNS delete failed for ${dep.subdomain}:`, err.message)
+      );
+    }
+    await pool.query('DELETE FROM deployments WHERE id = $1', [dep.id]);
+    console.log(`[PREVIEW CLEANUP] Removed preview deployment #${dep.id} (${dep.subdomain})`);
+  }
+}
 
 /**
  * POST /enable-auto-deploy
