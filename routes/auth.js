@@ -54,6 +54,7 @@ router.post('/login',
   authController.handleLogin
 );
 router.get('/logout', authController.handleLogout);
+router.post('/logout', authController.handleLogout);
 
 // ── Google OAuth ──────────────────────────────────────────────────────────────
 router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
