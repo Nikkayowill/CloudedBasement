@@ -21,8 +21,10 @@ const { generateCsrfToken, doubleCsrfProtection } = doubleCsrf({
     return secret;
   },
 
-  // Bind token to the session — prevents token reuse across sessions
-  getSessionIdentifier: (req) => req.session?.id || '',
+  // Do NOT bind to session ID — req.session.regenerate() is called on login
+  // which changes the session ID and would invalidate any in-flight CSRF token.
+  // The Double Submit Cookie pattern is secure without session binding.
+  getSessionIdentifier: () => '',
 
   // Use __Host- prefix in production (requires HTTPS) for extra cookie security.
   // Plain name in development to avoid issues with non-HTTPS localhost.
