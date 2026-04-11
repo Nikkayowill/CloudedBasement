@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-// Removed PageLayout for standalone auth page
 
 function GoogleIcon() {
   return (
@@ -15,8 +14,8 @@ function GoogleIcon() {
 
 const inputStyle = {
   width: '100%',
-  padding: '0.625rem 0.875rem',
-  background: 'rgba(255,255,255,0.03)',
+  padding: '0.5rem 0.75rem',
+  background: 'rgba(255,255,255,0.04)',
   border: '1px solid rgba(255,255,255,0.1)',
   borderRadius: '0.375rem',
   color: '#f5f5f5',
@@ -34,8 +33,8 @@ function Flash({ type, children }) {
   const s = styles[type] ?? styles.error;
   return (
     <div style={{
-      background: s.bg, border: `1px solid ${s.border}`, borderRadius: '0.375rem',
-      padding: '0.625rem 0.875rem', marginBottom: '1rem',
+      background: s.bg, border: '1px solid ' + s.border, borderRadius: '0.375rem',
+      padding: '0.5rem 0.75rem', marginBottom: '0.75rem',
       fontSize: '0.8125rem', color: s.color, lineHeight: 1.5,
     }}>
       {children}
@@ -48,13 +47,15 @@ export default function Register() {
   const [csrf, setCsrf] = useState('');
   const [botCode, setBotCode] = useState('');
   const [botInput, setBotInput] = useState('');
+  const [form, setForm] = useState({ email: searchParams.get('email') || '', password: '', confirmPassword: '', acceptTerms: false });
+  const [clientError, setClientError] = useState('');
 
   const error   = searchParams.get('error') || '';
   const success = searchParams.get('success') || '';
-  const email   = searchParams.get('email') || '';
+  const email   = form.email;
 
   const botCorrect  = botInput.length > 0 && botInput === botCode;
-  const submitReady = csrf && botCorrect;
+  const submitReady = csrf && botCorrect && form.email && form.password && form.confirmPassword && form.acceptTerms && form.password === form.confirmPassword;
 
   useEffect(() => {
     fetch('/api/csrf-token', { credentials: 'include' })
@@ -67,203 +68,142 @@ export default function Register() {
       .catch(() => {});
   }, []);
 
+  function handleChange(e) {
+    const { name, value, type, checked } = e.target;
+    setForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
+    setClientError('');
+  }
+
+  function handleSubmit(e) {
+    let err = '';
+    if (!form.email) err = 'Email is required.';
+    else if (!form.password) err = 'Password is required.';
+    else if (!form.confirmPassword) err = 'Please confirm your password.';
+    else if (form.password !== form.confirmPassword) err = 'Passwords do not match.';
+    else if (!form.acceptTerms) err = 'You must accept the Terms.';
+    else if (!botCorrect) err = 'Bot code is incorrect.';
+    if (err) {
+      setClientError(err);
+      e.preventDefault();
+    }
+  }
+
   return (
-    <div style={{ minHeight: '100vh', width: '100vw', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#09090b' }}>
-      <div style={{ width: '100%', maxWidth: '26rem', padding: '2rem 1.5rem', borderRadius: '0.75rem', background: 'rgba(30,41,59,0.95)', boxShadow: '0 2px 24px 0 rgba(0,0,0,0.25)' }}>
-        <div className="cb-title-row" style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <p style={{ fontSize: '0.6875rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#2DA7DF', marginBottom: '0.5rem' }}>
-            Get started free
-          </p>
-          <h1 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.25rem)', fontWeight: 700, color: '#f5f5f5', margin: 0 }}>
-            Create your account
-          </h1>
+    <div style={{ minHeight: '100vh', position: 'relative', overflow: 'hidden', overflowX: 'hidden', background: '#16171d' }}>
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage: 'linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px)',
+          backgroundSize: '40px 40px',
+          opacity: 0.55,
+          pointerEvents: 'none',
+        }}
+      />
+
+      <div style={{ width: '100%', maxWidth: '85rem', margin: '0 auto', minHeight: '100vh', borderLeft: '1px solid rgba(255,255,255,0.07)', borderRight: '1px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+        <div style={{ width: '100%', maxWidth: '24.5rem', background: 'rgba(17, 24, 39, 0.84)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '0.9rem', padding: '1.75rem', boxShadow: '0 24px 70px rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)' }}>
+
+        <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
+          <p style={{ fontSize: '0.6875rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#2DA7DF', margin: '0 0 0.375rem' }}>Get started free</p>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#f5f5f5', margin: 0 }}>Create your account</h1>
         </div>
 
+
+        {clientError && <Flash type="error">{clientError}</Flash>}
         {error   && <Flash type="error">{error}</Flash>}
-          {success && <Flash type="success">{success}</Flash>}
+        {success && <Flash type="success">{success}</Flash>}
 
-          {/* Main form card */}
-          <div style={{
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: '0.5rem',
-            overflow: 'hidden',
-          }}>
-            <form method="POST" action="/register" style={{ padding: '1.75rem' }}>
-              <input type="hidden" name="_csrf" value={csrf} />
-              <input type="hidden" name="fingerprint" value="" />
 
-              <div style={{ marginBottom: '1.125rem' }}>
-                <label htmlFor="reg-email" style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#9ca3af', marginBottom: '0.4rem' }}>
-                  Email
-                </label>
-                <input
-                  id="reg-email"
-                  type="email"
-                  name="email"
-                  required
-                  defaultValue={email}
-                  style={inputStyle}
-                  onFocus={(e) => { e.target.style.borderColor = 'rgba(45,167,223,0.5)'; }}
-                  onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; }}
-                />
-              </div>
+        <form method="POST" action="/register" onSubmit={handleSubmit} autoComplete="off">
+          <input type="hidden" name="_csrf" value={csrf} />
+          <input type="hidden" name="fingerprint" value="" />
 
-              <div style={{ marginBottom: '1.125rem' }}>
-                <label htmlFor="reg-password" style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#9ca3af', marginBottom: '0.4rem' }}>
-                  Password <span style={{ color: '#4b5563', fontWeight: 400 }}>(min 8 chars)</span>
-                </label>
-                <input
-                  id="reg-password"
-                  type="password"
-                  name="password"
-                  minLength={8}
-                  required
-                  style={inputStyle}
-                  onFocus={(e) => { e.target.style.borderColor = 'rgba(45,167,223,0.5)'; }}
-                  onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; }}
-                />
-              </div>
-
-              <div style={{ marginBottom: '1.25rem' }}>
-                <label htmlFor="reg-confirm" style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#9ca3af', marginBottom: '0.4rem' }}>
-                  Confirm password
-                </label>
-                <input
-                  id="reg-confirm"
-                  type="password"
-                  name="confirmPassword"
-                  minLength={8}
-                  required
-                  style={inputStyle}
-                  onFocus={(e) => { e.target.style.borderColor = 'rgba(45,167,223,0.5)'; }}
-                  onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; }}
-                />
-              </div>
-
-              {/* Bot challenge */}
-              <div style={{ marginBottom: '1.25rem', padding: '1rem', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '0.375rem' }}>
-                <p style={{ fontSize: '0.6875rem', color: '#6b7280', marginBottom: '0.625rem' }}>
-                  Verify you're human — type the code exactly as shown
-                </p>
-                <div style={{
-                  textAlign: 'center',
-                  padding: '0.625rem',
-                  background: '#0a0a0a',
-                  border: '1px solid rgba(45,167,223,0.2)',
-                  borderRadius: '0.25rem',
-                  marginBottom: '0.625rem',
-                }}>
-                  <span style={{
-                    fontFamily: 'JetBrains Mono, monospace',
-                    fontSize: '1.25rem',
-                    fontWeight: 700,
-                    color: '#2DA7DF',
-                    letterSpacing: '0.3em',
-                  }}>
-                    {botCode || '······'}
-                  </span>
-                </div>
-                <input
-                  type="text"
-                  name="botCode"
-                  value={botInput}
-                  onChange={(e) => setBotInput(e.target.value.toUpperCase())}
-                  required
-                  maxLength={6}
-                  placeholder="TYPE CODE"
-                  style={{
-                    ...inputStyle,
-                    textAlign: 'center',
-                    fontFamily: 'JetBrains Mono, monospace',
-                    letterSpacing: '0.2em',
-                    borderColor: botInput.length === 0
-                      ? 'rgba(255,255,255,0.1)'
-                      : botCorrect
-                      ? 'rgba(34,197,94,0.4)'
-                      : 'rgba(239,68,68,0.4)',
-                  }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.625rem', marginBottom: '1.25rem' }}>
-                <input
-                  type="checkbox"
-                  id="acceptTerms"
-                  name="acceptTerms"
-                  required
-                  style={{ marginTop: '0.2rem', width: '0.875rem', height: '0.875rem', accentColor: '#2DA7DF', cursor: 'pointer', flexShrink: 0 }}
-                />
-                <label htmlFor="acceptTerms" style={{ fontSize: '0.75rem', color: '#6b7280', cursor: 'pointer', lineHeight: 1.5 }}>
-                  I agree to the{' '}
-                  <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: '#2DA7DF', textDecoration: 'none' }}>
-                    Terms of Service
-                  </a>{' '}and{' '}
-                  <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#2DA7DF', textDecoration: 'none' }}>
-                    Privacy Policy
-                  </a>
-                </label>
-              </div>
-
-              <button
-                type="submit"
-                disabled={!submitReady}
-                style={{
-                  width: '100%',
-                  padding: '0.625rem',
-                  background: submitReady ? '#2DA7DF' : 'rgba(45,167,223,0.2)',
-                  border: 'none',
-                  borderRadius: '0.375rem',
-                  color: submitReady ? '#fff' : '#6b7280',
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  cursor: submitReady ? 'pointer' : 'not-allowed',
-                  transition: 'background 150ms, color 150ms',
-                }}
-              >
-                Create account
-              </button>
-            </form>
-
-            {/* Divider */}
-            <div style={{ display: 'flex', alignItems: 'center', padding: '0 1.75rem', margin: '0 0 1.25rem' }}>
-              <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
-              <span style={{ padding: '0 0.875rem', fontSize: '0.6875rem', color: '#4b5563' }}>or</span>
-              <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
-            </div>
-
-            {/* Google */}
-            <div style={{ padding: '0 1.75rem 1.75rem' }}>
-              <a
-                href="/auth/google"
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.625rem',
-                  padding: '0.6rem',
-                  background: '#fff',
-                  borderRadius: '0.375rem',
-                  color: '#111',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  textDecoration: 'none',
-                  transition: 'background 150ms',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#f3f4f6'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; }}
-              >
-                <GoogleIcon />
-                Continue with Google
-              </a>
-            </div>
+          <div style={{ marginBottom: '0.75rem' }}>
+            <label htmlFor="reg-email" style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#9ca3af', marginBottom: '0.3rem' }}>Email</label>
+            <input id="reg-email" type="email" name="email" required value={form.email} style={inputStyle}
+              onChange={handleChange}
+              onFocus={e => { e.target.style.borderColor = 'rgba(45,167,223,0.5)'; }}
+              onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; }} />
           </div>
 
-          <p style={{ marginTop: '1.25rem', fontSize: '0.8125rem', color: '#6b7280', textAlign: 'center' }}>
-            Already have an account?{' '}
-            <a href="/login" style={{ color: '#2DA7DF', textDecoration: 'none', fontWeight: 500 }}
-               onMouseEnter={(e) => { e.target.style.color = '#7fd6ff'; }}
-               onMouseLeave={(e) => { e.target.style.color = '#2DA7DF'; }}>
-              Sign in
-            </a>
-          </p>
+          <div style={{ marginBottom: '0.75rem' }}>
+            <label htmlFor="reg-password" style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#9ca3af', marginBottom: '0.3rem' }}>
+              Password <span style={{ color: '#4b5563', fontWeight: 400 }}>(min 8 chars)</span>
+            </label>
+            <input id="reg-password" type="password" name="password" minLength={8} required value={form.password} style={inputStyle}
+              onChange={handleChange}
+              onFocus={e => { e.target.style.borderColor = 'rgba(45,167,223,0.5)'; }}
+              onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; }} />
+          </div>
+
+          <div style={{ marginBottom: '0.875rem' }}>
+            <label htmlFor="reg-confirm" style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#9ca3af', marginBottom: '0.3rem' }}>Confirm password</label>
+            <input id="reg-confirm" type="password" name="confirmPassword" minLength={8} required value={form.confirmPassword} style={inputStyle}
+              onChange={handleChange}
+              onFocus={e => { e.target.style.borderColor = 'rgba(45,167,223,0.5)'; }}
+              onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; }} />
+            {form.confirmPassword && form.password !== form.confirmPassword && (
+              <div style={{ color: '#fca5a5', fontSize: '0.75rem', marginTop: '0.25rem' }}>Passwords do not match.</div>
+            )}
+          </div>
+
+          <div style={{ marginBottom: '0.875rem', padding: '0.75rem', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '0.375rem' }}>
+            <p style={{ fontSize: '0.6875rem', color: '#6b7280', margin: '0 0 0.5rem' }}>Verify you are human — type the code exactly as shown</p>
+            <div style={{ textAlign: 'center', padding: '0.5rem', background: '#0a0a0a', border: '1px solid rgba(45,167,223,0.2)', borderRadius: '0.25rem', marginBottom: '0.5rem' }}>
+              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '1.125rem', fontWeight: 700, color: '#2DA7DF', letterSpacing: '0.3em' }}>
+                {botCode || '······'}
+              </span>
+            </div>
+            <input type="text" name="botCode" value={botInput} onChange={e => setBotInput(e.target.value.toUpperCase())}
+              required maxLength={6} placeholder="TYPE CODE"
+              style={{ ...inputStyle, textAlign: 'center', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.2em',
+                borderColor: botInput.length === 0 ? 'rgba(255,255,255,0.1)' : botCorrect ? 'rgba(34,197,94,0.4)' : 'rgba(239,68,68,0.4)' }} />
+            {botInput && !botCorrect && (
+              <div style={{ color: '#fca5a5', fontSize: '0.75rem', marginTop: '0.25rem' }}>Bot code is incorrect.</div>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.875rem' }}>
+            <input type="checkbox" id="acceptTerms" name="acceptTerms" required checked={form.acceptTerms}
+              onChange={handleChange}
+              style={{ marginTop: '0.2rem', width: '0.875rem', height: '0.875rem', accentColor: '#2DA7DF', cursor: 'pointer', flexShrink: 0 }} />
+            <label htmlFor="acceptTerms" style={{ fontSize: '0.75rem', color: '#6b7280', cursor: 'pointer', lineHeight: 1.5 }}>
+              I agree to the{' '}
+              <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: '#2DA7DF', textDecoration: 'none' }}>Terms of Service</a>
+              {' '}and{' '}
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#2DA7DF', textDecoration: 'none' }}>Privacy Policy</a>
+            </label>
+          </div>
+
+          <button type="submit" disabled={!submitReady} style={{ width: '100%', padding: '0.5rem', background: submitReady ? '#2DA7DF' : 'rgba(45,167,223,0.2)', border: 'none', borderRadius: '0.375rem', color: submitReady ? '#fff' : '#6b7280', fontSize: '0.875rem', fontWeight: 600, cursor: submitReady ? 'pointer' : 'not-allowed', transition: 'background 150ms, color 150ms', marginBottom: '1rem' }}>
+            Create account
+          </button>
+        </form>
+
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
+          <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
+          <span style={{ padding: '0 0.75rem', fontSize: '0.6875rem', color: '#4b5563' }}>or</span>
+          <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
+        </div>
+
+        <a href="/auth/google" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.5rem', background: '#fff', borderRadius: '0.375rem', color: '#111', fontSize: '0.875rem', fontWeight: 500, textDecoration: 'none', transition: 'background 150ms', marginBottom: '1.25rem' }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = '#f3f4f6'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; }}>
+          <GoogleIcon />
+          Continue with Google
+        </a>
+
+        <p style={{ margin: 0, fontSize: '0.8125rem', color: '#6b7280', textAlign: 'center' }}>
+          Already have an account?{' '}
+          <a href="/login" style={{ color: '#2DA7DF', textDecoration: 'none', fontWeight: 500 }}
+            onMouseEnter={(e) => { e.target.style.color = '#7fd6ff'; }}
+            onMouseLeave={(e) => { e.target.style.color = '#2DA7DF'; }}>Sign in</a>
+        </p>
+
       </div>
+    </div>
     </div>
   );
 }

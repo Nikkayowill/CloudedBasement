@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-// Removed PageLayout for standalone auth page
 
 function GoogleIcon() {
   return (
@@ -15,8 +14,8 @@ function GoogleIcon() {
 
 const inputStyle = {
   width: '100%',
-  padding: '0.625rem 0.875rem',
-  background: 'rgba(255,255,255,0.03)',
+  padding: '0.5rem 0.75rem',
+  background: 'rgba(255,255,255,0.04)',
   border: '1px solid rgba(255,255,255,0.1)',
   borderRadius: '0.375rem',
   color: '#f5f5f5',
@@ -36,8 +35,8 @@ function Flash({ type, children }) {
   const s = styles[type] ?? styles.info;
   return (
     <div style={{
-      background: s.bg, border: `1px solid ${s.border}`, borderRadius: '0.375rem',
-      padding: '0.625rem 0.875rem', marginBottom: '1rem',
+      background: s.bg, border: '1px solid ' + s.border, borderRadius: '0.375rem',
+      padding: '0.5rem 0.75rem', marginBottom: '0.75rem',
       fontSize: '0.8125rem', color: s.color, lineHeight: 1.5,
     }}>
       {children}
@@ -54,6 +53,7 @@ export default function Login() {
   const warning    = searchParams.get('warning') || '';
   const email      = searchParams.get('email') || '';
   const showResend = error && error.toLowerCase().includes('confirm your email') && email;
+  const [clientError, setClientError] = useState('');
 
   useEffect(() => {
     fetch('/api/csrf-token', { credentials: 'include' })
@@ -63,137 +63,98 @@ export default function Login() {
   }, []);
 
   return (
-    <div style={{ minHeight: '100vh', width: '100vw', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#09090b' }}>
-      <div style={{ width: '100%', maxWidth: '26rem', padding: '2rem 1.5rem', borderRadius: '0.75rem', background: 'rgba(30,41,59,0.95)', boxShadow: '0 2px 24px 0 rgba(0,0,0,0.25)' }}>
-        <div className="cb-title-row" style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <p style={{ fontSize: '0.6875rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#2DA7DF', marginBottom: '0.5rem' }}>
-            Welcome back
-          </p>
-          <h1 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.25rem)', fontWeight: 700, color: '#f5f5f5', margin: 0 }}>
-            Sign in to your account
-          </h1>
+    <div style={{ minHeight: '100vh', position: 'relative', overflow: 'hidden', background: '#16171d' }}>
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage: 'linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px)',
+          backgroundSize: '40px 40px',
+          opacity: 0.55,
+          pointerEvents: 'none',
+        }}
+      />
+
+      <div style={{ width: '100%', maxWidth: '85rem', margin: '0 auto', minHeight: '100vh', borderLeft: '1px solid rgba(255,255,255,0.07)', borderRight: '1px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+        <div style={{ width: '100%', maxWidth: '24.5rem', maxHeight: '94vh', overflowY: 'auto', background: 'rgba(17, 24, 39, 0.84)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '0.9rem', padding: '1.75rem', boxShadow: '0 24px 70px rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)' }}>
+
+        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+          <p style={{ fontSize: '0.6875rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#2DA7DF', margin: '0 0 0.375rem' }}>Welcome back</p>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#f5f5f5', margin: 0 }}>Sign in</h1>
         </div>
 
-        {success && <Flash type="success">{success}</Flash>}
-          {warning && <Flash type="warning">{warning}</Flash>}
-          {error   && <Flash type="error">{error}</Flash>}
-          {showResend && (
-            <Flash type="info">
-              <a href={`/resend-confirmation?email=${encodeURIComponent(email)}`}
-                 style={{ color: '#7fd6ff', textDecoration: 'underline' }}>
-                Resend confirmation email
-              </a>
-            </Flash>
-          )}
+        {clientError && <Flash type="error">{clientError}</Flash>}
+        {success    && <Flash type="success">{success}</Flash>}
+        {warning    && <Flash type="warning">{warning}</Flash>}
+        {error      && <Flash type="error">{error}</Flash>}
+        {showResend && (
+          <Flash type="info">
+            <a href={'/resend-confirmation?email=' + encodeURIComponent(email)} style={{ color: '#7fd6ff', textDecoration: 'underline' }}>
+              Resend confirmation email
+            </a>
+          </Flash>
+        )}
 
-          {/* Main form card */}
-          <div style={{
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: '0.5rem',
-            overflow: 'hidden',
-          }}>
-            <form method="POST" action="/login" style={{ padding: '1.75rem' }}>
-              <input type="hidden" name="_csrf" value={csrf} />
+        <form method="POST" action="/login" onSubmit={e => {
+          // Basic client-side validation
+          const emailVal = e.target.email.value;
+          const passVal = e.target.password.value;
+          if (!emailVal || !passVal) {
+            setClientError('Email and password are required.');
+            e.preventDefault();
+          } else {
+            setClientError('');
+          }
+        }}>
+          <input type="hidden" name="_csrf" value={csrf} />
 
-              <div style={{ marginBottom: '1.125rem' }}>
-                <label htmlFor="login-email" style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#9ca3af', marginBottom: '0.4rem' }}>
-                  Email
-                </label>
-                <input
-                  id="login-email"
-                  type="email"
-                  name="email"
-                  required
-                  defaultValue={email}
-                  style={inputStyle}
-                  onFocus={(e) => { e.target.style.borderColor = 'rgba(45,167,223,0.5)'; }}
-                  onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; }}
-                />
-              </div>
-
-              <div style={{ marginBottom: '1.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.4rem' }}>
-                  <label htmlFor="login-password" style={{ fontSize: '0.75rem', fontWeight: 500, color: '#9ca3af' }}>
-                    Password
-                  </label>
-                  <a href="/forgot-password" style={{ fontSize: '0.6875rem', color: '#2DA7DF', textDecoration: 'none' }}
-                     onMouseEnter={(e) => { e.target.style.color = '#7fd6ff'; }}
-                     onMouseLeave={(e) => { e.target.style.color = '#2DA7DF'; }}>
-                    Forgot?
-                  </a>
-                </div>
-                <input
-                  id="login-password"
-                  type="password"
-                  name="password"
-                  required
-                  style={inputStyle}
-                  onFocus={(e) => { e.target.style.borderColor = 'rgba(45,167,223,0.5)'; }}
-                  onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; }}
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={!csrf}
-                style={{
-                  width: '100%',
-                  padding: '0.625rem',
-                  background: csrf ? '#2DA7DF' : 'rgba(45,167,223,0.3)',
-                  border: 'none',
-                  borderRadius: '0.375rem',
-                  color: '#fff',
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  cursor: csrf ? 'pointer' : 'not-allowed',
-                  transition: 'background 150ms',
-                }}
-              >
-                Sign in
-              </button>
-            </form>
-
-            {/* Divider */}
-            <div style={{ display: 'flex', alignItems: 'center', padding: '0 1.75rem', margin: '0 0 1.25rem' }}>
-              <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
-              <span style={{ padding: '0 0.875rem', fontSize: '0.6875rem', color: '#4b5563' }}>or</span>
-              <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
-            </div>
-
-            {/* Google */}
-            <div style={{ padding: '0 1.75rem 1.75rem' }}>
-              <a
-                href="/auth/google"
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.625rem',
-                  padding: '0.6rem',
-                  background: '#fff',
-                  border: 'none',
-                  borderRadius: '0.375rem',
-                  color: '#111',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  textDecoration: 'none',
-                  transition: 'background 150ms',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#f3f4f6'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; }}
-              >
-                <GoogleIcon />
-                Continue with Google
-              </a>
-            </div>
+          <div style={{ marginBottom: '0.875rem' }}>
+            <label htmlFor="login-email" style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#9ca3af', marginBottom: '0.375rem' }}>Email</label>
+            <input id="login-email" type="email" name="email" required defaultValue={email} style={inputStyle}
+              onFocus={(e) => { e.target.style.borderColor = 'rgba(45,167,223,0.5)'; }}
+              onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; }} />
           </div>
 
-          <p style={{ marginTop: '1.25rem', fontSize: '0.8125rem', color: '#6b7280', textAlign: 'center' }}>
-            Don't have an account?{' '}
-            <a href="/register" style={{ color: '#2DA7DF', textDecoration: 'none', fontWeight: 500 }}
-               onMouseEnter={(e) => { e.target.style.color = '#7fd6ff'; }}
-               onMouseLeave={(e) => { e.target.style.color = '#2DA7DF'; }}>
-              Create one free
-            </a>
-          </p>
+          <div style={{ marginBottom: '1.25rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.375rem' }}>
+              <label htmlFor="login-password" style={{ fontSize: '0.75rem', fontWeight: 500, color: '#9ca3af' }}>Password</label>
+              <a href="/forgot-password" style={{ fontSize: '0.6875rem', color: '#2DA7DF', textDecoration: 'none' }}
+                onMouseEnter={(e) => { e.target.style.color = '#7fd6ff'; }}
+                onMouseLeave={(e) => { e.target.style.color = '#2DA7DF'; }}>Forgot?</a>
+            </div>
+            <input id="login-password" type="password" name="password" required style={inputStyle}
+              onFocus={(e) => { e.target.style.borderColor = 'rgba(45,167,223,0.5)'; }}
+              onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; }} />
+          </div>
+
+          <button type="submit" disabled={!csrf} style={{ width: '100%', padding: '0.5rem', background: csrf ? '#2DA7DF' : 'rgba(45,167,223,0.3)', border: 'none', borderRadius: '0.375rem', color: '#fff', fontSize: '0.875rem', fontWeight: 600, cursor: csrf ? 'pointer' : 'not-allowed', transition: 'background 150ms', marginBottom: '1rem' }}>
+            Sign in
+          </button>
+        </form>
+
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
+          <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
+          <span style={{ padding: '0 0.75rem', fontSize: '0.6875rem', color: '#4b5563' }}>or</span>
+          <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
+        </div>
+
+        <a href="/auth/google" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.5rem', background: '#fff', borderRadius: '0.375rem', color: '#111', fontSize: '0.875rem', fontWeight: 500, textDecoration: 'none', transition: 'background 150ms', marginBottom: '1.25rem' }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = '#f3f4f6'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; }}>
+          <GoogleIcon />
+          Continue with Google
+        </a>
+
+        <p style={{ margin: 0, fontSize: '0.8125rem', color: '#6b7280', textAlign: 'center' }}>
+          Don&apos;t have an account?{' '}
+          <a href="/register" style={{ color: '#2DA7DF', textDecoration: 'none', fontWeight: 500 }}
+            onMouseEnter={(e) => { e.target.style.color = '#7fd6ff'; }}
+            onMouseLeave={(e) => { e.target.style.color = '#2DA7DF'; }}>Create one free</a>
+        </p>
+
       </div>
+    </div>
     </div>
   );
 }
