@@ -75,7 +75,7 @@ export default function Login() {
       </div>
 
       {/* Form area */}
-      <div style={{ padding: 'clamp(2rem, 5vw, 3.5rem) var(--cb-content-pad)' }}>
+      <div style={{ padding: 'clamp(2rem, 5vw, 3.5rem) var(--cb-content-pad)', display: 'flex', justifyContent: 'center' }}>
         <div style={{ maxWidth: '26rem', width: '100%' }}>
 
           {success && <Flash type="success">{success}</Flash>}
