@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import PageLayout from '../components/PageLayout';
+// Removed PageLayout for standalone auth page
 
 function GoogleIcon() {
   return (
@@ -63,22 +63,18 @@ export default function Login() {
   }, []);
 
   return (
-    <PageLayout>
-      {/* Title row — matches homepage section header pattern */}
-      <div className="cb-title-row" style={{ textAlign: 'center' }}>
-        <p style={{ fontSize: '0.6875rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#2DA7DF', marginBottom: '0.5rem' }}>
-          Welcome back
-        </p>
-        <h1 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.25rem)', fontWeight: 700, color: '#f5f5f5', margin: 0 }}>
-          Sign in to your account
-        </h1>
-      </div>
+    <div style={{ minHeight: '100vh', width: '100vw', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#09090b' }}>
+      <div style={{ width: '100%', maxWidth: '26rem', padding: '2rem 1.5rem', borderRadius: '0.75rem', background: 'rgba(30,41,59,0.95)', boxShadow: '0 2px 24px 0 rgba(0,0,0,0.25)' }}>
+        <div className="cb-title-row" style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <p style={{ fontSize: '0.6875rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#2DA7DF', marginBottom: '0.5rem' }}>
+            Welcome back
+          </p>
+          <h1 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.25rem)', fontWeight: 700, color: '#f5f5f5', margin: 0 }}>
+            Sign in to your account
+          </h1>
+        </div>
 
-      {/* Form area */}
-      <div style={{ padding: 'clamp(2rem, 5vw, 3.5rem) var(--cb-content-pad)', display: 'flex', justifyContent: 'center' }}>
-        <div style={{ maxWidth: '26rem', width: '100%' }}>
-
-          {success && <Flash type="success">{success}</Flash>}
+        {success && <Flash type="success">{success}</Flash>}
           {warning && <Flash type="warning">{warning}</Flash>}
           {error   && <Flash type="error">{error}</Flash>}
           {showResend && (
@@ -197,8 +193,7 @@ export default function Login() {
               Create one free
             </a>
           </p>
-        </div>
       </div>
-    </PageLayout>
+    </div>
   );
 }

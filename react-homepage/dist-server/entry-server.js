@@ -1478,10 +1478,10 @@ const Compare = lazy(() => import("./assets/Compare-BvaYsUZG.js"));
 const Contact = lazy(() => import("./assets/Contact-DGk-0rMT.js"));
 const Docs = lazy(() => import("./assets/Docs-ChodqmnN.js"));
 const Faq = lazy(() => import("./assets/Faq-D0aFlNPc.js"));
-const Login = lazy(() => import("./assets/Login-DtOoVM5t.js"));
+const Login = lazy(() => import("./assets/Login-Bw58L0fb.js"));
 const Pricing = lazy(() => import("./assets/Pricing-tq7efVER.js"));
 const Privacy = lazy(() => import("./assets/Privacy-DK81Pm53.js"));
-const Register = lazy(() => import("./assets/Register-CFKRW_W3.js"));
+const Register = lazy(() => import("./assets/Register-CuE3xy4a.js"));
 const Safety = lazy(() => import("./assets/Safety-BNJLC9p1.js"));
 const Terms = lazy(() => import("./assets/Terms-B_VfDbsH.js"));
 function HomeWrapper() {
