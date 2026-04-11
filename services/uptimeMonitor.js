@@ -44,7 +44,7 @@ async function checkUptimeStatus() {
       JOIN servers s ON s.id = d.server_id
       JOIN users   u ON u.id = d.user_id
       WHERE d.ssl_enabled = TRUE
-        AND d.verified    = TRUE
+        AND d.ssl_status  = 'active'
         AND s.status      = 'running'
     `);
 
