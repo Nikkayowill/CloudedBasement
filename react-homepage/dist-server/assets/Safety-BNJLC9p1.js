@@ -1,5 +1,5 @@
 import { jsxs, jsx } from "react/jsx-runtime";
-import { D as DocLayout } from "./DocLayout-Bc_hCDwe.js";
+import { D as DocLayout } from "./DocLayout-DXgI7s9O.js";
 import "react";
 import "../entry-server.js";
 import "react-dom/server";

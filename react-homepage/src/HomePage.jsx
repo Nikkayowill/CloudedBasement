@@ -12,9 +12,9 @@ import Footer from './sections/Footer';
 export default function HomePage() {
   return (
     <div className="funnel">
-      <ResponsiveNav />
       <div className="cb-shell">
         <div className="cb-shell-inner">
+          <ResponsiveNav />
           <main>
             <div className="cb-section"><HeroSection /></div>
             <div className="cb-section"><ProblemFrame /></div>

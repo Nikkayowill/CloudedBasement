@@ -1,6 +1,7 @@
 import ResponsiveNav from '../components/ResponsiveNav';
 import Footer from '../sections/Footer';
 import { DashboardMockup, DeployMockup, DomainsMockup, BillingMockup, SupportMockup } from '../components/DocsMockups';
+// Note: ResponsiveNav + Footer are still used inline below (Docs has its own sidebar layout)
 
 // --- Docs structure: TOC ---
 const TOC = [
@@ -15,12 +16,12 @@ const TOC = [
 export default function Docs() {
   return (
     <div className="funnel">
-      <ResponsiveNav />
       <div className="cb-shell">
-        <div className="cb-shell-inner">
-          <div className="flex pt-14 min-h-[calc(100vh-3.5rem)]">
+        <div className="cb-shell-inner" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+          <ResponsiveNav />
+          <div className="flex" style={{ flex: 1 }}>
             {/* Sidebar TOC */}
-            <aside className="hidden md:block w-64 shrink-0 sticky top-14 self-start h-[calc(100vh-3.5rem)] overflow-y-auto border-r border-gray-800 bg-[#030608]">
+            <aside className="hidden md:block w-64 shrink-0 sticky top-0 self-start h-screen overflow-y-auto border-r border-gray-800 bg-[#030608]">
               <div className="py-8 px-5">
                 <h2 className="text-sm font-bold text-white uppercase tracking-wider mb-6">On This Page</h2>
                 <ul className="space-y-1">

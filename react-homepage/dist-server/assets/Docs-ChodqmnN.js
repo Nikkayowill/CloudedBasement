@@ -477,157 +477,155 @@ const TOC = [
   { id: "faq", label: "FAQ & Support" }
 ];
 function Docs() {
-  return /* @__PURE__ */ jsxs("div", { className: "funnel", children: [
+  return /* @__PURE__ */ jsx("div", { className: "funnel", children: /* @__PURE__ */ jsx("div", { className: "cb-shell", children: /* @__PURE__ */ jsxs("div", { className: "cb-shell-inner", style: { minHeight: "100vh", display: "flex", flexDirection: "column" }, children: [
     /* @__PURE__ */ jsx(ResponsiveNav, {}),
-    /* @__PURE__ */ jsx("div", { className: "cb-shell", children: /* @__PURE__ */ jsxs("div", { className: "cb-shell-inner", children: [
-      /* @__PURE__ */ jsxs("div", { className: "flex pt-14 min-h-[calc(100vh-3.5rem)]", children: [
-        /* @__PURE__ */ jsx("aside", { className: "hidden md:block w-64 shrink-0 sticky top-14 self-start h-[calc(100vh-3.5rem)] overflow-y-auto border-r border-gray-800 bg-[#030608]", children: /* @__PURE__ */ jsxs("div", { className: "py-8 px-5", children: [
-          /* @__PURE__ */ jsx("h2", { className: "text-sm font-bold text-white uppercase tracking-wider mb-6", children: "On This Page" }),
-          /* @__PURE__ */ jsx("ul", { className: "space-y-1", children: TOC.map(({ id, label }) => /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsx("a", { href: `#${id}`, className: "block py-2 px-3 rounded-sm border-l-2 text-sm no-underline transition-all duration-150 border-transparent text-gray-300 hover:text-white hover:bg-gray-800/30", children: label }) }, id)) })
-        ] }) }),
-        /* @__PURE__ */ jsxs("main", { className: "flex-1 min-w-0 pt-12 px-8 pb-24 max-w-4xl mx-auto", children: [
-          /* @__PURE__ */ jsxs("section", { id: "intro", className: "mb-16 scroll-mt-24", children: [
-            /* @__PURE__ */ jsx("h1", { className: "text-2xl font-semibold text-white mb-2", children: "Welcome to Clouded Basement" }),
-            /* @__PURE__ */ jsx("p", { className: "text-base text-gray-300 mb-0" })
-          ] }),
-          /* @__PURE__ */ jsxs("section", { id: "getting-started", className: "mb-16 scroll-mt-24", children: [
-            /* @__PURE__ */ jsx("h2", { className: "text-lg font-bold text-white mb-2", children: "Getting Started" }),
-            /* @__PURE__ */ jsxs("ol", { className: "list-decimal list-inside text-base text-gray-300 mb-0 space-y-2", children: [
-              /* @__PURE__ */ jsxs("li", { children: [
-                /* @__PURE__ */ jsx("b", { children: "Sign up:" }),
-                " Click ",
-                /* @__PURE__ */ jsx("a", { href: "/register", className: "text-blue-400 underline", children: "Start Free Trial" }),
-                " and create your account with your email and password."
-              ] }),
-              /* @__PURE__ */ jsxs("li", { children: [
-                /* @__PURE__ */ jsx("b", { children: "Verify your email:" }),
-                " Check your inbox for a confirmation link and follow the instructions to activate your account."
-              ] }),
-              /* @__PURE__ */ jsxs("li", { children: [
-                /* @__PURE__ */ jsx("b", { children: "Log in:" }),
-                " Visit ",
-                /* @__PURE__ */ jsx("a", { href: "/login", className: "text-blue-400 underline", children: "the login page" }),
-                " and enter your credentials."
-              ] }),
-              /* @__PURE__ */ jsxs("li", { children: [
-                /* @__PURE__ */ jsx("b", { children: "Access your dashboard:" }),
-                " After logging in, you’ll be taken to your personal dashboard where you can deploy servers, manage domains, and more."
-              ] })
-            ] })
-          ] }),
-          /* @__PURE__ */ jsxs("section", { id: "dashboard", className: "mb-16 scroll-mt-24", style: { background: "rgba(30,41,59,0.18)", borderTop: "2px solid #334155", borderRadius: 12, padding: "2.5rem 2rem 2rem 2rem" }, children: [
-            /* @__PURE__ */ jsx("h2", { className: "text-lg font-bold text-white mb-2", children: "Dashboard Overview" }),
-            /* @__PURE__ */ jsx("p", { className: "text-base text-gray-300 mb-2", children: "After logging in, you’ll land on your dashboard. This is your control center for all product features:" }),
-            /* @__PURE__ */ jsxs("ul", { className: "list-disc list-inside text-base text-gray-300 mb-6 space-y-1 pl-4", children: [
-              /* @__PURE__ */ jsx("li", { children: "View and manage your active servers" }),
-              /* @__PURE__ */ jsx("li", { children: "Deploy a new server with one click" }),
-              /* @__PURE__ */ jsx("li", { children: "Manage domains and SSL certificates" }),
-              /* @__PURE__ */ jsx("li", { children: "Monitor usage and billing" }),
-              /* @__PURE__ */ jsx("li", { children: "Access support and account settings" })
+    /* @__PURE__ */ jsxs("div", { className: "flex", style: { flex: 1 }, children: [
+      /* @__PURE__ */ jsx("aside", { className: "hidden md:block w-64 shrink-0 sticky top-0 self-start h-screen overflow-y-auto border-r border-gray-800 bg-[#030608]", children: /* @__PURE__ */ jsxs("div", { className: "py-8 px-5", children: [
+        /* @__PURE__ */ jsx("h2", { className: "text-sm font-bold text-white uppercase tracking-wider mb-6", children: "On This Page" }),
+        /* @__PURE__ */ jsx("ul", { className: "space-y-1", children: TOC.map(({ id, label }) => /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsx("a", { href: `#${id}`, className: "block py-2 px-3 rounded-sm border-l-2 text-sm no-underline transition-all duration-150 border-transparent text-gray-300 hover:text-white hover:bg-gray-800/30", children: label }) }, id)) })
+      ] }) }),
+      /* @__PURE__ */ jsxs("main", { className: "flex-1 min-w-0 pt-12 px-8 pb-24 max-w-4xl mx-auto", children: [
+        /* @__PURE__ */ jsxs("section", { id: "intro", className: "mb-16 scroll-mt-24", children: [
+          /* @__PURE__ */ jsx("h1", { className: "text-2xl font-semibold text-white mb-2", children: "Welcome to Clouded Basement" }),
+          /* @__PURE__ */ jsx("p", { className: "text-base text-gray-300 mb-0" })
+        ] }),
+        /* @__PURE__ */ jsxs("section", { id: "getting-started", className: "mb-16 scroll-mt-24", children: [
+          /* @__PURE__ */ jsx("h2", { className: "text-lg font-bold text-white mb-2", children: "Getting Started" }),
+          /* @__PURE__ */ jsxs("ol", { className: "list-decimal list-inside text-base text-gray-300 mb-0 space-y-2", children: [
+            /* @__PURE__ */ jsxs("li", { children: [
+              /* @__PURE__ */ jsx("b", { children: "Sign up:" }),
+              " Click ",
+              /* @__PURE__ */ jsx("a", { href: "/register", className: "text-blue-400 underline", children: "Start Free Trial" }),
+              " and create your account with your email and password."
             ] }),
-            /* @__PURE__ */ jsx("div", { className: "flex justify-center mb-2", children: /* @__PURE__ */ jsx(DashboardMockup, {}) })
+            /* @__PURE__ */ jsxs("li", { children: [
+              /* @__PURE__ */ jsx("b", { children: "Verify your email:" }),
+              " Check your inbox for a confirmation link and follow the instructions to activate your account."
+            ] }),
+            /* @__PURE__ */ jsxs("li", { children: [
+              /* @__PURE__ */ jsx("b", { children: "Log in:" }),
+              " Visit ",
+              /* @__PURE__ */ jsx("a", { href: "/login", className: "text-blue-400 underline", children: "the login page" }),
+              " and enter your credentials."
+            ] }),
+            /* @__PURE__ */ jsxs("li", { children: [
+              /* @__PURE__ */ jsx("b", { children: "Access your dashboard:" }),
+              " After logging in, you’ll be taken to your personal dashboard where you can deploy servers, manage domains, and more."
+            ] })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxs("section", { id: "dashboard", className: "mb-16 scroll-mt-24", style: { background: "rgba(30,41,59,0.18)", borderTop: "2px solid #334155", borderRadius: 12, padding: "2.5rem 2rem 2rem 2rem" }, children: [
+          /* @__PURE__ */ jsx("h2", { className: "text-lg font-bold text-white mb-2", children: "Dashboard Overview" }),
+          /* @__PURE__ */ jsx("p", { className: "text-base text-gray-300 mb-2", children: "After logging in, you’ll land on your dashboard. This is your control center for all product features:" }),
+          /* @__PURE__ */ jsxs("ul", { className: "list-disc list-inside text-base text-gray-300 mb-6 space-y-1 pl-4", children: [
+            /* @__PURE__ */ jsx("li", { children: "View and manage your active servers" }),
+            /* @__PURE__ */ jsx("li", { children: "Deploy a new server with one click" }),
+            /* @__PURE__ */ jsx("li", { children: "Manage domains and SSL certificates" }),
+            /* @__PURE__ */ jsx("li", { children: "Monitor usage and billing" }),
+            /* @__PURE__ */ jsx("li", { children: "Access support and account settings" })
           ] }),
-          /* @__PURE__ */ jsxs("section", { id: "features", className: "mb-16 scroll-mt-24", style: { background: "rgba(17,24,39,0.13)", borderTop: "2px solid #2563eb", borderRadius: 12, padding: "2.5rem 2rem 2rem 2rem" }, children: [
-            /* @__PURE__ */ jsx("h2", { className: "text-lg font-bold text-white mb-2", children: "Key Features" }),
-            /* @__PURE__ */ jsxs("div", { className: "mb-10", children: [
-              /* @__PURE__ */ jsx("h3", { className: "text-base font-semibold text-white mb-1", children: "Deploy a Server" }),
-              /* @__PURE__ */ jsxs("p", { className: "text-base text-gray-300 mb-4", children: [
-                "Click ",
+          /* @__PURE__ */ jsx("div", { className: "flex justify-center mb-2", children: /* @__PURE__ */ jsx(DashboardMockup, {}) })
+        ] }),
+        /* @__PURE__ */ jsxs("section", { id: "features", className: "mb-16 scroll-mt-24", style: { background: "rgba(17,24,39,0.13)", borderTop: "2px solid #2563eb", borderRadius: 12, padding: "2.5rem 2rem 2rem 2rem" }, children: [
+          /* @__PURE__ */ jsx("h2", { className: "text-lg font-bold text-white mb-2", children: "Key Features" }),
+          /* @__PURE__ */ jsxs("div", { className: "mb-10", children: [
+            /* @__PURE__ */ jsx("h3", { className: "text-base font-semibold text-white mb-1", children: "Deploy a Server" }),
+            /* @__PURE__ */ jsxs("p", { className: "text-base text-gray-300 mb-4", children: [
+              "Click ",
+              /* @__PURE__ */ jsx("b", { children: "Deploy Server" }),
+              " on your dashboard. In seconds, your new cloud server is online—fully configured and secured."
+            ] }),
+            /* @__PURE__ */ jsxs("ul", { className: "list-disc list-inside text-base text-gray-300 mb-4 pl-4", children: [
+              /* @__PURE__ */ jsx("li", { children: "Instant provisioning on DigitalOcean" }),
+              /* @__PURE__ */ jsx("li", { children: "Automatic OS, web, and database setup" }),
+              /* @__PURE__ */ jsx("li", { children: "Firewall and SSL applied by default" })
+            ] }),
+            /* @__PURE__ */ jsx("p", { className: "text-base text-gray-300 mb-4", children: "Each server is a dedicated Linux VPS. Access SSH, logs, and advanced controls anytime from your dashboard." }),
+            /* @__PURE__ */ jsx("div", { className: "flex justify-center mb-2", children: /* @__PURE__ */ jsx(DeployMockup, {}) })
+          ] }),
+          /* @__PURE__ */ jsxs("div", { className: "mb-10", children: [
+            /* @__PURE__ */ jsx("h3", { className: "text-base font-semibold text-white mb-1", children: "Manage Domains & SSL" }),
+            /* @__PURE__ */ jsx("p", { className: "text-base text-gray-300 mb-4", children: "Connect your custom domains in seconds. Add, verify, and launch with automatic SSL—no manual setup required." }),
+            /* @__PURE__ */ jsxs("ul", { className: "list-disc list-inside text-base text-gray-300 mb-4 pl-4", children: [
+              /* @__PURE__ */ jsx("li", { children: "Add unlimited domains to your account" }),
+              /* @__PURE__ */ jsx("li", { children: "Automatic SSL certificate provisioning and renewal" }),
+              /* @__PURE__ */ jsx("li", { children: "DNS verification and status at a glance" })
+            ] }),
+            /* @__PURE__ */ jsx("p", { className: "text-base text-gray-300 mb-4", children: "All domains are secured with HTTPS by default. No extra steps, no extra cost." }),
+            /* @__PURE__ */ jsx("div", { className: "flex justify-center mb-2", children: /* @__PURE__ */ jsx(DomainsMockup, {}) })
+          ] }),
+          /* @__PURE__ */ jsxs("div", { className: "mb-10", children: [
+            /* @__PURE__ */ jsx("h3", { className: "text-base font-semibold text-white mb-1", children: "Billing & Plans" }),
+            /* @__PURE__ */ jsx("p", { className: "text-base text-gray-300 mb-4", children: "All plans are flat-rate and billed monthly. Select a plan on the pricing page, then complete checkout securely via Stripe — your server is activated instantly after payment." }),
+            /* @__PURE__ */ jsxs("ul", { className: "list-disc list-inside text-base text-gray-300 mb-4 pl-4", children: [
+              /* @__PURE__ */ jsx("li", { children: "Basic · $15/mo — 1 vCPU, 1GB RAM, 2 sites" }),
+              /* @__PURE__ */ jsx("li", { children: "Pro · $35/mo — 2 vCPU, 2GB RAM, 5 sites" }),
+              /* @__PURE__ */ jsx("li", { children: "Premium · $65/mo — 2 vCPU, 4GB RAM, 10 sites" })
+            ] }),
+            /* @__PURE__ */ jsx("div", { className: "flex justify-center mb-2", children: /* @__PURE__ */ jsx(BillingMockup, {}) })
+          ] }),
+          /* @__PURE__ */ jsxs("div", { className: "mb-4", children: [
+            /* @__PURE__ */ jsx("h3", { className: "text-base font-semibold text-white mb-1", children: "Support & Settings" }),
+            /* @__PURE__ */ jsx("p", { className: "text-base text-gray-300 mb-4", children: "Need help or want to update your account? Everything is accessible from your dashboard." }),
+            /* @__PURE__ */ jsxs("ul", { className: "list-disc list-inside text-base text-gray-300 mb-4 pl-4", children: [
+              /* @__PURE__ */ jsx("li", { children: "Contact support directly from the help menu" }),
+              /* @__PURE__ */ jsx("li", { children: "Update your email, password, and profile details" }),
+              /* @__PURE__ */ jsx("li", { children: "Review security settings and recent activity" })
+            ] }),
+            /* @__PURE__ */ jsx("div", { className: "flex justify-center mb-2", children: /* @__PURE__ */ jsx(SupportMockup, {}) })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxs("section", { id: "faq", className: "mb-16 scroll-mt-24", style: { background: "rgba(30,41,59,0.10)", borderTop: "2px solid #f59e42", borderRadius: 12, padding: "2.5rem 2rem 2rem 2rem" }, children: [
+          /* @__PURE__ */ jsx("h2", { className: "text-lg font-bold text-white mb-2", children: "FAQ & Support" }),
+          /* @__PURE__ */ jsxs("div", { className: "space-y-6", children: [
+            /* @__PURE__ */ jsxs("div", { children: [
+              /* @__PURE__ */ jsx("h3", { className: "text-base font-semibold text-white mb-1", children: "How do I deploy my first server?" }),
+              /* @__PURE__ */ jsxs("p", { className: "text-base text-gray-300 mb-0", children: [
+                "Log in, click ",
                 /* @__PURE__ */ jsx("b", { children: "Deploy Server" }),
-                " on your dashboard. In seconds, your new cloud server is online—fully configured and secured."
-              ] }),
-              /* @__PURE__ */ jsxs("ul", { className: "list-disc list-inside text-base text-gray-300 mb-4 pl-4", children: [
-                /* @__PURE__ */ jsx("li", { children: "Instant provisioning on DigitalOcean" }),
-                /* @__PURE__ */ jsx("li", { children: "Automatic OS, web, and database setup" }),
-                /* @__PURE__ */ jsx("li", { children: "Firewall and SSL applied by default" })
-              ] }),
-              /* @__PURE__ */ jsx("p", { className: "text-base text-gray-300 mb-4", children: "Each server is a dedicated Linux VPS. Access SSH, logs, and advanced controls anytime from your dashboard." }),
-              /* @__PURE__ */ jsx("div", { className: "flex justify-center mb-2", children: /* @__PURE__ */ jsx(DeployMockup, {}) })
+                ", and follow the prompts. Your server will be ready in seconds—no technical setup required."
+              ] })
             ] }),
-            /* @__PURE__ */ jsxs("div", { className: "mb-10", children: [
-              /* @__PURE__ */ jsx("h3", { className: "text-base font-semibold text-white mb-1", children: "Manage Domains & SSL" }),
-              /* @__PURE__ */ jsx("p", { className: "text-base text-gray-300 mb-4", children: "Connect your custom domains in seconds. Add, verify, and launch with automatic SSL—no manual setup required." }),
-              /* @__PURE__ */ jsxs("ul", { className: "list-disc list-inside text-base text-gray-300 mb-4 pl-4", children: [
-                /* @__PURE__ */ jsx("li", { children: "Add unlimited domains to your account" }),
-                /* @__PURE__ */ jsx("li", { children: "Automatic SSL certificate provisioning and renewal" }),
-                /* @__PURE__ */ jsx("li", { children: "DNS verification and status at a glance" })
-              ] }),
-              /* @__PURE__ */ jsx("p", { className: "text-base text-gray-300 mb-4", children: "All domains are secured with HTTPS by default. No extra steps, no extra cost." }),
-              /* @__PURE__ */ jsx("div", { className: "flex justify-center mb-2", children: /* @__PURE__ */ jsx(DomainsMockup, {}) })
+            /* @__PURE__ */ jsxs("div", { children: [
+              /* @__PURE__ */ jsx("h3", { className: "text-base font-semibold text-white mb-1", children: "Can I use my own domain?" }),
+              /* @__PURE__ */ jsx("p", { className: "text-base text-gray-300 mb-0", children: "Yes. Add your custom domain in the dashboard. SSL is provisioned automatically for every domain you connect." })
             ] }),
-            /* @__PURE__ */ jsxs("div", { className: "mb-10", children: [
-              /* @__PURE__ */ jsx("h3", { className: "text-base font-semibold text-white mb-1", children: "Billing & Plans" }),
-              /* @__PURE__ */ jsx("p", { className: "text-base text-gray-300 mb-4", children: "All plans are flat-rate and billed monthly. Select a plan on the pricing page, then complete checkout securely via Stripe — your server is activated instantly after payment." }),
-              /* @__PURE__ */ jsxs("ul", { className: "list-disc list-inside text-base text-gray-300 mb-4 pl-4", children: [
-                /* @__PURE__ */ jsx("li", { children: "Basic · $15/mo — 1 vCPU, 1GB RAM, 2 sites" }),
-                /* @__PURE__ */ jsx("li", { children: "Pro · $35/mo — 2 vCPU, 2GB RAM, 5 sites" }),
-                /* @__PURE__ */ jsx("li", { children: "Premium · $65/mo — 2 vCPU, 4GB RAM, 10 sites" })
-              ] }),
-              /* @__PURE__ */ jsx("div", { className: "flex justify-center mb-2", children: /* @__PURE__ */ jsx(BillingMockup, {}) })
+            /* @__PURE__ */ jsxs("div", { children: [
+              /* @__PURE__ */ jsx("h3", { className: "text-base font-semibold text-white mb-1", children: "How is my server secured?" }),
+              /* @__PURE__ */ jsx("p", { className: "text-base text-gray-300 mb-0", children: "All servers are protected with firewalls, automatic security updates, and SSL by default. You can review and adjust security settings in your dashboard." })
             ] }),
-            /* @__PURE__ */ jsxs("div", { className: "mb-4", children: [
-              /* @__PURE__ */ jsx("h3", { className: "text-base font-semibold text-white mb-1", children: "Support & Settings" }),
-              /* @__PURE__ */ jsx("p", { className: "text-base text-gray-300 mb-4", children: "Need help or want to update your account? Everything is accessible from your dashboard." }),
-              /* @__PURE__ */ jsxs("ul", { className: "list-disc list-inside text-base text-gray-300 mb-4 pl-4", children: [
-                /* @__PURE__ */ jsx("li", { children: "Contact support directly from the help menu" }),
-                /* @__PURE__ */ jsx("li", { children: "Update your email, password, and profile details" }),
-                /* @__PURE__ */ jsx("li", { children: "Review security settings and recent activity" })
-              ] }),
-              /* @__PURE__ */ jsx("div", { className: "flex justify-center mb-2", children: /* @__PURE__ */ jsx(SupportMockup, {}) })
-            ] })
-          ] }),
-          /* @__PURE__ */ jsxs("section", { id: "faq", className: "mb-16 scroll-mt-24", style: { background: "rgba(30,41,59,0.10)", borderTop: "2px solid #f59e42", borderRadius: 12, padding: "2.5rem 2rem 2rem 2rem" }, children: [
-            /* @__PURE__ */ jsx("h2", { className: "text-lg font-bold text-white mb-2", children: "FAQ & Support" }),
-            /* @__PURE__ */ jsxs("div", { className: "space-y-6", children: [
-              /* @__PURE__ */ jsxs("div", { children: [
-                /* @__PURE__ */ jsx("h3", { className: "text-base font-semibold text-white mb-1", children: "How do I deploy my first server?" }),
-                /* @__PURE__ */ jsxs("p", { className: "text-base text-gray-300 mb-0", children: [
-                  "Log in, click ",
-                  /* @__PURE__ */ jsx("b", { children: "Deploy Server" }),
-                  ", and follow the prompts. Your server will be ready in seconds—no technical setup required."
-                ] })
-              ] }),
-              /* @__PURE__ */ jsxs("div", { children: [
-                /* @__PURE__ */ jsx("h3", { className: "text-base font-semibold text-white mb-1", children: "Can I use my own domain?" }),
-                /* @__PURE__ */ jsx("p", { className: "text-base text-gray-300 mb-0", children: "Yes. Add your custom domain in the dashboard. SSL is provisioned automatically for every domain you connect." })
-              ] }),
-              /* @__PURE__ */ jsxs("div", { children: [
-                /* @__PURE__ */ jsx("h3", { className: "text-base font-semibold text-white mb-1", children: "How is my server secured?" }),
-                /* @__PURE__ */ jsx("p", { className: "text-base text-gray-300 mb-0", children: "All servers are protected with firewalls, automatic security updates, and SSL by default. You can review and adjust security settings in your dashboard." })
-              ] }),
-              /* @__PURE__ */ jsxs("div", { children: [
-                /* @__PURE__ */ jsx("h3", { className: "text-base font-semibold text-white mb-1", children: "How do I get support?" }),
-                /* @__PURE__ */ jsx("p", { className: "text-base text-gray-300 mb-0", children: "Open the help menu in your dashboard to contact support. Our team responds quickly to all inquiries." })
-              ] }),
-              /* @__PURE__ */ jsxs("div", { children: [
-                /* @__PURE__ */ jsx("h3", { className: "text-base font-semibold text-white mb-1", children: "Can I upgrade or downgrade my plan?" }),
-                /* @__PURE__ */ jsx("p", { className: "text-base text-gray-300 mb-0", children: "You can change your plan at any time from the Billing & Plans section. Changes take effect immediately on your next billing cycle." })
-              ] }),
-              /* @__PURE__ */ jsxs("div", { children: [
-                /* @__PURE__ */ jsx("h3", { className: "text-base font-semibold text-white mb-1", children: "Where can I find my invoices?" }),
-                /* @__PURE__ */ jsxs("p", { className: "text-base text-gray-300 mb-0", children: [
-                  "Invoices are securely generated and stored by Stripe. You can view and download your invoices through the Stripe billing portal or from Stripe-generated links sent to your email after each payment. For direct access, use the ",
-                  /* @__PURE__ */ jsx("b", { children: "View Invoices" }),
-                  " link in the Billing & Plans section."
-                ] })
+            /* @__PURE__ */ jsxs("div", { children: [
+              /* @__PURE__ */ jsx("h3", { className: "text-base font-semibold text-white mb-1", children: "How do I get support?" }),
+              /* @__PURE__ */ jsx("p", { className: "text-base text-gray-300 mb-0", children: "Open the help menu in your dashboard to contact support. Our team responds quickly to all inquiries." })
+            ] }),
+            /* @__PURE__ */ jsxs("div", { children: [
+              /* @__PURE__ */ jsx("h3", { className: "text-base font-semibold text-white mb-1", children: "Can I upgrade or downgrade my plan?" }),
+              /* @__PURE__ */ jsx("p", { className: "text-base text-gray-300 mb-0", children: "You can change your plan at any time from the Billing & Plans section. Changes take effect immediately on your next billing cycle." })
+            ] }),
+            /* @__PURE__ */ jsxs("div", { children: [
+              /* @__PURE__ */ jsx("h3", { className: "text-base font-semibold text-white mb-1", children: "Where can I find my invoices?" }),
+              /* @__PURE__ */ jsxs("p", { className: "text-base text-gray-300 mb-0", children: [
+                "Invoices are securely generated and stored by Stripe. You can view and download your invoices through the Stripe billing portal or from Stripe-generated links sent to your email after each payment. For direct access, use the ",
+                /* @__PURE__ */ jsx("b", { children: "View Invoices" }),
+                " link in the Billing & Plans section."
               ] })
             ] })
-          ] }),
-          /* @__PURE__ */ jsx(
-            "button",
-            {
-              onClick: () => window.scrollTo({ top: 0, behavior: "smooth" }),
-              "aria-label": "Scroll to top",
-              className: "fixed bottom-6 right-6 z-50 bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-gray-400 cursor-pointer",
-              style: { display: "none" },
-              children: /* @__PURE__ */ jsx("svg", { width: "18", height: "18", fill: "none", stroke: "currentColor", strokeWidth: "2.5", viewBox: "0 0 24 24", children: /* @__PURE__ */ jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", d: "M5 15l7-7 7 7" }) })
-            }
-          )
-        ] })
-      ] }),
-      /* @__PURE__ */ jsx(Footer, {})
-    ] }) })
-  ] });
+          ] })
+        ] }),
+        /* @__PURE__ */ jsx(
+          "button",
+          {
+            onClick: () => window.scrollTo({ top: 0, behavior: "smooth" }),
+            "aria-label": "Scroll to top",
+            className: "fixed bottom-6 right-6 z-50 bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-gray-400 cursor-pointer",
+            style: { display: "none" },
+            children: /* @__PURE__ */ jsx("svg", { width: "18", height: "18", fill: "none", stroke: "currentColor", strokeWidth: "2.5", viewBox: "0 0 24 24", children: /* @__PURE__ */ jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", d: "M5 15l7-7 7 7" }) })
+          }
+        )
+      ] })
+    ] }),
+    /* @__PURE__ */ jsx(Footer, {})
+  ] }) }) });
 }
 export {
   Docs as default

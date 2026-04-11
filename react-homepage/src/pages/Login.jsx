@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import ResponsiveNav from '../components/ResponsiveNav';
-import Footer from '../sections/Footer';
+import PageLayout from '../components/PageLayout';
 
 function GoogleIcon() {
   return (
-    <svg className="w-5 h-5" viewBox="0 0 24 24">
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
       <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
       <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
       <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -14,14 +13,46 @@ function GoogleIcon() {
   );
 }
 
+const inputStyle = {
+  width: '100%',
+  padding: '0.625rem 0.875rem',
+  background: 'rgba(255,255,255,0.03)',
+  border: '1px solid rgba(255,255,255,0.1)',
+  borderRadius: '0.375rem',
+  color: '#f5f5f5',
+  fontSize: '0.875rem',
+  outline: 'none',
+  transition: 'border-color 150ms',
+  boxSizing: 'border-box',
+};
+
+function Flash({ type, children }) {
+  const styles = {
+    success: { bg: 'rgba(34,197,94,0.07)',  border: 'rgba(34,197,94,0.2)',  color: '#86efac' },
+    warning: { bg: 'rgba(234,179,8,0.07)',  border: 'rgba(234,179,8,0.2)',  color: '#fde047' },
+    error:   { bg: 'rgba(239,68,68,0.07)',  border: 'rgba(239,68,68,0.2)',  color: '#fca5a5' },
+    info:    { bg: 'rgba(45,167,223,0.07)', border: 'rgba(45,167,223,0.2)', color: '#7fd6ff' },
+  };
+  const s = styles[type] ?? styles.info;
+  return (
+    <div style={{
+      background: s.bg, border: `1px solid ${s.border}`, borderRadius: '0.375rem',
+      padding: '0.625rem 0.875rem', marginBottom: '1rem',
+      fontSize: '0.8125rem', color: s.color, lineHeight: 1.5,
+    }}>
+      {children}
+    </div>
+  );
+}
+
 export default function Login() {
   const [searchParams] = useSearchParams();
   const [csrf, setCsrf] = useState('');
 
-  const error   = searchParams.get('error') || '';
-  const success  = searchParams.get('message') || searchParams.get('success') || '';
-  const warning  = searchParams.get('warning') || '';
-  const email    = searchParams.get('email') || '';
+  const error      = searchParams.get('error') || '';
+  const success    = searchParams.get('message') || searchParams.get('success') || '';
+  const warning    = searchParams.get('warning') || '';
+  const email      = searchParams.get('email') || '';
   const showResend = error && error.toLowerCase().includes('confirm your email') && email;
 
   useEffect(() => {
@@ -31,110 +62,143 @@ export default function Login() {
       .catch(() => {});
   }, []);
 
-  const inputClass = 'w-full px-4 py-2.5 bg-black/40 border border-blue-500/30 rounded text-white placeholder-gray-500 focus:border-blue-500 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-blue-500/50 transition-all';
-
   return (
-    <div className="funnel">
-      <ResponsiveNav />
+    <PageLayout>
+      {/* Title row — matches homepage section header pattern */}
+      <div className="cb-title-row">
+        <p style={{ fontSize: '0.6875rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#2DA7DF', marginBottom: '0.5rem' }}>
+          Welcome back
+        </p>
+        <h1 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.25rem)', fontWeight: 700, color: '#f5f5f5', margin: 0 }}>
+          Sign in to your account
+        </h1>
+      </div>
 
-      <main className="pt-14">
-        <section className="funnel-section funnel-bg-solution">
-          <div className="funnel-prose">
-            <div className="max-w-md mx-auto w-full">
-              <h1 className="funnel-heading-1 text-center mb-8">Login</h1>
+      {/* Form area */}
+      <div style={{ padding: 'clamp(2rem, 5vw, 3.5rem) var(--cb-content-pad)' }}>
+        <div style={{ maxWidth: '26rem', width: '100%' }}>
 
-              {success && (
-                <div className="bg-green-500/10 border border-green-500/30 text-green-300 px-4 py-2.5 rounded mb-5 text-sm flex items-center gap-2">
-                  <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
-                  {success}
-                </div>
-              )}
-              {warning && (
-                <div className="bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 px-4 py-2.5 rounded mb-5 text-sm flex items-center gap-2">
-                  <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/></svg>
-                  {warning}
-                </div>
-              )}
-              {error && (
-                <div className="bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-2.5 rounded mb-5 text-sm flex items-center gap-2">
-                  <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/></svg>
-                  {error}
-                </div>
-              )}
-              {showResend && (
-                <div className="bg-blue-500/10 border border-blue-500/30 text-blue-300 px-4 py-2.5 rounded mb-5 text-sm">
-                  <a href={`/resend-confirmation?email=${encodeURIComponent(email)}`} className="text-blue-400 hover:text-blue-300 underline">
-                    Resend confirmation email
-                  </a>
-                </div>
-              )}
+          {success && <Flash type="success">{success}</Flash>}
+          {warning && <Flash type="warning">{warning}</Flash>}
+          {error   && <Flash type="error">{error}</Flash>}
+          {showResend && (
+            <Flash type="info">
+              <a href={`/resend-confirmation?email=${encodeURIComponent(email)}`}
+                 style={{ color: '#7fd6ff', textDecoration: 'underline' }}>
+                Resend confirmation email
+              </a>
+            </Flash>
+          )}
 
-              <div className="funnel-card-featured p-8">
-                <form method="POST" action="/login" className="space-y-5">
-                  <input type="hidden" name="_csrf" value={csrf} />
+          {/* Main form card */}
+          <div style={{
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: '0.5rem',
+            overflow: 'hidden',
+          }}>
+            <form method="POST" action="/login" style={{ padding: '1.75rem' }}>
+              <input type="hidden" name="_csrf" value={csrf} />
 
-                  <div>
-                    <label htmlFor="login-email" className="block funnel-body-sm font-medium mb-1.5" style={{ color: '#d1d5db' }}>Email</label>
-                    <input
-                      id="login-email"
-                      type="email"
-                      name="email"
-                      required
-                      defaultValue={email}
-                      className={inputClass}
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="login-password" className="block funnel-body-sm font-medium mb-1.5" style={{ color: '#d1d5db' }}>Password</label>
-                    <input
-                      id="login-password"
-                      type="password"
-                      name="password"
-                      required
-                      className={inputClass}
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={!csrf}
-                    className="funnel-btn funnel-btn-primary w-full justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Login
-                  </button>
-                </form>
-
-                <div className="flex items-center my-5">
-                  <div className="flex-1 border-t border-blue-500/20" />
-                  <span className="px-4 funnel-body-sm" style={{ color: '#6b7280' }}>or</span>
-                  <div className="flex-1 border-t border-blue-500/20" />
-                </div>
-
-                <a
-                  href="/auth/google"
-                  className="w-full flex items-center justify-center gap-3 py-2.5 bg-white text-gray-800 font-medium rounded hover:bg-gray-100 transition-all"
-                >
-                  <GoogleIcon />
-                  Sign in with Google
-                </a>
-
-                <div className="mt-5 text-center">
-                  <a href="/forgot-password" className="funnel-body-sm" style={{ color: '#60a5fa' }}>
-                    Forgot password?
-                  </a>
-                </div>
-                <p className="text-center funnel-body-sm mt-3" style={{ color: '#9ca3af' }}>
-                  Don't have an account?{' '}
-                  <a href="/register" className="text-blue-400 hover:text-blue-300 font-medium">Register</a>
-                </p>
+              <div style={{ marginBottom: '1.125rem' }}>
+                <label htmlFor="login-email" style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#9ca3af', marginBottom: '0.4rem' }}>
+                  Email
+                </label>
+                <input
+                  id="login-email"
+                  type="email"
+                  name="email"
+                  required
+                  defaultValue={email}
+                  style={inputStyle}
+                  onFocus={(e) => { e.target.style.borderColor = 'rgba(45,167,223,0.5)'; }}
+                  onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+                />
               </div>
+
+              <div style={{ marginBottom: '1.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.4rem' }}>
+                  <label htmlFor="login-password" style={{ fontSize: '0.75rem', fontWeight: 500, color: '#9ca3af' }}>
+                    Password
+                  </label>
+                  <a href="/forgot-password" style={{ fontSize: '0.6875rem', color: '#2DA7DF', textDecoration: 'none' }}
+                     onMouseEnter={(e) => { e.target.style.color = '#7fd6ff'; }}
+                     onMouseLeave={(e) => { e.target.style.color = '#2DA7DF'; }}>
+                    Forgot?
+                  </a>
+                </div>
+                <input
+                  id="login-password"
+                  type="password"
+                  name="password"
+                  required
+                  style={inputStyle}
+                  onFocus={(e) => { e.target.style.borderColor = 'rgba(45,167,223,0.5)'; }}
+                  onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={!csrf}
+                style={{
+                  width: '100%',
+                  padding: '0.625rem',
+                  background: csrf ? '#2DA7DF' : 'rgba(45,167,223,0.3)',
+                  border: 'none',
+                  borderRadius: '0.375rem',
+                  color: '#fff',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  cursor: csrf ? 'pointer' : 'not-allowed',
+                  transition: 'background 150ms',
+                }}
+              >
+                Sign in
+              </button>
+            </form>
+
+            {/* Divider */}
+            <div style={{ display: 'flex', alignItems: 'center', padding: '0 1.75rem', margin: '0 0 1.25rem' }}>
+              <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
+              <span style={{ padding: '0 0.875rem', fontSize: '0.6875rem', color: '#4b5563' }}>or</span>
+              <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
+            </div>
+
+            {/* Google */}
+            <div style={{ padding: '0 1.75rem 1.75rem' }}>
+              <a
+                href="/auth/google"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.625rem',
+                  padding: '0.6rem',
+                  background: '#fff',
+                  border: 'none',
+                  borderRadius: '0.375rem',
+                  color: '#111',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  textDecoration: 'none',
+                  transition: 'background 150ms',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#f3f4f6'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; }}
+              >
+                <GoogleIcon />
+                Continue with Google
+              </a>
             </div>
           </div>
-        </section>
-      </main>
 
-      <Footer />
-    </div>
+          <p style={{ marginTop: '1.25rem', fontSize: '0.8125rem', color: '#6b7280', textAlign: 'center' }}>
+            Don't have an account?{' '}
+            <a href="/register" style={{ color: '#2DA7DF', textDecoration: 'none', fontWeight: 500 }}
+               onMouseEnter={(e) => { e.target.style.color = '#7fd6ff'; }}
+               onMouseLeave={(e) => { e.target.style.color = '#2DA7DF'; }}>
+              Create one free
+            </a>
+          </p>
+        </div>
+      </div>
+    </PageLayout>
   );
 }

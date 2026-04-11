@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import ResponsiveNav from '../components/ResponsiveNav';
-import Footer from '../sections/Footer';
+import PageLayout from '../components/PageLayout';
 
 const PLANS = [
   {
@@ -102,11 +101,7 @@ export default function Pricing() {
   const trialHref = trialStatus.isLoggedIn ? '/dashboard' : '/register';
 
   return (
-    <div className="funnel">
-      <ResponsiveNav />
-
-      <main className="pt-14">
-
+    <PageLayout>
         {/* Pricing hero + cards */}
         <section className="funnel-section funnel-bg-trust">
           <div className="funnel-wide">
@@ -282,9 +277,6 @@ export default function Pricing() {
           </div>
         </section>
 
-      </main>
-
-      <Footer />
-    </div>
+    </PageLayout>
   );
 }

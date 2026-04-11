@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import ResponsiveNav from '../components/ResponsiveNav';
-import Footer from '../sections/Footer';
+import PageLayout from '../components/PageLayout';
 
 const FAQS = [
   {
@@ -46,11 +45,8 @@ function FaqItem({ q, a }) {
 
 export default function Faq() {
   return (
-    <div className="funnel">
-      <ResponsiveNav />
-
-      <main className="pt-14">
-        <section className="funnel-section funnel-bg-process">
+    <PageLayout>
+      <section className="funnel-section funnel-bg-process">
           <div className="funnel-prose">
             <h1 className="funnel-heading-1 text-center mb-4">Frequently Asked&nbsp;Questions</h1>
             <p className="funnel-body text-center mb-16">Quick answers to common questions</p>
@@ -69,10 +65,7 @@ export default function Faq() {
               </a>
             </div>
           </div>
-        </section>
-      </main>
-
-      <Footer />
-    </div>
+    </section>
+    </PageLayout>
   );
 }

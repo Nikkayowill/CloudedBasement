@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import ResponsiveNav from '../components/ResponsiveNav';
-import Footer from '../sections/Footer';
+import PageLayout from '../components/PageLayout';
 
 export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', message: '' });
@@ -53,11 +52,8 @@ export default function Contact() {
   const inputClass = 'w-full px-4 py-3 bg-black/40 border border-blue-500/30 rounded text-white placeholder-gray-500 focus:border-blue-500 focus:bg-black/60 focus:outline-none focus:ring-1 focus:ring-blue-500/50 transition-all';
 
   return (
-    <div className="funnel">
-      <ResponsiveNav />
-
-      <main className="pt-14">
-        <section className="funnel-section funnel-bg-solution">
+    <PageLayout>
+      <section className="funnel-section funnel-bg-solution">
           <div className="funnel-prose">
             <h1 className="funnel-heading-1 text-center mb-4">Contact Us</h1>
             <p className="funnel-body text-center mb-12">Get in touch with our team</p>
@@ -130,10 +126,7 @@ export default function Contact() {
               </form>
             )}
           </div>
-        </section>
-      </main>
-
-      <Footer />
-    </div>
+    </section>
+    </PageLayout>
   );
 }

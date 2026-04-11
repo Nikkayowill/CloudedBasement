@@ -1,5 +1,4 @@
-import ResponsiveNav from '../components/ResponsiveNav';
-import Footer from '../sections/Footer';
+import PageLayout from '../components/PageLayout';
 
 const TABLE_ROWS = [
   { feature: 'Full SSH & root access',     basement: '✓', heroku: '✗', render: '✗', railway: '✗', diy: '✓', bClass: 'text-green-400', hClass: 'text-red-400', rClass: 'text-red-400', rwClass: 'text-red-400', dClass: 'text-green-400' },
@@ -72,11 +71,8 @@ const BEST_FOR = [
 
 export default function Compare() {
   return (
-    <div className="funnel">
-      <ResponsiveNav />
-
-      <main className="pt-14">
-        <section className="funnel-section">
+    <PageLayout>
+      <section className="funnel-section">
           <div className="funnel-wide">
 
             {/* Header */}
@@ -203,10 +199,7 @@ export default function Compare() {
             </div>
 
           </div>
-        </section>
-      </main>
-
-      <Footer />
-    </div>
+    </section>
+    </PageLayout>
   );
 }

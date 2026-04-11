@@ -240,121 +240,120 @@ function ResponsiveNav() {
   }, [mobileOpen]);
   return /* @__PURE__ */ jsxs(Fragment, { children: [
     /* @__PURE__ */ jsxs("nav", { style: {
-      position: "fixed",
+      position: "sticky",
       top: 0,
-      left: 0,
-      right: 0,
-      zIndex: 1e3,
-      transform: visible ? "translateY(0)" : "translateY(-100%)",
-      transition: "transform 280ms ease",
-      background: "transparent"
+      zIndex: 50,
+      opacity: visible ? 1 : 0,
+      pointerEvents: visible ? "auto" : "none",
+      transition: "opacity 280ms ease",
+      background: "rgba(22,23,29,0.88)",
+      backdropFilter: "blur(14px)",
+      WebkitBackdropFilter: "blur(14px)",
+      borderBottom: "1px solid rgba(255,255,255,0.07)"
     }, children: [
       /* @__PURE__ */ jsxs("div", { style: {
-        maxWidth: "72rem",
-        margin: "0 auto",
-        padding: "0 1.5rem",
         display: "flex",
         alignItems: "center",
         height: "3.5rem",
-        gap: "1.5rem"
+        padding: "0 var(--cb-content-pad)",
+        position: "relative"
       }, children: [
         /* @__PURE__ */ jsx("a", { href: "/", style: {
           display: "flex",
           alignItems: "center",
-          marginRight: "auto",
           flexShrink: 0,
-          height: "3.5rem"
+          height: "3.5rem",
+          textDecoration: "none"
         }, children: /* @__PURE__ */ jsx(
           "img",
           {
             src: "/CB-logo-icon.svg",
-            alt: "Clouded Basement Logo",
-            style: { height: "2rem", width: "2rem", marginRight: "0.5rem", display: "block" }
+            alt: "Clouded Basement",
+            style: { height: "2rem", width: "auto", display: "block" }
           }
         ) }),
-        /* @__PURE__ */ jsxs("div", { className: "hidden md:flex", style: { alignItems: "center", gap: "2rem" }, children: [
-          /* @__PURE__ */ jsx(
-            "a",
-            {
-              href: "/#features",
-              style: { color: "#9ca3af", textDecoration: "none", fontSize: "0.875rem", transition: "color 150ms" },
-              onMouseEnter: (e) => e.target.style.color = "#fff",
-              onMouseLeave: (e) => e.target.style.color = "#9ca3af",
-              children: "Features"
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            "a",
-            {
-              href: "/#pricing",
-              style: { color: "#9ca3af", textDecoration: "none", fontSize: "0.875rem", transition: "color 150ms" },
-              onMouseEnter: (e) => e.target.style.color = "#fff",
-              onMouseLeave: (e) => e.target.style.color = "#9ca3af",
-              children: "Pricing"
-            }
-          ),
-          /* @__PURE__ */ jsx(
-            "a",
-            {
-              href: "/docs",
-              style: { color: "#9ca3af", textDecoration: "none", fontSize: "0.875rem", transition: "color 150ms" },
-              onMouseEnter: (e) => e.target.style.color = "#fff",
-              onMouseLeave: (e) => e.target.style.color = "#9ca3af",
-              children: "Docs"
-            }
-          )
-        ] }),
-        /* @__PURE__ */ jsx(
-          "button",
+        /* @__PURE__ */ jsx("div", { className: "hidden md:flex", style: {
+          position: "absolute",
+          left: "50%",
+          transform: "translateX(-50%)",
+          alignItems: "center",
+          gap: "2rem"
+        }, children: [
+          { label: "Features", href: "/#features" },
+          { label: "Pricing", href: "/#pricing" },
+          { label: "Docs", href: "/docs" }
+        ].map((link) => /* @__PURE__ */ jsx(
+          "a",
           {
-            onClick: () => setSearchOpen(true),
-            style: {
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              background: "none",
-              border: "none",
-              color: "#9ca3af",
-              cursor: "pointer",
-              padding: "0.25rem",
-              transition: "color 150ms"
+            href: link.href,
+            style: { color: "#9ca3af", textDecoration: "none", fontSize: "0.875rem", transition: "color 150ms" },
+            onMouseEnter: (e) => {
+              e.target.style.color = "#fff";
             },
-            onMouseEnter: (e) => e.currentTarget.style.color = "#fff",
-            onMouseLeave: (e) => e.currentTarget.style.color = "#9ca3af",
-            "aria-label": "Open search",
-            children: /* @__PURE__ */ jsx(SearchIcon, { size: 18 })
-          }
-        ),
-        /* @__PURE__ */ jsxs("div", { className: "hidden md:flex", style: { gap: "0.75rem" }, children: [
+            onMouseLeave: (e) => {
+              e.target.style.color = "#9ca3af";
+            },
+            children: link.label
+          },
+          link.label
+        )) }),
+        /* @__PURE__ */ jsxs("div", { style: { marginLeft: "auto", display: "flex", alignItems: "center", gap: "0.75rem" }, children: [
           /* @__PURE__ */ jsx(
-            "a",
+            "button",
             {
-              href: "/login",
-              className: "funnel-btn funnel-btn-ghost",
-              style: { padding: "0.375rem 0.875rem", fontSize: "0.875rem" },
-              children: "Sign in"
+              onClick: () => setSearchOpen(true),
+              style: {
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "none",
+                border: "none",
+                color: "#9ca3af",
+                cursor: "pointer",
+                padding: "0.25rem",
+                transition: "color 150ms"
+              },
+              onMouseEnter: (e) => {
+                e.currentTarget.style.color = "#fff";
+              },
+              onMouseLeave: (e) => {
+                e.currentTarget.style.color = "#9ca3af";
+              },
+              "aria-label": "Open search",
+              children: /* @__PURE__ */ jsx(SearchIcon, { size: 18 })
             }
           ),
+          /* @__PURE__ */ jsxs("div", { className: "hidden md:flex", style: { gap: "0.75rem" }, children: [
+            /* @__PURE__ */ jsx(
+              "a",
+              {
+                href: "/login",
+                className: "funnel-btn funnel-btn-ghost",
+                style: { padding: "0.375rem 0.875rem", fontSize: "0.875rem" },
+                children: "Sign in"
+              }
+            ),
+            /* @__PURE__ */ jsx(
+              "a",
+              {
+                href: "/register",
+                className: "funnel-btn funnel-btn-primary",
+                style: { padding: "0.375rem 0.875rem", fontSize: "0.875rem" },
+                children: "Start free trial"
+              }
+            )
+          ] }),
           /* @__PURE__ */ jsx(
-            "a",
+            "button",
             {
-              href: "/register",
-              className: "funnel-btn funnel-btn-primary",
-              style: { padding: "0.375rem 0.875rem", fontSize: "0.875rem" },
-              children: "Start free trial"
+              className: "md:hidden",
+              onClick: () => setMobileOpen((o) => !o),
+              style: { background: "none", border: "none", color: "#9ca3af", cursor: "pointer", padding: "0.25rem" },
+              "aria-label": "Toggle menu",
+              children: mobileOpen ? /* @__PURE__ */ jsx(XIcon, { size: 22 }) : /* @__PURE__ */ jsx(MenuIcon, { size: 22 })
             }
           )
-        ] }),
-        /* @__PURE__ */ jsx(
-          "button",
-          {
-            className: "md:hidden",
-            onClick: () => setMobileOpen((o) => !o),
-            style: { background: "none", border: "none", color: "#9ca3af", cursor: "pointer", padding: "0.25rem", position: "relative", zIndex: 1e3 },
-            "aria-label": "Toggle menu",
-            children: mobileOpen ? /* @__PURE__ */ jsx(XIcon, { size: 22 }) : /* @__PURE__ */ jsx(MenuIcon, { size: 22 })
-          }
-        )
+        ] })
       ] }),
       /* @__PURE__ */ jsxs("div", { className: "md:hidden", style: {
         position: "fixed",
@@ -362,12 +361,13 @@ function ResponsiveNav() {
         zIndex: 999,
         background: "rgba(3,6,8,0.97)",
         backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         gap: "2rem",
-        transition: "opacity 250ms, pointer-events 0ms",
+        transition: "opacity 250ms",
         opacity: mobileOpen ? 1 : 0,
         pointerEvents: mobileOpen ? "auto" : "none"
       }, children: [
@@ -381,13 +381,7 @@ function ResponsiveNav() {
           {
             href: link.href,
             onClick: () => setMobileOpen(false),
-            style: {
-              color: "#d1d5db",
-              textDecoration: "none",
-              fontSize: "1.25rem",
-              fontWeight: 500,
-              transition: "color 150ms"
-            },
+            style: { color: "#d1d5db", textDecoration: "none", fontSize: "1.25rem", fontWeight: 500, transition: "color 150ms" },
             children: link.label
           },
           link.label
@@ -1463,35 +1457,33 @@ function Footer() {
   ] });
 }
 function HomePage() {
-  return /* @__PURE__ */ jsxs("div", { className: "funnel", children: [
+  return /* @__PURE__ */ jsx("div", { className: "funnel", children: /* @__PURE__ */ jsx("div", { className: "cb-shell", children: /* @__PURE__ */ jsxs("div", { className: "cb-shell-inner", children: [
     /* @__PURE__ */ jsx(ResponsiveNav, {}),
-    /* @__PURE__ */ jsx("div", { className: "cb-shell", children: /* @__PURE__ */ jsxs("div", { className: "cb-shell-inner", children: [
-      /* @__PURE__ */ jsxs("main", { children: [
-        /* @__PURE__ */ jsx("div", { className: "cb-section", children: /* @__PURE__ */ jsx(HeroSection, {}) }),
-        /* @__PURE__ */ jsx("div", { className: "cb-section", children: /* @__PURE__ */ jsx(ProblemFrame, {}) }),
-        /* @__PURE__ */ jsx("div", { className: "cb-section", children: /* @__PURE__ */ jsx(HowItWorks, {}) }),
-        /* @__PURE__ */ jsx("div", { className: "cb-section", children: /* @__PURE__ */ jsx(Features, {}) }),
-        /* @__PURE__ */ jsx("div", { className: "cb-section", children: /* @__PURE__ */ jsx(WhyChooseUs, {}) }),
-        /* @__PURE__ */ jsx("div", { className: "cb-section", children: /* @__PURE__ */ jsx(NewPricing, {}) }),
-        /* @__PURE__ */ jsx("div", { className: "cb-section", children: /* @__PURE__ */ jsx(FaqSection, {}) }),
-        /* @__PURE__ */ jsx("div", { className: "cb-section", children: /* @__PURE__ */ jsx(CTASection, {}) })
-      ] }),
-      /* @__PURE__ */ jsx(Footer, {})
-    ] }) })
-  ] });
+    /* @__PURE__ */ jsxs("main", { children: [
+      /* @__PURE__ */ jsx("div", { className: "cb-section", children: /* @__PURE__ */ jsx(HeroSection, {}) }),
+      /* @__PURE__ */ jsx("div", { className: "cb-section", children: /* @__PURE__ */ jsx(ProblemFrame, {}) }),
+      /* @__PURE__ */ jsx("div", { className: "cb-section", children: /* @__PURE__ */ jsx(HowItWorks, {}) }),
+      /* @__PURE__ */ jsx("div", { className: "cb-section", children: /* @__PURE__ */ jsx(Features, {}) }),
+      /* @__PURE__ */ jsx("div", { className: "cb-section", children: /* @__PURE__ */ jsx(WhyChooseUs, {}) }),
+      /* @__PURE__ */ jsx("div", { className: "cb-section", children: /* @__PURE__ */ jsx(NewPricing, {}) }),
+      /* @__PURE__ */ jsx("div", { className: "cb-section", children: /* @__PURE__ */ jsx(FaqSection, {}) }),
+      /* @__PURE__ */ jsx("div", { className: "cb-section", children: /* @__PURE__ */ jsx(CTASection, {}) })
+    ] }),
+    /* @__PURE__ */ jsx(Footer, {})
+  ] }) }) });
 }
-const DashboardPage = lazy(() => import("./assets/DashboardPage-Dg7XBcLk.js"));
-const About = lazy(() => import("./assets/About-DImQmbMc.js"));
-const Compare = lazy(() => import("./assets/Compare-Cz_Y25j_.js"));
-const Contact = lazy(() => import("./assets/Contact-Dd08wz_I.js"));
-const Docs = lazy(() => import("./assets/Docs-CTaKbbhm.js"));
-const Faq = lazy(() => import("./assets/Faq-DkFaiQmO.js"));
-const Login = lazy(() => import("./assets/Login-C1W7LZ5x.js"));
-const Pricing = lazy(() => import("./assets/Pricing-D1t9t-qs.js"));
-const Privacy = lazy(() => import("./assets/Privacy-Co18hrtw.js"));
-const Register = lazy(() => import("./assets/Register-DBDLnFCJ.js"));
-const Safety = lazy(() => import("./assets/Safety-CQgf-xXi.js"));
-const Terms = lazy(() => import("./assets/Terms-CPZiJn2h.js"));
+const DashboardPage = lazy(() => import("./assets/DashboardPage-C-V2FrBX.js"));
+const About = lazy(() => import("./assets/About-COLVXPnX.js"));
+const Compare = lazy(() => import("./assets/Compare-BvaYsUZG.js"));
+const Contact = lazy(() => import("./assets/Contact-DGk-0rMT.js"));
+const Docs = lazy(() => import("./assets/Docs-ChodqmnN.js"));
+const Faq = lazy(() => import("./assets/Faq-D0aFlNPc.js"));
+const Login = lazy(() => import("./assets/Login-CAl6DS1V.js"));
+const Pricing = lazy(() => import("./assets/Pricing-tq7efVER.js"));
+const Privacy = lazy(() => import("./assets/Privacy-DK81Pm53.js"));
+const Register = lazy(() => import("./assets/Register-BeL4nL9i.js"));
+const Safety = lazy(() => import("./assets/Safety-BNJLC9p1.js"));
+const Terms = lazy(() => import("./assets/Terms-B_VfDbsH.js"));
 function HomeWrapper() {
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;

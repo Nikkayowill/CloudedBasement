@@ -8,7 +8,7 @@ export default function ResponsiveNav() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
-  // Hide on scroll-down, show on scroll-up
+  // Hide on scroll-down past 80px, show on scroll-up
   useEffect(() => {
     function onScroll() {
       const y = window.scrollY;
@@ -40,92 +40,114 @@ export default function ResponsiveNav() {
 
   return (
     <>
+      {/* Nav sits inside .cb-shell-inner so it inherits the grid's width and rail borders */}
       <nav style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
-        transform: visible ? 'translateY(0)' : 'translateY(-100%)',
-        transition: 'transform 280ms ease',
-        background: 'transparent',
+        position: 'sticky',
+        top: 0,
+        zIndex: 50,
+        opacity: visible ? 1 : 0,
+        pointerEvents: visible ? 'auto' : 'none',
+        transition: 'opacity 280ms ease',
+        background: 'rgba(22,23,29,0.88)',
+        backdropFilter: 'blur(14px)',
+        WebkitBackdropFilter: 'blur(14px)',
+        borderBottom: '1px solid rgba(255,255,255,0.07)',
       }}>
         <div style={{
-          maxWidth: '72rem', margin: '0 auto',
-          padding: '0 1.5rem',
-          display: 'flex', alignItems: 'center', height: '3.5rem', gap: '1.5rem',
+          display: 'flex',
+          alignItems: 'center',
+          height: '3.5rem',
+          padding: '0 var(--cb-content-pad)',
+          position: 'relative',
         }}>
-          {/* Logo */}
+          {/* Logo — left-aligned */}
           <a href="/" style={{
             display: 'flex', alignItems: 'center',
-            marginRight: 'auto', flexShrink: 0,
-            height: '3.5rem',
+            flexShrink: 0, height: '3.5rem', textDecoration: 'none',
           }}>
             <img
               src="/CB-logo-icon.svg"
-              alt="Clouded Basement Logo"
-              style={{ height: '2rem', width: '2rem', marginRight: '0.5rem', display: 'block' }}
+              alt="Clouded Basement"
+              style={{ height: '2rem', width: 'auto', display: 'block' }}
             />
           </a>
 
-          {/* Desktop links */}
-          <div className="hidden md:flex" style={{ alignItems: 'center', gap: '2rem' }}>
-            <a href="/#features" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '0.875rem', transition: 'color 150ms' }}
-               onMouseEnter={(e) => e.target.style.color = '#fff'}
-               onMouseLeave={(e) => e.target.style.color = '#9ca3af'}>Features</a>
-            <a href="/#pricing" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '0.875rem', transition: 'color 150ms' }}
-               onMouseEnter={(e) => e.target.style.color = '#fff'}
-               onMouseLeave={(e) => e.target.style.color = '#9ca3af'}>Pricing</a>
-            <a href="/docs" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '0.875rem', transition: 'color 150ms' }}
-               onMouseEnter={(e) => e.target.style.color = '#fff'}
-               onMouseLeave={(e) => e.target.style.color = '#9ca3af'}>Docs</a>
+          {/* Desktop nav links — absolutely centred */}
+          <div className="hidden md:flex" style={{
+            position: 'absolute',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            alignItems: 'center',
+            gap: '2rem',
+          }}>
+            {[
+              { label: 'Features', href: '/#features' },
+              { label: 'Pricing',  href: '/#pricing'  },
+              { label: 'Docs',     href: '/docs'       },
+            ].map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '0.875rem', transition: 'color 150ms' }}
+                onMouseEnter={(e) => { e.target.style.color = '#fff'; }}
+                onMouseLeave={(e) => { e.target.style.color = '#9ca3af'; }}
+              >
+                {link.label}
+              </a>
+            ))}
           </div>
 
-          {/* Search trigger */}
-          <button
-            onClick={() => setSearchOpen(true)}
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: 'none', border: 'none',
-              color: '#9ca3af', cursor: 'pointer',
-              padding: '0.25rem', transition: 'color 150ms',
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.color = '#fff'}
-            onMouseLeave={(e) => e.currentTarget.style.color = '#9ca3af'}
-            aria-label="Open search"
-          >
-            <SearchIcon size={18} />
-          </button>
+          {/* Right side — search + CTAs */}
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <button
+              onClick={() => setSearchOpen(true)}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'none', border: 'none',
+                color: '#9ca3af', cursor: 'pointer',
+                padding: '0.25rem', transition: 'color 150ms',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = '#fff'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = '#9ca3af'; }}
+              aria-label="Open search"
+            >
+              <SearchIcon size={18} />
+            </button>
 
-          {/* Desktop CTAs */}
-          <div className="hidden md:flex" style={{ gap: '0.75rem' }}>
-            <a href="/login"
-               className="funnel-btn funnel-btn-ghost"
-               style={{ padding: '0.375rem 0.875rem', fontSize: '0.875rem' }}>
-              Sign in
-            </a>
-            <a href="/register"
-               className="funnel-btn funnel-btn-primary"
-               style={{ padding: '0.375rem 0.875rem', fontSize: '0.875rem' }}>
-              Start free trial
-            </a>
+            <div className="hidden md:flex" style={{ gap: '0.75rem' }}>
+              <a href="/login"
+                 className="funnel-btn funnel-btn-ghost"
+                 style={{ padding: '0.375rem 0.875rem', fontSize: '0.875rem' }}>
+                Sign in
+              </a>
+              <a href="/register"
+                 className="funnel-btn funnel-btn-primary"
+                 style={{ padding: '0.375rem 0.875rem', fontSize: '0.875rem' }}>
+                Start free trial
+              </a>
+            </div>
+
+            {/* Mobile hamburger */}
+            <button
+              className="md:hidden"
+              onClick={() => setMobileOpen((o) => !o)}
+              style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: '0.25rem' }}
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? <XIcon size={22} /> : <MenuIcon size={22} />}
+            </button>
           </div>
-
-          {/* Mobile hamburger */}
-          <button
-            className="md:hidden"
-            onClick={() => setMobileOpen((o) => !o)}
-            style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: '0.25rem', position: 'relative', zIndex: 1000 }}
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? <XIcon size={22} /> : <MenuIcon size={22} />}
-          </button>
         </div>
 
-        {/* Mobile full-screen menu */}
+        {/* Mobile full-screen overlay (fixed to viewport, breaks out of sticky parent) */}
         <div className="md:hidden" style={{
           position: 'fixed', inset: 0, zIndex: 999,
           background: 'rgba(3,6,8,0.97)',
           backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
           display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center', gap: '2rem',
-          transition: 'opacity 250ms, pointer-events 0ms',
+          transition: 'opacity 250ms',
           opacity: mobileOpen ? 1 : 0,
           pointerEvents: mobileOpen ? 'auto' : 'none',
         }}>
@@ -139,11 +161,7 @@ export default function ResponsiveNav() {
               key={link.label}
               href={link.href}
               onClick={() => setMobileOpen(false)}
-              style={{
-                color: '#d1d5db', textDecoration: 'none',
-                fontSize: '1.25rem', fontWeight: 500,
-                transition: 'color 150ms',
-              }}
+              style={{ color: '#d1d5db', textDecoration: 'none', fontSize: '1.25rem', fontWeight: 500, transition: 'color 150ms' }}
             >
               {link.label}
             </a>

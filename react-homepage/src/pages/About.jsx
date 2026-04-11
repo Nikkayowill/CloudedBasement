@@ -1,13 +1,9 @@
-import ResponsiveNav from '../components/ResponsiveNav';
-import Footer from '../sections/Footer';
+import PageLayout from '../components/PageLayout';
 
 export default function About() {
   return (
-    <div className="funnel">
-      <ResponsiveNav />
-
-      <main className="pt-14">
-        <section className="funnel-section">
+    <PageLayout>
+      <section className="funnel-section">
           <div className="funnel-prose">
 
             {/* Header */}
@@ -145,10 +141,7 @@ export default function About() {
             </div>
 
           </div>
-        </section>
-      </main>
-
-      <Footer />
-    </div>
+    </section>
+    </PageLayout>
   );
 }
