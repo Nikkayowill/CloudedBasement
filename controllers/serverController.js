@@ -2467,6 +2467,7 @@ module.exports = {
   serverAction: exports.serverAction,
   deleteServer: exports.deleteServer,
   deploy: exports.deploy,
+  rollback: exports.rollback,
   addDomain: exports.addDomain,
   deleteDomain: exports.deleteDomain,
   enableSSL: exports.enableSSL,
