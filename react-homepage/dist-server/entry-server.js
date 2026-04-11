@@ -1480,7 +1480,7 @@ function HomePage() {
     ] }) })
   ] });
 }
-const DashboardPage = lazy(() => import("./assets/DashboardPage-Cz_nYPyj.js"));
+const DashboardPage = lazy(() => import("./assets/DashboardPage-Dg7XBcLk.js"));
 const About = lazy(() => import("./assets/About-DImQmbMc.js"));
 const Compare = lazy(() => import("./assets/Compare-Cz_Y25j_.js"));
 const Contact = lazy(() => import("./assets/Contact-Dd08wz_I.js"));

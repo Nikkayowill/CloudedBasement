@@ -2,6 +2,7 @@ const { Router } = require('express');
 const csrf = require('../middleware/csrf');
 const { requireAuth } = require('../middleware/auth');
 const { deploymentLimiter } = require('../middleware/rateLimiter');
+const { requireApiKey, requireScope } = require('../middleware/apiKeyAuth');
 const serverController = require('../controllers/serverController');
 const githubWebhookController = require('../controllers/githubWebhookController');
 
@@ -34,5 +35,8 @@ router.post('/setup-database', requireAuth, csrf, serverController.setupDatabase
 
 // Server provisioning
 router.post('/start-trial', requireAuth, deploymentLimiter, csrf, serverController.startTrial);
+
+// API-key-authenticated deploy (no session, no CSRF — Bearer token only)
+router.post('/api/deploy', requireApiKey, requireScope('deploy'), deploymentLimiter, serverController.apiDeploy);
 
 module.exports = router;

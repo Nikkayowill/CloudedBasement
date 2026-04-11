@@ -230,6 +230,7 @@ app.use(require('./routes/pages'));
 app.use(require('./routes/auth'));
 app.use(require('./routes/dashboard'));
 app.use(require('./routes/servers'));
+app.use(require('./routes/apiKeys'));
 app.use(require('./routes/payments'));
 app.use(require('./routes/wordpress'));
 app.use(require('./routes/onboarding'));

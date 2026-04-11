@@ -41,12 +41,14 @@ async function createRealServer(userId, plan, stripeChargeId = null, paymentInte
 
   // Setup script for automatic Nginx + Certbot installation
   const setupScript = `#!/bin/bash
-# Set root password
-echo "root:${password}" | chpasswd
+# Create deploy user with sudo privileges (non-root SSH access)
+useradd -m -s /bin/bash -G sudo deploy || true
+echo "deploy:${password}" | chpasswd
 
-# Enable password authentication for SSH
+# Configure SSH for secure access (disable root login, enable password auth)
 sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
-sed -i 's/^#*PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
+sed -i 's/^#*PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+sed -i 's/^#*PubkeyAuthentication.*/PubkeyAuthentication yes/' /etc/ssh/sshd_config
 systemctl restart sshd
 
 # Update system
@@ -56,8 +58,8 @@ apt-get update
 curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt-get install -y nodejs
 
-# Install nvm (Node Version Manager) for root user
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+# Install nvm (Node Version Manager) for deploy user
+sudo -u deploy bash -c 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash'
 export NVM_DIR="/root/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh"
 
@@ -163,7 +165,7 @@ echo "Setup complete!" > /root/setup.log
       const { encrypted: encryptedPassword, iv: passwordIv } = encryptSshPassword(password);
       const result = await pool.query(
         `INSERT INTO servers (user_id, plan, status, ip_address, ssh_username, ssh_password, ssh_password_iv, specs, stripe_charge_id, droplet_id, droplet_name, is_trial, payment_interval, site_limit, stripe_subscription_id, subscription_start_date)
-         VALUES ($1, $2, 'provisioning', $3, 'root', $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, CURRENT_TIMESTAMP)
+         VALUES ($1, $2, 'provisioning', $3, 'deploy', $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, CURRENT_TIMESTAMP)
          RETURNING *`,
         [userId, plan, droplet.networks?.v4?.[0]?.ip_address || 'pending', encryptedPassword, passwordIv, JSON.stringify(selectedSpec), stripeChargeId, String(droplet.id), dropletName, isTrial, paymentInterval, siteLimit, stripeSubscriptionId]
       );
@@ -241,7 +243,7 @@ echo "Setup complete!" > /root/setup.log
     // Save failed server to database
     const result = await pool.query(
       `INSERT INTO servers (user_id, plan, status, ip_address, ssh_username, ssh_password, specs, stripe_charge_id, droplet_id, is_trial)
-       VALUES ($1, $2, 'failed', 'N/A', 'root', 'N/A', $3, $4, NULL, $5)
+       VALUES ($1, $2, 'failed', 'N/A', 'deploy', 'N/A', $3, $4, NULL, $5)
        RETURNING *`,
       [userId, plan, JSON.stringify(specs[plan] || specs.basic), stripeChargeId, isTrial]
     );

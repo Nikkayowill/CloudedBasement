@@ -617,6 +617,14 @@ const getDashboardData = async (req, res) => {
 
         const uptimeStatus = await getUptimeStatusForUser(userId);
 
+        const apiKeysResult = await pool.query(
+            `SELECT id, name, key_prefix, scopes, last_used_at, expires_at, created_at
+             FROM api_keys
+             WHERE user_id = $1 AND is_active = TRUE
+             ORDER BY created_at DESC`,
+            [userId]
+        );
+
         res.json({
             userEmail:      req.session.userEmail,
             userRole:       req.session.userRole,
@@ -641,6 +649,7 @@ const getDashboardData = async (req, res) => {
             domains,
             liveSiteUrl,
             uptimeStatus,
+            apiKeys:      apiKeysResult.rows || [],
             csrfToken:    typeof req.csrfToken === 'function' ? req.csrfToken() : '',
         });
     } catch (error) {

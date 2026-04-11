@@ -194,7 +194,7 @@ exports.deploy = async (req, res) => {
       return res.redirect('/dashboard?error=Git URL is required');
     }
     
-    // Whitelist trusted Git hosting platforms
+    // Whitelist trusted Git hosting platforms (exact hostname match)
     const trustedHosts = [
       'github.com',
       'gitlab.com',
@@ -203,9 +203,7 @@ exports.deploy = async (req, res) => {
       'sr.ht' // SourceHut
     ];
     
-    const isValidGitUrl = trustedHosts.some(host => gitUrl.includes(host));
-    
-    if (!isValidGitUrl) {
+    if (!isValidGitUrl(gitUrl, trustedHosts)) {
       return res.redirect('/dashboard?error=Invalid Git URL. Only GitHub, GitLab, Bitbucket, Codeberg, and SourceHut are supported.');
     }
     
@@ -307,6 +305,104 @@ exports.deploy = async (req, res) => {
   } catch (error) {
     console.error('Deploy error:', error);
     res.redirect('/dashboard?error=Deployment failed to start');
+  }
+};
+
+// POST /api/deploy — API-key-authenticated deploy (JSON responses, no CSRF, no redirects)
+exports.apiDeploy = async (req, res) => {
+  try {
+    const gitUrl = req.body.git_url;
+    const userId = req.userId; // set by apiKeyAuth middleware
+
+    if (!gitUrl) {
+      return res.status(400).json({ error: 'git_url is required' });
+    }
+
+    const trustedHosts = ['github.com', 'gitlab.com', 'bitbucket.org', 'codeberg.org', 'sr.ht'];
+    if (!isValidGitUrl(gitUrl, trustedHosts)) {
+      return res.status(400).json({ error: 'Invalid Git URL. Only GitHub, GitLab, Bitbucket, Codeberg, and SourceHut are supported.' });
+    }
+
+    const privateIpPattern = /(localhost|127\.0\.0\.1|192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)/i;
+    if (privateIpPattern.test(gitUrl)) {
+      return res.status(400).json({ error: 'Cannot deploy from private IP addresses' });
+    }
+
+    const serverResult = await pool.query(
+      'SELECT * FROM servers WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1',
+      [userId]
+    );
+    if (serverResult.rows.length === 0) {
+      return res.status(404).json({ error: 'No server found for this account' });
+    }
+
+    const server = serverResult.rows[0];
+    server.ssh_password = decryptSshPassword(server.ssh_password, server.ssh_password_iv);
+
+    if (!server.ip_address || !server.ssh_password) {
+      return res.status(503).json({ error: 'Server not ready yet. Please wait for provisioning to complete.' });
+    }
+
+    const existingDeployment = await pool.query(
+      'SELECT id FROM deployments WHERE server_id = $1 AND git_url = $2 LIMIT 1',
+      [server.id, gitUrl]
+    );
+    const isUpdate = existingDeployment.rows.length > 0;
+
+    if (!isUpdate) {
+      const siteCount = await pool.query(
+        'SELECT COUNT(DISTINCT git_url) as count FROM deployments WHERE server_id = $1',
+        [server.id]
+      );
+      const currentSites = parseInt(siteCount.rows[0].count);
+      const siteLimit = server.site_limit || 2;
+      if (currentSites >= siteLimit) {
+        return res.status(400).json({ error: `Site limit reached (${siteLimit} sites). Upgrade your plan or delete an existing site.` });
+      }
+    }
+
+    const repoName = gitUrl.split('/').pop().replace('.git', '').replace(/[^a-zA-Z0-9_-]/g, '');
+    const subdomain = generateSubdomain(repoName, userId);
+
+    let dnsRecordId = null;
+    try {
+      const dnsResult = await createDNSRecord(subdomain, server.ip_address);
+      if (dnsResult.success) {
+        dnsRecordId = dnsResult.recordId;
+      } else {
+        console.error(`[API DEPLOY] Failed to create DNS record for ${subdomain}: ${dnsResult.error}`);
+      }
+    } catch (dnsErr) {
+      console.error(`[API DEPLOY] DNS creation error for subdomain ${subdomain} -> ${server.ip_address}:`, dnsErr.message);
+    }
+
+    const deployResult = await pool.query(
+      'INSERT INTO deployments (server_id, user_id, git_url, status, output, subdomain, dns_record_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
+      [server.id, userId, gitUrl, 'pending', 'Starting deployment...', subdomain, dnsRecordId]
+    );
+    const deploymentId = deployResult.rows[0].id;
+    console.log(`[API DEPLOY] Deployment #${deploymentId} started via API key for user ${userId}: ${gitUrl}`);
+
+    setImmediate(() => {
+      performDeployment(server, gitUrl, repoName, deploymentId, subdomain).catch(async (err) => {
+        const failureOutput = `❌ Deployment failed: ${err.message}\n\nStack trace:\n${err.stack}`;
+        pool.query(
+          'UPDATE deployments SET status = $1, output = $2, deployed_at = NOW() WHERE id = $3',
+          ['failed', failureOutput, deploymentId]
+        ).catch(() => {});
+        analyzeDeploymentFailure(deploymentId, failureOutput);
+      });
+    });
+
+    res.status(202).json({
+      deploymentId,
+      subdomain: `${subdomain}.cloudedbasement.ca`,
+      status: 'pending',
+      message: 'Deployment started. Poll GET /api/deployment-status/:id for progress.',
+    });
+  } catch (error) {
+    console.error('[API DEPLOY] Error:', error);
+    res.status(500).json({ error: 'Deployment failed to start' });
   }
 };
 

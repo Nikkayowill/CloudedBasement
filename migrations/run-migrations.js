@@ -79,7 +79,11 @@ async function runMigrations() {
     // Create uptime monitoring tables
     const { up: createUptimeChecks } = require('./031-create-uptime-checks');
     await createUptimeChecks();
-    
+
+    // Create API keys table
+    const { up: createApiKeys } = require('./032-create-api-keys');
+    await createApiKeys();
+
   } catch (error) {
     // Safely rollback transaction (may not have started if error was early)
     try {
