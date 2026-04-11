@@ -28,9 +28,11 @@ const inputStyle = {
 function Flash({ type, children }) {
   const styles = {
     success: { bg: "rgba(34,197,94,0.07)", border: "rgba(34,197,94,0.2)", color: "#86efac" },
-    error: { bg: "rgba(239,68,68,0.07)", border: "rgba(239,68,68,0.2)", color: "#fca5a5" }
+    warning: { bg: "rgba(234,179,8,0.07)", border: "rgba(234,179,8,0.2)", color: "#fde047" },
+    error: { bg: "rgba(239,68,68,0.07)", border: "rgba(239,68,68,0.2)", color: "#fca5a5" },
+    info: { bg: "rgba(45,167,223,0.07)", border: "rgba(45,167,223,0.2)", color: "#7fd6ff" }
   };
-  const s = styles[type] ?? styles.error;
+  const s = styles[type] ?? styles.info;
   return /* @__PURE__ */ jsx("div", { style: {
     background: s.bg,
     border: `1px solid ${s.border}`,
@@ -42,44 +44,48 @@ function Flash({ type, children }) {
     lineHeight: 1.5
   }, children });
 }
-function Register() {
+function Login() {
   const [searchParams] = useSearchParams();
   const [csrf, setCsrf] = useState("");
-  const [botCode, setBotCode] = useState("");
-  const [botInput, setBotInput] = useState("");
   const error = searchParams.get("error") || "";
-  const success = searchParams.get("success") || "";
+  const success = searchParams.get("message") || searchParams.get("success") || "";
+  const warning = searchParams.get("warning") || "";
   const email = searchParams.get("email") || "";
-  const botCorrect = botInput.length > 0 && botInput === botCode;
-  const submitReady = csrf && botCorrect;
+  const showResend = error && error.toLowerCase().includes("confirm your email") && email;
   useEffect(() => {
     fetch("/api/csrf-token", { credentials: "include" }).then((r) => r.json()).then((d) => setCsrf(d.csrfToken)).catch(() => {
     });
-    fetch("/api/auth/bot-challenge", { credentials: "include" }).then((r) => r.json()).then((d) => setBotCode(d.botCode)).catch(() => {
-    });
   }, []);
   return /* @__PURE__ */ jsxs(PageLayout, { children: [
-    /* @__PURE__ */ jsxs("div", { className: "cb-title-row", children: [
-      /* @__PURE__ */ jsx("p", { style: { fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "#2DA7DF", marginBottom: "0.5rem" }, children: "Get started free" }),
-      /* @__PURE__ */ jsx("h1", { style: { fontSize: "clamp(1.5rem, 3vw, 2.25rem)", fontWeight: 700, color: "#f5f5f5", margin: 0 }, children: "Create your account" })
+    /* @__PURE__ */ jsxs("div", { className: "cb-title-row", style: { textAlign: "center" }, children: [
+      /* @__PURE__ */ jsx("p", { style: { fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "#2DA7DF", marginBottom: "0.5rem" }, children: "Welcome back" }),
+      /* @__PURE__ */ jsx("h1", { style: { fontSize: "clamp(1.5rem, 3vw, 2.25rem)", fontWeight: 700, color: "#f5f5f5", margin: 0 }, children: "Sign in to your account" })
     ] }),
     /* @__PURE__ */ jsx("div", { style: { padding: "clamp(2rem, 5vw, 3.5rem) var(--cb-content-pad)", display: "flex", justifyContent: "center" }, children: /* @__PURE__ */ jsxs("div", { style: { maxWidth: "26rem", width: "100%" }, children: [
-      error && /* @__PURE__ */ jsx(Flash, { type: "error", children: error }),
       success && /* @__PURE__ */ jsx(Flash, { type: "success", children: success }),
+      warning && /* @__PURE__ */ jsx(Flash, { type: "warning", children: warning }),
+      error && /* @__PURE__ */ jsx(Flash, { type: "error", children: error }),
+      showResend && /* @__PURE__ */ jsx(Flash, { type: "info", children: /* @__PURE__ */ jsx(
+        "a",
+        {
+          href: `/resend-confirmation?email=${encodeURIComponent(email)}`,
+          style: { color: "#7fd6ff", textDecoration: "underline" },
+          children: "Resend confirmation email"
+        }
+      ) }),
       /* @__PURE__ */ jsxs("div", { style: {
         border: "1px solid rgba(255,255,255,0.08)",
         borderRadius: "0.5rem",
         overflow: "hidden"
       }, children: [
-        /* @__PURE__ */ jsxs("form", { method: "POST", action: "/register", style: { padding: "1.75rem" }, children: [
+        /* @__PURE__ */ jsxs("form", { method: "POST", action: "/login", style: { padding: "1.75rem" }, children: [
           /* @__PURE__ */ jsx("input", { type: "hidden", name: "_csrf", value: csrf }),
-          /* @__PURE__ */ jsx("input", { type: "hidden", name: "fingerprint", value: "" }),
           /* @__PURE__ */ jsxs("div", { style: { marginBottom: "1.125rem" }, children: [
-            /* @__PURE__ */ jsx("label", { htmlFor: "reg-email", style: { display: "block", fontSize: "0.75rem", fontWeight: 500, color: "#9ca3af", marginBottom: "0.4rem" }, children: "Email" }),
+            /* @__PURE__ */ jsx("label", { htmlFor: "login-email", style: { display: "block", fontSize: "0.75rem", fontWeight: 500, color: "#9ca3af", marginBottom: "0.4rem" }, children: "Email" }),
             /* @__PURE__ */ jsx(
               "input",
               {
-                id: "reg-email",
+                id: "login-email",
                 type: "email",
                 name: "email",
                 required: true,
@@ -94,18 +100,30 @@ function Register() {
               }
             )
           ] }),
-          /* @__PURE__ */ jsxs("div", { style: { marginBottom: "1.125rem" }, children: [
-            /* @__PURE__ */ jsxs("label", { htmlFor: "reg-password", style: { display: "block", fontSize: "0.75rem", fontWeight: 500, color: "#9ca3af", marginBottom: "0.4rem" }, children: [
-              "Password ",
-              /* @__PURE__ */ jsx("span", { style: { color: "#4b5563", fontWeight: 400 }, children: "(min 8 chars)" })
+          /* @__PURE__ */ jsxs("div", { style: { marginBottom: "1.5rem" }, children: [
+            /* @__PURE__ */ jsxs("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "0.4rem" }, children: [
+              /* @__PURE__ */ jsx("label", { htmlFor: "login-password", style: { fontSize: "0.75rem", fontWeight: 500, color: "#9ca3af" }, children: "Password" }),
+              /* @__PURE__ */ jsx(
+                "a",
+                {
+                  href: "/forgot-password",
+                  style: { fontSize: "0.6875rem", color: "#2DA7DF", textDecoration: "none" },
+                  onMouseEnter: (e) => {
+                    e.target.style.color = "#7fd6ff";
+                  },
+                  onMouseLeave: (e) => {
+                    e.target.style.color = "#2DA7DF";
+                  },
+                  children: "Forgot?"
+                }
+              )
             ] }),
             /* @__PURE__ */ jsx(
               "input",
               {
-                id: "reg-password",
+                id: "login-password",
                 type: "password",
                 name: "password",
-                minLength: 8,
                 required: true,
                 style: inputStyle,
                 onFocus: (e) => {
@@ -116,102 +134,25 @@ function Register() {
                 }
               }
             )
-          ] }),
-          /* @__PURE__ */ jsxs("div", { style: { marginBottom: "1.25rem" }, children: [
-            /* @__PURE__ */ jsx("label", { htmlFor: "reg-confirm", style: { display: "block", fontSize: "0.75rem", fontWeight: 500, color: "#9ca3af", marginBottom: "0.4rem" }, children: "Confirm password" }),
-            /* @__PURE__ */ jsx(
-              "input",
-              {
-                id: "reg-confirm",
-                type: "password",
-                name: "confirmPassword",
-                minLength: 8,
-                required: true,
-                style: inputStyle,
-                onFocus: (e) => {
-                  e.target.style.borderColor = "rgba(45,167,223,0.5)";
-                },
-                onBlur: (e) => {
-                  e.target.style.borderColor = "rgba(255,255,255,0.1)";
-                }
-              }
-            )
-          ] }),
-          /* @__PURE__ */ jsxs("div", { style: { marginBottom: "1.25rem", padding: "1rem", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "0.375rem" }, children: [
-            /* @__PURE__ */ jsx("p", { style: { fontSize: "0.6875rem", color: "#6b7280", marginBottom: "0.625rem" }, children: "Verify you're human — type the code exactly as shown" }),
-            /* @__PURE__ */ jsx("div", { style: {
-              textAlign: "center",
-              padding: "0.625rem",
-              background: "#0a0a0a",
-              border: "1px solid rgba(45,167,223,0.2)",
-              borderRadius: "0.25rem",
-              marginBottom: "0.625rem"
-            }, children: /* @__PURE__ */ jsx("span", { style: {
-              fontFamily: "JetBrains Mono, monospace",
-              fontSize: "1.25rem",
-              fontWeight: 700,
-              color: "#2DA7DF",
-              letterSpacing: "0.3em"
-            }, children: botCode || "······" }) }),
-            /* @__PURE__ */ jsx(
-              "input",
-              {
-                type: "text",
-                name: "botCode",
-                value: botInput,
-                onChange: (e) => setBotInput(e.target.value.toUpperCase()),
-                required: true,
-                maxLength: 6,
-                placeholder: "TYPE CODE",
-                style: {
-                  ...inputStyle,
-                  textAlign: "center",
-                  fontFamily: "JetBrains Mono, monospace",
-                  letterSpacing: "0.2em",
-                  borderColor: botInput.length === 0 ? "rgba(255,255,255,0.1)" : botCorrect ? "rgba(34,197,94,0.4)" : "rgba(239,68,68,0.4)"
-                }
-              }
-            )
-          ] }),
-          /* @__PURE__ */ jsxs("div", { style: { display: "flex", alignItems: "flex-start", gap: "0.625rem", marginBottom: "1.25rem" }, children: [
-            /* @__PURE__ */ jsx(
-              "input",
-              {
-                type: "checkbox",
-                id: "acceptTerms",
-                name: "acceptTerms",
-                required: true,
-                style: { marginTop: "0.2rem", width: "0.875rem", height: "0.875rem", accentColor: "#2DA7DF", cursor: "pointer", flexShrink: 0 }
-              }
-            ),
-            /* @__PURE__ */ jsxs("label", { htmlFor: "acceptTerms", style: { fontSize: "0.75rem", color: "#6b7280", cursor: "pointer", lineHeight: 1.5 }, children: [
-              "I agree to the",
-              " ",
-              /* @__PURE__ */ jsx("a", { href: "/terms", target: "_blank", rel: "noopener noreferrer", style: { color: "#2DA7DF", textDecoration: "none" }, children: "Terms of Service" }),
-              " ",
-              "and",
-              " ",
-              /* @__PURE__ */ jsx("a", { href: "/privacy", target: "_blank", rel: "noopener noreferrer", style: { color: "#2DA7DF", textDecoration: "none" }, children: "Privacy Policy" })
-            ] })
           ] }),
           /* @__PURE__ */ jsx(
             "button",
             {
               type: "submit",
-              disabled: !submitReady,
+              disabled: !csrf,
               style: {
                 width: "100%",
                 padding: "0.625rem",
-                background: submitReady ? "#2DA7DF" : "rgba(45,167,223,0.2)",
+                background: csrf ? "#2DA7DF" : "rgba(45,167,223,0.3)",
                 border: "none",
                 borderRadius: "0.375rem",
-                color: submitReady ? "#fff" : "#6b7280",
+                color: "#fff",
                 fontSize: "0.875rem",
                 fontWeight: 600,
-                cursor: submitReady ? "pointer" : "not-allowed",
-                transition: "background 150ms, color 150ms"
+                cursor: csrf ? "pointer" : "not-allowed",
+                transition: "background 150ms"
               },
-              children: "Create account"
+              children: "Sign in"
             }
           )
         ] }),
@@ -231,6 +172,7 @@ function Register() {
               gap: "0.625rem",
               padding: "0.6rem",
               background: "#fff",
+              border: "none",
               borderRadius: "0.375rem",
               color: "#111",
               fontSize: "0.875rem",
@@ -252,12 +194,12 @@ function Register() {
         ) })
       ] }),
       /* @__PURE__ */ jsxs("p", { style: { marginTop: "1.25rem", fontSize: "0.8125rem", color: "#6b7280", textAlign: "center" }, children: [
-        "Already have an account?",
+        "Don't have an account?",
         " ",
         /* @__PURE__ */ jsx(
           "a",
           {
-            href: "/login",
+            href: "/register",
             style: { color: "#2DA7DF", textDecoration: "none", fontWeight: 500 },
             onMouseEnter: (e) => {
               e.target.style.color = "#7fd6ff";
@@ -265,7 +207,7 @@ function Register() {
             onMouseLeave: (e) => {
               e.target.style.color = "#2DA7DF";
             },
-            children: "Sign in"
+            children: "Create one free"
           }
         )
       ] })
@@ -273,5 +215,5 @@ function Register() {
   ] });
 }
 export {
-  Register as default
+  Login as default
 };

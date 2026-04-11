@@ -70,7 +70,7 @@ export default function Register() {
   return (
     <PageLayout>
       {/* Title row */}
-      <div className="cb-title-row">
+      <div className="cb-title-row" style={{ textAlign: 'center' }}>
         <p style={{ fontSize: '0.6875rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#2DA7DF', marginBottom: '0.5rem' }}>
           Get started free
         </p>
