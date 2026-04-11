@@ -31,6 +31,7 @@ const { syncDigitalOceanDroplets: syncDigitalOceanDropletsService } = require('.
 const { monitorSubscriptions } = require('./services/subscriptionMonitor');
 const { checkAndProvisionSSL } = require('./services/autoSSL');
 const { runDailyBackups } = require('./services/dailyBackups');
+const { checkUptimeStatus } = require('./services/uptimeMonitor');
 const { generalLimiter } = require('./middleware/rateLimiter');
 const paymentController = require('./controllers/paymentController');
 const githubWebhookController = require('./controllers/githubWebhookController');
@@ -299,6 +300,12 @@ setInterval(runDailyBackups, 24 * 60 * 60 * 1000);
 
 // Run daily backup check on startup (after 5 minutes)
 setTimeout(runDailyBackups, 5 * 60 * 1000);
+
+// Uptime monitor: Ping all active sites every 5 minutes
+setInterval(checkUptimeStatus, 5 * 60 * 1000);
+
+// Run uptime check on startup (after 4 minutes to let server settle)
+setTimeout(checkUptimeStatus, 4 * 60 * 1000);
 
 // Global error handler (must be last)
 app.use(errorHandler);

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 function SectionHeader({ title }) {
   return (
@@ -78,9 +78,102 @@ function AiDiagnosis({ text }) {
   );
 }
 
-function DeploymentRow({ dep, csrfToken }) {
+function BuildLog({ depId, initialStatus, initialOutput }) {
+  const isLive = initialStatus === 'pending' || initialStatus === 'deploying';
+  const [open, setOpen] = useState(isLive);
+  const [output, setOutput] = useState(initialOutput || '');
+  const [status, setStatus] = useState(initialStatus);
+  const bottomRef = useRef(null);
+  const intervalRef = useRef(null);
+
+  // Poll while deploying, stop when done
+  useEffect(() => {
+    if (status !== 'pending' && status !== 'deploying') return;
+
+    intervalRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/deployment-status/${depId}`, { credentials: 'include' });
+        if (!res.ok) return;
+        const data = await res.json();
+        setOutput(data.output || '');
+        setStatus(data.status);
+        if (data.status !== 'pending' && data.status !== 'deploying') {
+          clearInterval(intervalRef.current);
+        }
+      } catch (_) {}
+    }, 2000);
+
+    return () => clearInterval(intervalRef.current);
+  }, [depId, status]);
+
+  // Auto-scroll to bottom when output grows
+  useEffect(() => {
+    if (open && bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [output, open]);
+
+  if (!output) return null;
+
+  const isRunning = status === 'pending' || status === 'deploying';
+
+  return (
+    <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
+          padding: '0.4rem 1.25rem', background: 'none', border: 'none',
+          cursor: 'pointer', textAlign: 'left',
+        }}
+      >
+        {isRunning && (
+          <span style={{
+            width: '0.4375rem', height: '0.4375rem', borderRadius: '50%',
+            background: '#eab308', flexShrink: 0,
+            animation: 'cb-pulse 1.2s ease-in-out infinite',
+          }} />
+        )}
+        <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: '#6b7280', letterSpacing: '0.04em' }}>
+          {isRunning ? 'Build log (live)' : 'Build log'}
+        </span>
+        <span style={{ marginLeft: 'auto', fontSize: '0.625rem', color: '#4b5563' }}>
+          {open ? '▲' : '▼'}
+        </span>
+      </button>
+      {open && (
+        <div style={{
+          margin: '0 1.25rem 0.75rem',
+          borderRadius: '0.375rem',
+          background: '#0a0a0a',
+          border: '1px solid rgba(255,255,255,0.07)',
+          overflow: 'hidden',
+        }}>
+          <pre style={{
+            margin: 0,
+            padding: '0.75rem 1rem',
+            fontSize: '0.6875rem',
+            lineHeight: 1.6,
+            color: '#d1d5db',
+            fontFamily: 'JetBrains Mono, monospace',
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-all',
+            maxHeight: '18rem',
+            overflowY: 'auto',
+          }}>
+            {output}
+            <span ref={bottomRef} />
+          </pre>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DeploymentRow({ dep, csrfToken, isLatest, uptimeStatus }) {
   const [confirming, setConfirming] = useState(false);
   const name = repoName(dep.git_url);
+  const subdomainUrl = dep.subdomain ? `https://${dep.subdomain}.cloudedbasement.ca` : null;
 
   return (
     <div style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
@@ -115,13 +208,16 @@ function DeploymentRow({ dep, csrfToken }) {
             </span>
           )}
           {dep.subdomain && (
-            <a
-              href={`https://${dep.subdomain}.cloudedbasement.ca`}
-              target="_blank" rel="noreferrer"
-              style={{ fontSize: '0.6875rem', color: dep.is_preview ? PREVIEW_COLOR : '#60a5fa', textDecoration: 'none', fontFamily: 'JetBrains Mono, monospace' }}
-            >
-              {dep.subdomain}.cloudedbasement.ca ↗
-            </a>
+            <>
+              <a
+                href={subdomainUrl}
+                target="_blank" rel="noreferrer"
+                style={{ fontSize: '0.6875rem', color: dep.is_preview ? PREVIEW_COLOR : '#60a5fa', textDecoration: 'none', fontFamily: 'JetBrains Mono, monospace' }}
+              >
+                {dep.subdomain}.cloudedbasement.ca ↗
+              </a>
+              {dep.status === 'success' && <UptimeDot url={subdomainUrl} uptimeStatus={uptimeStatus} />}
+            </>
           )}
           <span style={{ fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)' }}>
             {formatDate(dep.deployed_at || dep.created_at)}
@@ -146,6 +242,22 @@ function DeploymentRow({ dep, csrfToken }) {
             Redeploy
           </button>
         </form>
+
+        {/* Rollback — only on past successful deployments that have a commit SHA */}
+        {!isLatest && dep.status === 'success' && dep.commit_sha && (
+          <form action="/rollback" method="POST">
+            <input type="hidden" name="_csrf" value={csrfToken} />
+            <input type="hidden" name="deploymentId" value={dep.id} />
+            <button type="submit" title={`Roll back to ${dep.commit_sha.slice(0, 7)}`} style={{
+              padding: '0.3125rem 0.625rem', borderRadius: '0.3125rem',
+              background: 'transparent', border: '1px solid rgba(251,191,36,0.3)',
+              color: '#fbbf24', fontSize: '0.6875rem',
+              cursor: 'pointer', whiteSpace: 'nowrap',
+            }}>
+              ↩ Rollback
+            </button>
+          </form>
+        )}
 
         {/* Delete */}
         {!confirming ? (
@@ -190,12 +302,34 @@ function DeploymentRow({ dep, csrfToken }) {
       {dep.status === 'failed' && dep.ai_diagnosis && (
         <AiDiagnosis text={dep.ai_diagnosis} />
       )}
+      <BuildLog depId={dep.id} initialStatus={dep.status} initialOutput={dep.output} />
     </div>
   );
 }
 
+function UptimeDot({ url, uptimeStatus }) {
+  if (!uptimeStatus || !url) return null;
+  const entry = uptimeStatus[url];
+  if (!entry) return null;
+  const isUp = entry.status === 'up';
+  return (
+    <span title={isUp ? 'Site is up' : `Down since ${entry.down_since ? new Date(entry.down_since).toLocaleString() : 'unknown'}`} style={{
+      display: 'inline-flex', alignItems: 'center', gap: '0.3rem', flexShrink: 0,
+    }}>
+      <span style={{
+        width: '0.4375rem', height: '0.4375rem', borderRadius: '50%', flexShrink: 0,
+        background: isUp ? '#22c55e' : '#ef4444',
+        boxShadow: isUp ? '0 0 0 2px rgba(34,197,94,0.2)' : '0 0 0 2px rgba(239,68,68,0.2)',
+      }} />
+      <span style={{ fontSize: '0.625rem', color: isUp ? '#22c55e' : '#ef4444' }}>
+        {isUp ? 'up' : 'down'}
+      </span>
+    </span>
+  );
+}
+
 export default function DeploySection({ data }) {
-  const { deployments = [], csrfToken, hasServer, siteCount = 0, siteLimit = 2 } = data;
+  const { deployments = [], csrfToken, hasServer, siteCount = 0, siteLimit = 2, uptimeStatus = {} } = data;
   const [gitUrl, setGitUrl] = useState('');
   const atLimit = siteCount >= siteLimit;
 
@@ -310,8 +444,8 @@ export default function DeploySection({ data }) {
                 Deployments
               </span>
             </div>
-            {deployments.map((dep) => (
-              <DeploymentRow key={dep.id} dep={dep} csrfToken={csrfToken} />
+            {deployments.map((dep, idx) => (
+              <DeploymentRow key={dep.id} dep={dep} csrfToken={csrfToken} isLatest={idx === 0} uptimeStatus={uptimeStatus} />
             ))}
           </div>
         ) : (

@@ -310,8 +310,109 @@ exports.deploy = async (req, res) => {
   }
 };
 
+// Roll back to a specific past deployment by its commit SHA
+exports.rollback = async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const { deploymentId } = req.body;
+
+    if (!deploymentId) {
+      return res.redirect('/dashboard?error=Missing deployment ID');
+    }
+
+    // Fetch target deployment — verify ownership
+    const depResult = await pool.query(
+      'SELECT d.*, s.id as server_id FROM deployments d JOIN servers s ON s.id = d.server_id WHERE d.id = $1 AND d.user_id = $2',
+      [deploymentId, userId]
+    );
+
+    if (depResult.rows.length === 0) {
+      return res.redirect('/dashboard?error=Deployment not found');
+    }
+
+    const target = depResult.rows[0];
+
+    if (target.status !== 'success') {
+      return res.redirect('/dashboard?error=Can only roll back to a successful deployment');
+    }
+
+    if (!target.commit_sha) {
+      return res.redirect('/dashboard?error=This deployment has no commit SHA — redeploy it once to enable rollback');
+    }
+
+    // Get user's server
+    const serverResult = await pool.query(
+      'SELECT * FROM servers WHERE id = $1 AND user_id = $2',
+      [target.server_id, userId]
+    );
+
+    if (serverResult.rows.length === 0) {
+      return res.redirect('/dashboard?error=Server not found');
+    }
+
+    const server = serverResult.rows[0];
+    server.ssh_password = decryptSshPassword(server.ssh_password, server.ssh_password_iv);
+
+    if (!server.ip_address || !server.ssh_password) {
+      return res.redirect('/dashboard?error=Server not ready');
+    }
+
+    const repoName = target.git_url.split('/').pop().replace('.git', '').replace(/[^a-zA-Z0-9_-]/g, '');
+
+    // Create a new deployment record for rollback tracking.
+    // Reuse the original subdomain (no new DNS record needed — domain already exists).
+    const rollbackResult = await pool.query(
+      `INSERT INTO deployments
+         (server_id, user_id, git_url, status, output, subdomain, dns_record_id, branch)
+       VALUES ($1, $2, $3, 'pending', $4, $5, $6, $7)
+       RETURNING id`,
+      [
+        server.id,
+        userId,
+        target.git_url,
+        `Rolling back to commit ${target.commit_sha.slice(0, 7)}...`,
+        target.subdomain,
+        target.dns_record_id,
+        target.branch,
+      ]
+    );
+
+    const newDeploymentId = rollbackResult.rows[0].id;
+    console.log(`[ROLLBACK] Deployment #${newDeploymentId} rolling back to ${target.commit_sha.slice(0, 7)} for user ${userId}`);
+
+    setImmediate(() => {
+      performDeployment(
+        server,
+        target.git_url,
+        repoName,
+        newDeploymentId,
+        target.subdomain,
+        target.branch,
+        target.commit_sha,   // ← triggers the rollback path in performDeployment
+      ).catch(async (err) => {
+        console.error(`[ROLLBACK] Deployment #${newDeploymentId} failed:`, err.message);
+        const failureOutput = `❌ Rollback failed: ${err.message}`;
+        try {
+          await pool.query(
+            'UPDATE deployments SET status = $1, output = $2, deployed_at = NOW() WHERE id = $3',
+            ['failed', failureOutput, newDeploymentId]
+          );
+        } catch (dbErr) {
+          console.error(`[ROLLBACK] Failed to update deployment status:`, dbErr.message);
+        }
+        analyzeDeploymentFailure(newDeploymentId, failureOutput);
+      });
+    });
+
+    res.redirect('/dashboard?success=Rollback started! Check deployment history for progress.');
+  } catch (error) {
+    console.error('[ROLLBACK] Error:', error);
+    res.redirect('/dashboard?error=Rollback failed to start');
+  }
+};
+
 // Async deployment function
-async function performDeployment(server, gitUrl, repoName, deploymentId, subdomain = null, branch = null) {
+async function performDeployment(server, gitUrl, repoName, deploymentId, subdomain = null, branch = null, rollbackSha = null) {
   console.log(`[DEPLOY] ============================================`);
   console.log(`[DEPLOY] Starting performDeployment for deployment #${deploymentId}`);
   console.log(`[DEPLOY] Server IP: ${server.ip_address}, Repo: ${gitUrl}`);
@@ -344,69 +445,62 @@ async function performDeployment(server, gitUrl, repoName, deploymentId, subdoma
     output += '✓ Connected to server via SSH\n';
     await updateDeploymentOutput(deploymentId, output, 'in-progress');
 
-    // Download repository (GitHub tarball - no auth needed for public repos)
-    output += `\n[1/5] Downloading repository...\n`;
-    
-    if (gitUrl.includes('github.com')) {
-      // Extract user/repo from URL (handles both .git and non-.git endings)
-      // https://github.com/user/repo.git OR https://github.com/user/repo
-      const match = gitUrl.match(/github\.com[/:]([\w-]+)\/([\w-]+?)(\.git)?$/);
-      if (!match) {
-        throw new Error('Invalid GitHub URL format. Please use: https://github.com/username/repository');
+    // Clone repository via git (unified path — captures commit SHA for rollback)
+    output += `\n[1/5] Cloning repository...\n`;
+
+    // Security: only HTTPS URLs permitted
+    if (!gitUrl.match(/^https:\/\/[\w.-]+\.[a-z]{2,}\//)) {
+      throw new Error('Only HTTPS git URLs are supported. Use format: https://github.com/username/repo');
+    }
+
+    const safeUrl = gitUrl.replace(/["$`\\]/g, '\\$&');
+
+    if (rollbackSha) {
+      // Rollback path: validate SHA then clone full history + checkout exact commit
+      if (!/^[0-9a-f]{40}$/i.test(rollbackSha)) {
+        throw new Error('Invalid commit SHA for rollback.');
       }
-      
-      const [, user, repo] = match;
-      output += `Repository: ${user}/${repo}\n`;
-      
-      // Use specified branch, or try main then master
+      output += `Rolling back to commit ${rollbackSha.slice(0, 7)}...\n`;
+      await execSSH(conn, `cd /root && rm -rf ${repoName} && git clone -- "${safeUrl}" ${repoName}`);
+      await execSSH(conn, `cd /root/${repoName} && git checkout ${rollbackSha}`);
+      output += `✓ Checked out commit ${rollbackSha.slice(0, 7)}\n`;
+    } else {
+      // Normal deploy path: shallow clone for speed, try main then master
       const branchesToTry = branch ? [branch] : ['main', 'master'];
-      let downloadSuccess = false;
+      let cloneSuccess = false;
 
       for (const tryBranch of branchesToTry) {
+        // Sanitize branch name — only allow safe git ref characters
+        const safeBranch = tryBranch.replace(/[^a-zA-Z0-9._\/-]/g, '');
+        if (!safeBranch) throw new Error(`Invalid branch name: '${tryBranch}'`);
         try {
-          const tarballUrl = `https://github.com/${user}/${repo}/archive/refs/heads/${tryBranch}.tar.gz`;
-          output += `Attempting to download from '${tryBranch}' branch...\n`;
-
-          // Check size first (HEAD request via wget)
-          const sizeCheck = await execSSH(conn, `wget --spider --server-response "${tarballUrl}" 2>&1 | grep -i "content-length" | awk '{print $2}' | tail -1`);
-          const sizeInBytes = parseInt(sizeCheck.trim());
-
-          if (sizeInBytes > 100 * 1024 * 1024) { // 100MB limit
-            throw new Error(`Repository size (${Math.round(sizeInBytes / 1024 / 1024)}MB) exceeds 100MB limit`);
-          }
-
-          output += `Repository size: ${Math.round(sizeInBytes / 1024 / 1024)}MB\n`;
-
-          // Download tarball
-          await execSSH(conn, `cd /root && rm -rf ${repoName} ${repo}-${tryBranch} && wget -q -O repo.tar.gz "${tarballUrl}"`);
-          await execSSH(conn, `cd /root && tar -xzf repo.tar.gz && mv ${repo}-${tryBranch} ${repoName} && rm repo.tar.gz`);
-
-          output += `✓ Repository downloaded successfully (branch: ${tryBranch})\n`;
-          downloadSuccess = true;
+          output += `Cloning branch '${safeBranch}'...\n`;
+          await execSSH(conn, `cd /root && rm -rf ${repoName} && git clone --depth 1 --branch ${safeBranch} -- "${safeUrl}" ${repoName}`);
+          output += `✓ Cloned branch '${safeBranch}'\n`;
+          cloneSuccess = true;
           break;
         } catch (err) {
-          output += `Branch '${tryBranch}' not found or inaccessible\n`;
-          if (tryBranch === branchesToTry[branchesToTry.length - 1]) {
-            throw new Error(`Repository not found or is private. Make sure:\n1. Repository URL is correct\n2. Repository is public\n3. Branch '${tryBranch}' exists and is accessible`);
+          output += `Branch '${safeBranch}' not found\n`;
+          if (safeBranch === branchesToTry[branchesToTry.length - 1].replace(/[^a-zA-Z0-9._\/-]/g, '')) {
+            throw new Error(`Repository not found or is private. Make sure:\n1. Repository URL is correct\n2. Repository is public\n3. Branch '${safeBranch}' exists`);
           }
         }
       }
-      
-      if (!downloadSuccess) {
-        throw new Error('Failed to download repository. Please check the URL and try again.');
+
+      if (!cloneSuccess) {
+        throw new Error('Failed to clone repository. Please check the URL and try again.');
       }
-    } else {
-      // Security: Only allow HTTPS git URLs, no SSH or file:// protocols
-      if (!gitUrl.match(/^https:\/\/[\w\.-]+\.[a-z]{2,}\//)) {
-        throw new Error('Only HTTPS git URLs are allowed for security. Use format: https://git.example.com/user/repo.git');
-      }
-      
-      output += `Using git clone (non-GitHub repository)\n`;
-      // Use -- to separate options from arguments (prevents command injection)
-      await execSSH(conn, `cd /root && rm -rf ${repoName} && git clone -- "${gitUrl.replace(/["$`\\]/g, '\\$&')}"`);
-      output += `✓ Repository cloned\n`;
     }
-    
+
+    // Capture commit SHA — enables rollback to this exact state
+    const shaOutput = await execSSH(conn, `cd /root/${repoName} && git rev-parse HEAD`);
+    const commitSha = shaOutput.trim();
+    output += `Commit: ${commitSha.slice(0, 7)}\n`;
+
+    // Persist SHA (non-blocking — don't let a DB hiccup fail the deploy)
+    pool.query('UPDATE deployments SET commit_sha = $1 WHERE id = $2', [commitSha, deploymentId])
+      .catch(e => console.error('[DEPLOY] Failed to save commit_sha:', e.message));
+
     await updateDeploymentOutput(deploymentId, output, 'in-progress');
 
     // Detect project type

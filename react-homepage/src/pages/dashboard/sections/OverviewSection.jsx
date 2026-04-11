@@ -316,11 +316,58 @@ function GetStartedCard({ data, onNav }) {
   );
 }
 
+function UptimeSummaryCard({ uptimeStatus }) {
+  if (!uptimeStatus || Object.keys(uptimeStatus).length === 0) return null;
+
+  const entries = Object.entries(uptimeStatus);
+  const downSites = entries.filter(([, v]) => v.status === 'down');
+  const allUp = downSites.length === 0;
+
+  return (
+    <div style={{
+      border: `1px solid ${allUp ? 'rgba(34,197,94,0.18)' : 'rgba(239,68,68,0.25)'}`,
+      borderRadius: '0.625rem',
+      marginBottom: '1.25rem',
+      overflow: 'hidden',
+    }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '0.625rem',
+        padding: '0.75rem 1.25rem',
+        borderBottom: entries.length > 0 && !allUp ? '1px solid rgba(255,255,255,0.05)' : 'none',
+        background: allUp ? 'rgba(34,197,94,0.04)' : 'rgba(239,68,68,0.04)',
+      }}>
+        <span style={{
+          width: '0.5rem', height: '0.5rem', borderRadius: '50%', flexShrink: 0,
+          background: allUp ? '#22c55e' : '#ef4444',
+        }} />
+        <span style={{ fontSize: '0.8125rem', fontWeight: 500, color: allUp ? '#22c55e' : '#f87171' }}>
+          {allUp
+            ? `All sites operational (${entries.length})`
+            : `${downSites.length} site${downSites.length > 1 ? 's' : ''} down`}
+        </span>
+      </div>
+      {!allUp && downSites.map(([url]) => (
+        <div key={url} style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0.5rem 1.25rem',
+          borderBottom: '1px solid rgba(255,255,255,0.04)',
+        }}>
+          <span style={{ fontSize: '0.75rem', color: '#f87171', fontFamily: 'JetBrains Mono, monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {url}
+          </span>
+          <span style={{ fontSize: '0.6875rem', color: '#ef4444', flexShrink: 0, marginLeft: '0.5rem' }}>down</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function OverviewSection({ data, onNav }) {
   const {
     hasServer, isProvisioning, hasPaid, trialAvailable,
     serverStatus, serverName, ipAddress, ipv6Address,
     plan, siteCount, siteLimit, csrfToken,
+    uptimeStatus = {},
   } = data;
 
   const atLimit = siteCount >= siteLimit;
@@ -391,6 +438,9 @@ export default function OverviewSection({ data, onNav }) {
 
         {/* Live metrics — only rendered when server is running */}
         {hasServer && serverStatus === 'running' && <MetricsGrid />}
+
+        {/* Uptime summary — shown when we have at least one check result */}
+        {hasServer && <UptimeSummaryCard uptimeStatus={uptimeStatus} />}
 
         {/* Server card */}
         {(hasServer || (isProvisioning && hasServer)) && (

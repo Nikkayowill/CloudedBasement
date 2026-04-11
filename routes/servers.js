@@ -13,6 +13,7 @@ router.post('/delete-server', requireAuth, csrf, serverController.deleteServer);
 
 // Deployments
 router.post('/deploy', requireAuth, deploymentLimiter, csrf, serverController.deploy);
+router.post('/rollback', requireAuth, deploymentLimiter, csrf, serverController.rollback);
 router.post('/delete-deployment', requireAuth, csrf, serverController.deleteDeployment);
 
 // Domains

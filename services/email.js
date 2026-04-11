@@ -460,6 +460,39 @@ async function sendDeployErrorEmail(userEmail, repoUrl, errorMessage) {
   return sendEmail(userEmail, subject, html, text);
 }
 
+async function sendUptimeAlertEmail(userEmail, targetUrl, alertType, downDurationMinutes = null) {
+  const isDown = alertType === 'down';
+  const subject = isDown ? `🔴 Site Down: ${targetUrl}` : `🟢 Site Recovered: ${targetUrl}`;
+
+  const durationNote = downDurationMinutes
+    ? `<p style="color:#9ca3af;font-size:14px;">Downtime duration: approximately ${downDurationMinutes} minute${downDurationMinutes === 1 ? '' : 's'}.</p>`
+    : '';
+
+  const html = isDown ? `
+    <h2 style="color:#ef4444;">Site is Down</h2>
+    <p>Your site <a href="${targetUrl}" style="color:#60a5fa;">${targetUrl}</a> is not responding.</p>
+    <p style="color:#9ca3af;font-size:14px;">We'll send you another email when it recovers.</p>
+    <p style="margin-top:24px;">
+      <a href="https://cloudedbasement.ca/dashboard" style="background:#2563eb;color:white;padding:12px 24px;text-decoration:none;border-radius:4px;display:inline-block;">Go to Dashboard</a>
+    </p>
+    ${emailFooterHtml}
+  ` : `
+    <h2 style="color:#22c55e;">Site Recovered</h2>
+    <p>Your site <a href="${targetUrl}" style="color:#60a5fa;">${targetUrl}</a> is back online.</p>
+    ${durationNote}
+    <p style="margin-top:24px;">
+      <a href="https://cloudedbasement.ca/dashboard" style="background:#2563eb;color:white;padding:12px 24px;text-decoration:none;border-radius:4px;display:inline-block;">Go to Dashboard</a>
+    </p>
+    ${emailFooterHtml}
+  `;
+
+  const text = isDown
+    ? `Site Down: ${targetUrl}\n\nYour site is not responding. We'll email you when it recovers.\n\nDashboard: https://cloudedbasement.ca/dashboard${emailFooterText}`
+    : `Site Recovered: ${targetUrl}\n\nYour site is back online.${downDurationMinutes ? ` Downtime: ~${downDurationMinutes} minute(s).` : ''}\n\nDashboard: https://cloudedbasement.ca/dashboard${emailFooterText}`;
+
+  return sendEmail(userEmail, subject, html, text);
+}
+
 module.exports = {
   sendConfirmationEmail,
   sendEmail,
@@ -469,5 +502,6 @@ module.exports = {
   sendServerReadyEmail,
   sendWelcomeEmail,
   sendTrialEndingEmail,
-  sendDeployErrorEmail
+  sendDeployErrorEmail,
+  sendUptimeAlertEmail,
 };

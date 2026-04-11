@@ -71,6 +71,14 @@ async function runMigrations() {
     // Add branch + is_preview columns to deployments
     const { up: addBranchToDeployments } = require('./029-add-branch-to-deployments');
     await addBranchToDeployments();
+
+    // Add commit_sha for git-based rollback
+    const { up: addCommitSha } = require('./030-add-commit-sha');
+    await addCommitSha();
+
+    // Create uptime monitoring tables
+    const { up: createUptimeChecks } = require('./031-create-uptime-checks');
+    await createUptimeChecks();
     
   } catch (error) {
     // Safely rollback transaction (may not have started if error was early)

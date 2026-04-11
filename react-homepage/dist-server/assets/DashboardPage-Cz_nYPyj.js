@@ -1,5 +1,5 @@
 import { jsxs, jsx, Fragment } from "react/jsx-runtime";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 const PLAN_COLORS = {
   premium: { bg: "rgba(45,167,223,0.22)", color: "#7fd6ff" },
   pro: { bg: "rgba(45,167,223,0.16)", color: "#5cc8f3" },
@@ -353,6 +353,46 @@ function GetStartedCard({ data, onNav }) {
     }) })
   ] });
 }
+function UptimeSummaryCard({ uptimeStatus }) {
+  if (!uptimeStatus || Object.keys(uptimeStatus).length === 0) return null;
+  const entries = Object.entries(uptimeStatus);
+  const downSites = entries.filter(([, v]) => v.status === "down");
+  const allUp = downSites.length === 0;
+  return /* @__PURE__ */ jsxs("div", { style: {
+    border: `1px solid ${allUp ? "rgba(34,197,94,0.18)" : "rgba(239,68,68,0.25)"}`,
+    borderRadius: "0.625rem",
+    marginBottom: "1.25rem",
+    overflow: "hidden"
+  }, children: [
+    /* @__PURE__ */ jsxs("div", { style: {
+      display: "flex",
+      alignItems: "center",
+      gap: "0.625rem",
+      padding: "0.75rem 1.25rem",
+      borderBottom: entries.length > 0 && !allUp ? "1px solid rgba(255,255,255,0.05)" : "none",
+      background: allUp ? "rgba(34,197,94,0.04)" : "rgba(239,68,68,0.04)"
+    }, children: [
+      /* @__PURE__ */ jsx("span", { style: {
+        width: "0.5rem",
+        height: "0.5rem",
+        borderRadius: "50%",
+        flexShrink: 0,
+        background: allUp ? "#22c55e" : "#ef4444"
+      } }),
+      /* @__PURE__ */ jsx("span", { style: { fontSize: "0.8125rem", fontWeight: 500, color: allUp ? "#22c55e" : "#f87171" }, children: allUp ? `All sites operational (${entries.length})` : `${downSites.length} site${downSites.length > 1 ? "s" : ""} down` })
+    ] }),
+    !allUp && downSites.map(([url]) => /* @__PURE__ */ jsxs("div", { style: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: "0.5rem 1.25rem",
+      borderBottom: "1px solid rgba(255,255,255,0.04)"
+    }, children: [
+      /* @__PURE__ */ jsx("span", { style: { fontSize: "0.75rem", color: "#f87171", fontFamily: "JetBrains Mono, monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, children: url }),
+      /* @__PURE__ */ jsx("span", { style: { fontSize: "0.6875rem", color: "#ef4444", flexShrink: 0, marginLeft: "0.5rem" }, children: "down" })
+    ] }, url))
+  ] });
+}
 function OverviewSection({ data, onNav }) {
   const {
     hasServer,
@@ -366,7 +406,8 @@ function OverviewSection({ data, onNav }) {
     plan,
     siteCount,
     siteLimit,
-    csrfToken
+    csrfToken,
+    uptimeStatus = {}
   } = data;
   const atLimit = siteCount >= siteLimit;
   return /* @__PURE__ */ jsxs("section", { children: [
@@ -425,6 +466,7 @@ function OverviewSection({ data, onNav }) {
         /* @__PURE__ */ jsx("p", { style: { fontSize: "0.8125rem", color: "var(--dash-text-secondary, #a1a1a1)" }, children: "Usually takes 2–3 minutes. This page will refresh automatically." })
       ] }),
       hasServer && serverStatus === "running" && /* @__PURE__ */ jsx(MetricsGrid, {}),
+      hasServer && /* @__PURE__ */ jsx(UptimeSummaryCard, { uptimeStatus }),
       (hasServer || isProvisioning && hasServer) && /* @__PURE__ */ jsxs("div", { style: { border: "1px solid rgba(255,255,255,0.07)", borderRadius: "0.625rem" }, children: [
         /* @__PURE__ */ jsxs("div", { style: {
           display: "flex",
@@ -700,9 +742,94 @@ function AiDiagnosis({ text }) {
     }, children: text }) })
   ] });
 }
-function DeploymentRow({ dep, csrfToken }) {
+function BuildLog({ depId, initialStatus, initialOutput }) {
+  const isLive = initialStatus === "pending" || initialStatus === "deploying";
+  const [open, setOpen] = useState(isLive);
+  const [output, setOutput] = useState(initialOutput || "");
+  const [status, setStatus] = useState(initialStatus);
+  const bottomRef = useRef(null);
+  const intervalRef = useRef(null);
+  useEffect(() => {
+    if (status !== "pending" && status !== "deploying") return;
+    intervalRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/deployment-status/${depId}`, { credentials: "include" });
+        if (!res.ok) return;
+        const data = await res.json();
+        setOutput(data.output || "");
+        setStatus(data.status);
+        if (data.status !== "pending" && data.status !== "deploying") {
+          clearInterval(intervalRef.current);
+        }
+      } catch (_) {
+      }
+    }, 2e3);
+    return () => clearInterval(intervalRef.current);
+  }, [depId, status]);
+  useEffect(() => {
+    if (open && bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [output, open]);
+  if (!output) return null;
+  const isRunning = status === "pending" || status === "deploying";
+  return /* @__PURE__ */ jsxs("div", { style: { borderTop: "1px solid rgba(255,255,255,0.04)" }, children: [
+    /* @__PURE__ */ jsxs(
+      "button",
+      {
+        onClick: () => setOpen((o) => !o),
+        style: {
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          gap: "0.5rem",
+          padding: "0.4rem 1.25rem",
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          textAlign: "left"
+        },
+        children: [
+          isRunning && /* @__PURE__ */ jsx("span", { style: {
+            width: "0.4375rem",
+            height: "0.4375rem",
+            borderRadius: "50%",
+            background: "#eab308",
+            flexShrink: 0,
+            animation: "cb-pulse 1.2s ease-in-out infinite"
+          } }),
+          /* @__PURE__ */ jsx("span", { style: { fontSize: "0.6875rem", fontWeight: 600, color: "#6b7280", letterSpacing: "0.04em" }, children: isRunning ? "Build log (live)" : "Build log" }),
+          /* @__PURE__ */ jsx("span", { style: { marginLeft: "auto", fontSize: "0.625rem", color: "#4b5563" }, children: open ? "▲" : "▼" })
+        ]
+      }
+    ),
+    open && /* @__PURE__ */ jsx("div", { style: {
+      margin: "0 1.25rem 0.75rem",
+      borderRadius: "0.375rem",
+      background: "#0a0a0a",
+      border: "1px solid rgba(255,255,255,0.07)",
+      overflow: "hidden"
+    }, children: /* @__PURE__ */ jsxs("pre", { style: {
+      margin: 0,
+      padding: "0.75rem 1rem",
+      fontSize: "0.6875rem",
+      lineHeight: 1.6,
+      color: "#d1d5db",
+      fontFamily: "JetBrains Mono, monospace",
+      whiteSpace: "pre-wrap",
+      wordBreak: "break-all",
+      maxHeight: "18rem",
+      overflowY: "auto"
+    }, children: [
+      output,
+      /* @__PURE__ */ jsx("span", { ref: bottomRef })
+    ] }) })
+  ] });
+}
+function DeploymentRow({ dep, csrfToken, isLatest, uptimeStatus }) {
   const [confirming, setConfirming] = useState(false);
   const name = repoName(dep.git_url);
+  const subdomainUrl = dep.subdomain ? `https://${dep.subdomain}.cloudedbasement.ca` : null;
   return /* @__PURE__ */ jsxs("div", { style: { borderBottom: "1px solid rgba(255,255,255,0.04)" }, children: [
     /* @__PURE__ */ jsxs("div", { style: {
       display: "flex",
@@ -735,19 +862,22 @@ function DeploymentRow({ dep, csrfToken }) {
             textTransform: "uppercase"
           }, children: "Preview" }),
           dep.branch && /* @__PURE__ */ jsx("span", { style: { fontSize: "0.6875rem", color: dep.is_preview ? PREVIEW_COLOR : "var(--dash-text-muted, #525252)", fontFamily: "JetBrains Mono, monospace" }, children: dep.branch }),
-          dep.subdomain && /* @__PURE__ */ jsxs(
-            "a",
-            {
-              href: `https://${dep.subdomain}.cloudedbasement.ca`,
-              target: "_blank",
-              rel: "noreferrer",
-              style: { fontSize: "0.6875rem", color: dep.is_preview ? PREVIEW_COLOR : "#60a5fa", textDecoration: "none", fontFamily: "JetBrains Mono, monospace" },
-              children: [
-                dep.subdomain,
-                ".cloudedbasement.ca ↗"
-              ]
-            }
-          ),
+          dep.subdomain && /* @__PURE__ */ jsxs(Fragment, { children: [
+            /* @__PURE__ */ jsxs(
+              "a",
+              {
+                href: subdomainUrl,
+                target: "_blank",
+                rel: "noreferrer",
+                style: { fontSize: "0.6875rem", color: dep.is_preview ? PREVIEW_COLOR : "#60a5fa", textDecoration: "none", fontFamily: "JetBrains Mono, monospace" },
+                children: [
+                  dep.subdomain,
+                  ".cloudedbasement.ca ↗"
+                ]
+              }
+            ),
+            dep.status === "success" && /* @__PURE__ */ jsx(UptimeDot, { url: subdomainUrl, uptimeStatus })
+          ] }),
           /* @__PURE__ */ jsx("span", { style: { fontSize: "0.6875rem", color: "var(--dash-text-muted, #525252)" }, children: formatDate(dep.deployed_at || dep.created_at) })
         ] })
       ] }),
@@ -766,6 +896,20 @@ function DeploymentRow({ dep, csrfToken }) {
             cursor: "pointer",
             whiteSpace: "nowrap"
           }, children: "Redeploy" })
+        ] }),
+        !isLatest && dep.status === "success" && dep.commit_sha && /* @__PURE__ */ jsxs("form", { action: "/rollback", method: "POST", children: [
+          /* @__PURE__ */ jsx("input", { type: "hidden", name: "_csrf", value: csrfToken }),
+          /* @__PURE__ */ jsx("input", { type: "hidden", name: "deploymentId", value: dep.id }),
+          /* @__PURE__ */ jsx("button", { type: "submit", title: `Roll back to ${dep.commit_sha.slice(0, 7)}`, style: {
+            padding: "0.3125rem 0.625rem",
+            borderRadius: "0.3125rem",
+            background: "transparent",
+            border: "1px solid rgba(251,191,36,0.3)",
+            color: "#fbbf24",
+            fontSize: "0.6875rem",
+            cursor: "pointer",
+            whiteSpace: "nowrap"
+          }, children: "↩ Rollback" })
         ] }),
         !confirming ? /* @__PURE__ */ jsx(
           "button",
@@ -817,11 +961,34 @@ function DeploymentRow({ dep, csrfToken }) {
         ] })
       ] })
     ] }),
-    dep.status === "failed" && dep.ai_diagnosis && /* @__PURE__ */ jsx(AiDiagnosis, { text: dep.ai_diagnosis })
+    dep.status === "failed" && dep.ai_diagnosis && /* @__PURE__ */ jsx(AiDiagnosis, { text: dep.ai_diagnosis }),
+    /* @__PURE__ */ jsx(BuildLog, { depId: dep.id, initialStatus: dep.status, initialOutput: dep.output })
+  ] });
+}
+function UptimeDot({ url, uptimeStatus }) {
+  if (!uptimeStatus || !url) return null;
+  const entry = uptimeStatus[url];
+  if (!entry) return null;
+  const isUp = entry.status === "up";
+  return /* @__PURE__ */ jsxs("span", { title: isUp ? "Site is up" : `Down since ${entry.down_since ? new Date(entry.down_since).toLocaleString() : "unknown"}`, style: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "0.3rem",
+    flexShrink: 0
+  }, children: [
+    /* @__PURE__ */ jsx("span", { style: {
+      width: "0.4375rem",
+      height: "0.4375rem",
+      borderRadius: "50%",
+      flexShrink: 0,
+      background: isUp ? "#22c55e" : "#ef4444",
+      boxShadow: isUp ? "0 0 0 2px rgba(34,197,94,0.2)" : "0 0 0 2px rgba(239,68,68,0.2)"
+    } }),
+    /* @__PURE__ */ jsx("span", { style: { fontSize: "0.625rem", color: isUp ? "#22c55e" : "#ef4444" }, children: isUp ? "up" : "down" })
   ] });
 }
 function DeploySection({ data }) {
-  const { deployments = [], csrfToken, hasServer, siteCount = 0, siteLimit = 2 } = data;
+  const { deployments = [], csrfToken, hasServer, siteCount = 0, siteLimit = 2, uptimeStatus = {} } = data;
   const [gitUrl, setGitUrl] = useState("");
   const atLimit = siteCount >= siteLimit;
   if (!hasServer) {
@@ -935,7 +1102,7 @@ function DeploySection({ data }) {
       ] }),
       deployments.length > 0 ? /* @__PURE__ */ jsxs("div", { style: { border: "1px solid rgba(255,255,255,0.07)", borderRadius: "0.625rem", overflow: "hidden" }, children: [
         /* @__PURE__ */ jsx("div", { style: { padding: "0.75rem 1.25rem", borderBottom: "1px solid rgba(255,255,255,0.05)" }, children: /* @__PURE__ */ jsx("span", { style: { fontSize: "0.75rem", fontWeight: 500, color: "var(--dash-text-muted, #525252)", letterSpacing: "0.04em", textTransform: "uppercase" }, children: "Deployments" }) }),
-        deployments.map((dep) => /* @__PURE__ */ jsx(DeploymentRow, { dep, csrfToken }, dep.id))
+        deployments.map((dep, idx) => /* @__PURE__ */ jsx(DeploymentRow, { dep, csrfToken, isLatest: idx === 0, uptimeStatus }, dep.id))
       ] }) : /* @__PURE__ */ jsx("div", { style: {
         border: "1px solid rgba(255,255,255,0.07)",
         borderRadius: "0.625rem",

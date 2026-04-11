@@ -7,6 +7,7 @@ const { PAYMENT_STATUS, SERVER_STATUS } = require('../src/utils/constants');
 const serverUpdates = require('../services/serverUpdates');
 const { sendEmail } = require('../services/email');
 const { getNonce } = require('../src/utils/nonce');
+const { getUptimeStatusForUser } = require('../services/uptimeMonitor');
 
 // Dashboard navigation items - centralized for consistency
 const DASHBOARD_NAV_ITEMS = [
@@ -614,6 +615,8 @@ const getDashboardData = async (req, res) => {
             ? `https://${sslDomain.domain}`
             : domains.length > 0 ? `http://${domains[0].domain}` : `http://${server?.ip_address || ''}`;
 
+        const uptimeStatus = await getUptimeStatusForUser(userId);
+
         res.json({
             userEmail:      req.session.userEmail,
             userRole:       req.session.userRole,
@@ -637,6 +640,7 @@ const getDashboardData = async (req, res) => {
             deployments:     deploymentsResult.rows || [],
             domains,
             liveSiteUrl,
+            uptimeStatus,
             csrfToken:    typeof req.csrfToken === 'function' ? req.csrfToken() : '',
         });
     } catch (error) {
