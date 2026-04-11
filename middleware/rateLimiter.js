@@ -1,4 +1,5 @@
 const rateLimit = require('express-rate-limit');
+const { ipKeyGenerator } = require('express-rate-limit');
 
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -37,7 +38,7 @@ const deploymentLimiter = rateLimit({
   message: 'Too many deployments, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => (req.session?.userId || req.userId)?.toString() || req.ip || 'anonymous'
+  keyGenerator: (req) => (req.session?.userId || req.userId)?.toString() || ipKeyGenerator(req) || 'anonymous'
 });
 
 const loginLimiter = rateLimit({
