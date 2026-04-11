@@ -61,7 +61,7 @@ function Login() {
       /* @__PURE__ */ jsx("p", { style: { fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "#2DA7DF", marginBottom: "0.5rem" }, children: "Welcome back" }),
       /* @__PURE__ */ jsx("h1", { style: { fontSize: "clamp(1.5rem, 3vw, 2.25rem)", fontWeight: 700, color: "#f5f5f5", margin: 0 }, children: "Sign in to your account" })
     ] }),
-    /* @__PURE__ */ jsx("div", { style: { padding: "clamp(2rem, 5vw, 3.5rem) var(--cb-content-pad)" }, children: /* @__PURE__ */ jsxs("div", { style: { maxWidth: "26rem", width: "100%" }, children: [
+    /* @__PURE__ */ jsx("div", { style: { padding: "clamp(2rem, 5vw, 3.5rem) var(--cb-content-pad)", display: "flex", justifyContent: "center" }, children: /* @__PURE__ */ jsxs("div", { style: { maxWidth: "26rem", width: "100%" }, children: [
       success && /* @__PURE__ */ jsx(Flash, { type: "success", children: success }),
       warning && /* @__PURE__ */ jsx(Flash, { type: "warning", children: warning }),
       error && /* @__PURE__ */ jsx(Flash, { type: "error", children: error }),
