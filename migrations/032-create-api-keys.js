@@ -20,9 +20,6 @@ async function up() {
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_api_keys_user_id  ON api_keys(user_id)
     `);
-    await client.query(`
-      CREATE INDEX IF NOT EXISTS idx_api_keys_key_hash ON api_keys(key_hash)
-    `);
     console.log('[MIGRATION] ✓ api_keys table ready');
   } finally {
     client.release();

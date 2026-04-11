@@ -43,11 +43,18 @@ function KeyRevealModal({ apiKey: key, onClose }) {
   const [copied, setCopied] = useState(false);
 
   async function copy() {
+    // Guard against browsers without clipboard API
+    if (!navigator?.clipboard?.writeText) {
+      console.error('Clipboard API not available');
+      return;
+    }
     try {
       await navigator.clipboard.writeText(key);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (_) {}
+    } catch (err) {
+      console.error('Failed to copy to clipboard:', err);
+    }
   }
 
   return (
@@ -143,13 +150,35 @@ function CreateKeyForm({ csrfToken, onCreated }) {
         headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrfToken },
         body: JSON.stringify({ name, scopes }),
       });
+      
+      // Check response status first
+      if (!res.ok) {
+        // Try to extract error from response body (supports JSON and text)
+        let errorMsg = 'Failed to create key';
+        try {
+          const contentType = res.headers.get('content-type');
+          if (contentType?.includes('application/json')) {
+            const data = await res.json();
+            errorMsg = data.error || errorMsg;
+          } else {
+            const text = await res.text();
+            errorMsg = text || errorMsg;
+          }
+        } catch (parseErr) {
+          console.error('Error parsing response:', parseErr);
+        }
+        setError(errorMsg);
+        return;
+      }
+      
+      // Only parse JSON if response is ok
       const data = await res.json();
-      if (!res.ok) { setError(data.error || 'Failed to create key'); return; }
       setName('');
       setScopes(['deploy']);
       onCreated(data);
-    } catch (_) {
+    } catch (err) {
       setError('Network error — please try again');
+      console.error('Request failed:', err);
     } finally {
       setLoading(false);
     }
@@ -224,19 +253,47 @@ function CreateKeyForm({ csrfToken, onCreated }) {
 
 function KeyRow({ apiKey: k, csrfToken, onRevoked }) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   async function revoke() {
     if (!confirm(`Revoke key "${k.name}"? This cannot be undone.`)) return;
     setLoading(true);
+    setError('');
     try {
       const res = await fetch(`/api/keys/${k.id}`, {
         method: 'DELETE',
         credentials: 'include',
         headers: { 'x-csrf-token': csrfToken },
       });
-      if (res.ok) onRevoked(k.id);
-    } catch (_) {}
-    setLoading(false);
+      
+      if (!res.ok) {
+        // Attempt to extract error message from response
+        let errorMsg = 'Failed to revoke key';
+        try {
+          const contentType = res.headers.get('content-type');
+          if (contentType?.includes('application/json')) {
+            const data = await res.json();
+            errorMsg = data.error || errorMsg;
+          } else {
+            const text = await res.text();
+            errorMsg = text || errorMsg;
+          }
+        } catch (parseErr) {
+          console.error('Error parsing error response:', parseErr);
+        }
+        setError(errorMsg);
+        return;
+      }
+      
+      // Success - notify parent and clear error
+      setError('');
+      onRevoked(k.id);
+    } catch (err) {
+      setError('Network error — could not revoke key');
+      console.error('Revoke failed:', err);
+    } finally {
+      setLoading(false);
+    }
   }
 
   const expired = k.expires_at && new Date(k.expires_at) < new Date();
@@ -271,6 +328,11 @@ function KeyRow({ apiKey: k, csrfToken, onRevoked }) {
           {k.last_used_at ? ` · Last used ${formatDate(k.last_used_at)}` : ' · Never used'}
           {k.expires_at ? ` · Expires ${formatDate(k.expires_at)}` : ''}
         </div>
+        {error && (
+          <div style={{ fontSize: '0.6875rem', color: '#f87171', marginTop: '0.35rem' }}>
+            {error}
+          </div>
+        )}
       </div>
       <button
         onClick={revoke}
