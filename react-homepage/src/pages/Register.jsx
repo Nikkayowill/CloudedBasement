@@ -102,7 +102,7 @@ export default function Register() {
         }}
       />
 
-      <div style={{ width: '100%', maxWidth: '85rem', margin: '0 auto', minHeight: '100vh', borderLeft: '1px solid rgba(255,255,255,0.07)', borderRight: '1px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+      <div style={{ width: '100%', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
         <div style={{ width: '100%', maxWidth: '24.5rem', background: 'rgba(17, 24, 39, 0.84)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '0.9rem', padding: '1.75rem', boxShadow: '0 24px 70px rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)' }}>
 
         <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>

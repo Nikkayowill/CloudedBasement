@@ -4,7 +4,7 @@ export default function HeroSection() {
   return (
     <section>
       <div className="cb-split cb-split-2">
-        <div className="cb-content-pad py-28 md:py-32 mt-20 md:mt-32 flex flex-col items-center md:items-start text-center md:text-left relative">
+        <div className="cb-content-pad pt-20 pb-28 md:pt-32 md:pb-32 flex flex-col items-center md:items-start text-center md:text-left relative">
           <img
             src="/CB-last-final.svg"
             alt="Clouded Basement Logo"
@@ -26,7 +26,7 @@ export default function HeroSection() {
           </div>
         </div>
 
-        <div className="cb-content-pad py-28 md:py-32 mt-20 md:mt-28 flex flex-col items-center justify-center gap-4">
+        <div className="cb-content-pad pt-20 pb-28 md:pt-28 md:pb-32 flex flex-col items-center justify-center gap-4">
           <TerminalCard />
           <p className="funnel-mono text-[11px] text-center text-white/20">
             automate the server work. keep shipping product.

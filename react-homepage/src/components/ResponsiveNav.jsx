@@ -44,7 +44,7 @@ export default function ResponsiveNav() {
       <nav style={{
         position: 'sticky',
         top: 0,
-        zIndex: 50,
+        zIndex: mobileOpen ? 1200 : 50,
         opacity: visible ? 1 : 0,
         pointerEvents: visible ? 'auto' : 'none',
         transition: 'opacity 280ms ease',
@@ -141,46 +141,82 @@ export default function ResponsiveNav() {
 
         {/* Mobile full-screen overlay (fixed to viewport, breaks out of sticky parent) */}
         <div className="md:hidden" style={{
-          position: 'fixed', inset: 0, zIndex: 999,
-          background: 'rgba(3,6,8,0.97)',
+          position: 'fixed', inset: 0, zIndex: 1300,
+          minHeight: '100dvh',
+          overflowY: 'auto',
+          background: 'rgba(3,6,8,0.985)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
           display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center', gap: '2rem',
+          alignItems: 'stretch', justifyContent: 'flex-start',
           transition: 'opacity 250ms',
           opacity: mobileOpen ? 1 : 0,
           pointerEvents: mobileOpen ? 'auto' : 'none',
         }}>
-          {[
-            { label: 'Features', href: '/#features' },
-            { label: 'Pricing',  href: '/#pricing'  },
-            { label: 'Docs',     href: '/docs'       },
-            { label: 'Sign in',  href: '/login'      },
-          ].map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '1rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.08)',
+          }}>
+            <img
+              src="/CB-logo-icon.svg"
+              alt="Clouded Basement"
+              style={{ height: '1.6rem', width: 'auto', display: 'block' }}
+            />
+            <button
               onClick={() => setMobileOpen(false)}
-              style={{ color: '#d1d5db', textDecoration: 'none', fontSize: '1.25rem', fontWeight: 500, transition: 'color 150ms' }}
+              style={{
+                width: '2.25rem', height: '2.25rem',
+                borderRadius: '999px',
+                border: '1px solid rgba(255,255,255,0.16)',
+                background: 'rgba(255,255,255,0.04)',
+                color: '#d1d5db',
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer',
+              }}
+              aria-label="Close menu"
             >
-              {link.label}
+              <XIcon size={18} />
+            </button>
+          </div>
+
+          <div style={{ padding: '1.15rem 1.25rem 0.75rem', display: 'flex', flexDirection: 'column' }}>
+            {[
+              { label: 'Features', href: '/#features' },
+              { label: 'Pricing',  href: '/#pricing'  },
+              { label: 'Docs',     href: '/docs'      },
+            ].map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                onClick={() => setMobileOpen(false)}
+                style={{
+                  color: '#e5e7eb', textDecoration: 'none', fontSize: '1.125rem', fontWeight: 500,
+                  padding: '0.9rem 0.1rem', borderBottom: '1px solid rgba(255,255,255,0.08)',
+                }}
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
+
+          <div style={{ padding: '0.9rem 1.25rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+            <a
+              href="/login"
+              onClick={() => setMobileOpen(false)}
+              className="funnel-btn funnel-btn-ghost"
+              style={{ width: '100%', justifyContent: 'center' }}
+            >
+              Sign in
             </a>
-          ))}
-          <a
-            href="/register"
-            onClick={() => setMobileOpen(false)}
-            className="funnel-btn funnel-btn-primary"
-            style={{ marginTop: '0.5rem' }}
-          >
-            Start free trial
-          </a>
-          <button
-            onClick={() => setMobileOpen(false)}
-            style={{ marginTop: '1rem', background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer' }}
-            aria-label="Close menu"
-          >
-            <XIcon size={24} />
-          </button>
+            <a
+              href="/register"
+              onClick={() => setMobileOpen(false)}
+              className="funnel-btn funnel-btn-primary"
+              style={{ width: '100%', justifyContent: 'center' }}
+            >
+              Start free trial
+            </a>
+          </div>
         </div>
       </nav>
 

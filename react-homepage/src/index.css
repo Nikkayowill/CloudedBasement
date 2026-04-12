@@ -9,14 +9,15 @@
   --cb-shell-max: 85rem;
   --cb-shell-pad: clamp(0.75rem, 2.2vw, 1rem);
   --cb-content-pad: clamp(1.5rem, 3.4vw, 2.5rem);
+  --cb-rail-inset: clamp(0.625rem, 1.1vw, 1.1rem);
 }
 
 /* Shell rails are rendered once on a parent container. */
 .cb-shell {
   width: 100%;
-  max-width: var(--cb-shell-max);
+  max-width: none;
   margin-inline: auto;
-  padding-inline: var(--cb-shell-pad);
+  padding-inline: 0;
   overflow-x: clip;
 }
 
@@ -24,15 +25,26 @@
   position: relative;
   min-height: 100%;
   background: var(--cb-bg);
-  border-left: 1px solid var(--cb-line);
-  border-right: 1px solid var(--cb-line);
 }
 
-@media (max-width: 1152px) {
-  .cb-shell-inner {
-    border-left-color: var(--cb-line-strong);
-    border-right-color: var(--cb-line-strong);
-  }
+.cb-shell-inner::before,
+.cb-shell-inner::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--cb-line);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cb-shell-inner::before {
+  left: var(--cb-rail-inset);
+}
+
+.cb-shell-inner::after {
+  right: var(--cb-rail-inset);
 }
 
 /* Sections auto-separate, so adding/removing sections stays safe. */
