@@ -22,6 +22,15 @@ function generateBotCode() {
   return code;
 }
 
+// ── Auth status — React nav fetches this to show Dashboard vs Sign in
+router.get('/api/auth/status', (req, res) => {
+  if (req.session && req.session.userId) {
+    res.json({ loggedIn: true });
+  } else {
+    res.json({ loggedIn: false });
+  }
+});
+
 // ── Bot challenge — React register page fetches this to get the human-check code
 router.get('/api/auth/bot-challenge', (req, res) => {
   const botCode = generateBotCode();

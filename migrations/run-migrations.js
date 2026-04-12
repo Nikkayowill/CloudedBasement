@@ -60,6 +60,10 @@ async function runMigrations() {
     const { run: addBrowserFingerprint } = require('./016-add-browser-fingerprint');
     await addBrowserFingerprint();
 
+    // Add Google OAuth columns (google_id, auth_provider) to users table
+    const { up: addGoogleOAuth } = require('./023-add-google-oauth');
+    await addGoogleOAuth();
+
     // Add wordpress_sites table + servers.server_type discriminator
     const { up: addWordPressSites } = require('./026-add-wordpress-sites');
     await addWordPressSites();

@@ -209,6 +209,11 @@ function ResponsiveNav() {
   const lastY = useRef(0);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
+  useEffect(() => {
+    fetch("/api/auth/status", { credentials: "same-origin" }).then((r) => r.json()).then((d) => setLoggedIn(d.loggedIn)).catch(() => {
+    });
+  }, []);
   useEffect(() => {
     function onScroll() {
       const y = window.scrollY;
@@ -242,7 +247,7 @@ function ResponsiveNav() {
     /* @__PURE__ */ jsxs("nav", { style: {
       position: "sticky",
       top: 0,
-      zIndex: 50,
+      zIndex: mobileOpen ? 1200 : 50,
       opacity: visible ? 1 : 0,
       pointerEvents: visible ? "auto" : "none",
       transition: "opacity 280ms ease",
@@ -323,7 +328,15 @@ function ResponsiveNav() {
               children: /* @__PURE__ */ jsx(SearchIcon, { size: 18 })
             }
           ),
-          /* @__PURE__ */ jsxs("div", { className: "hidden md:flex", style: { gap: "0.75rem" }, children: [
+          /* @__PURE__ */ jsx("div", { className: "hidden md:flex", style: { gap: "0.75rem" }, children: loggedIn ? /* @__PURE__ */ jsx(
+            "a",
+            {
+              href: "/dashboard",
+              className: "funnel-btn funnel-btn-primary",
+              style: { padding: "0.375rem 0.875rem", fontSize: "0.875rem" },
+              children: "Dashboard"
+            }
+          ) : /* @__PURE__ */ jsxs(Fragment, { children: [
             /* @__PURE__ */ jsx(
               "a",
               {
@@ -342,7 +355,7 @@ function ResponsiveNav() {
                 children: "Start free trial"
               }
             )
-          ] }),
+          ] }) }),
           /* @__PURE__ */ jsx(
             "button",
             {
@@ -358,53 +371,108 @@ function ResponsiveNav() {
       /* @__PURE__ */ jsxs("div", { className: "md:hidden", style: {
         position: "fixed",
         inset: 0,
-        zIndex: 999,
-        background: "rgba(3,6,8,0.97)",
+        zIndex: 1300,
+        minHeight: "100dvh",
+        overflowY: "auto",
+        background: "rgba(3,6,8,0.985)",
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "2rem",
+        alignItems: "stretch",
+        justifyContent: "flex-start",
         transition: "opacity 250ms",
         opacity: mobileOpen ? 1 : 0,
         pointerEvents: mobileOpen ? "auto" : "none"
       }, children: [
-        [
+        /* @__PURE__ */ jsxs("div", { style: {
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "1rem 1.25rem",
+          borderBottom: "1px solid rgba(255,255,255,0.08)"
+        }, children: [
+          /* @__PURE__ */ jsx(
+            "img",
+            {
+              src: "/CB-logo-icon.svg",
+              alt: "Clouded Basement",
+              style: { height: "1.6rem", width: "auto", display: "block" }
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              onClick: () => setMobileOpen(false),
+              style: {
+                width: "2.25rem",
+                height: "2.25rem",
+                borderRadius: "999px",
+                border: "1px solid rgba(255,255,255,0.16)",
+                background: "rgba(255,255,255,0.04)",
+                color: "#d1d5db",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer"
+              },
+              "aria-label": "Close menu",
+              children: /* @__PURE__ */ jsx(XIcon, { size: 18 })
+            }
+          )
+        ] }),
+        /* @__PURE__ */ jsx("div", { style: { padding: "1.15rem 1.25rem 0.75rem", display: "flex", flexDirection: "column" }, children: [
           { label: "Features", href: "/#features" },
           { label: "Pricing", href: "/#pricing" },
-          { label: "Docs", href: "/docs" },
-          { label: "Sign in", href: "/login" }
+          { label: "Docs", href: "/docs" }
         ].map((link) => /* @__PURE__ */ jsx(
           "a",
           {
             href: link.href,
             onClick: () => setMobileOpen(false),
-            style: { color: "#d1d5db", textDecoration: "none", fontSize: "1.25rem", fontWeight: 500, transition: "color 150ms" },
+            style: {
+              color: "#e5e7eb",
+              textDecoration: "none",
+              fontSize: "1.125rem",
+              fontWeight: 500,
+              padding: "0.9rem 0.1rem",
+              borderBottom: "1px solid rgba(255,255,255,0.08)"
+            },
             children: link.label
           },
           link.label
-        )),
-        /* @__PURE__ */ jsx(
+        )) }),
+        /* @__PURE__ */ jsx("div", { style: { padding: "0.9rem 1.25rem 1.25rem", display: "flex", flexDirection: "column", gap: "0.65rem" }, children: loggedIn ? /* @__PURE__ */ jsx(
           "a",
           {
-            href: "/register",
+            href: "/dashboard",
             onClick: () => setMobileOpen(false),
             className: "funnel-btn funnel-btn-primary",
-            style: { marginTop: "0.5rem" },
-            children: "Start free trial"
+            style: { width: "100%", justifyContent: "center" },
+            children: "Dashboard"
           }
-        ),
-        /* @__PURE__ */ jsx(
-          "button",
-          {
-            onClick: () => setMobileOpen(false),
-            style: { marginTop: "1rem", background: "none", border: "none", color: "#6b7280", cursor: "pointer" },
-            "aria-label": "Close menu",
-            children: /* @__PURE__ */ jsx(XIcon, { size: 24 })
-          }
-        )
+        ) : /* @__PURE__ */ jsxs(Fragment, { children: [
+          /* @__PURE__ */ jsx(
+            "a",
+            {
+              href: "/login",
+              onClick: () => setMobileOpen(false),
+              className: "funnel-btn funnel-btn-ghost",
+              style: { width: "100%", justifyContent: "center" },
+              children: "Sign in"
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            "a",
+            {
+              href: "/register",
+              onClick: () => setMobileOpen(false),
+              className: "funnel-btn funnel-btn-primary",
+              style: { width: "100%", justifyContent: "center" },
+              children: "Start free trial"
+            }
+          )
+        ] }) })
       ] })
     ] }),
     searchOpen && /* @__PURE__ */ jsx(SearchOverlay, { onClose: () => setSearchOpen(false) })
@@ -556,7 +624,7 @@ function TerminalCard$1() {
 function HeroSection() {
   return /* @__PURE__ */ jsxs("section", { children: [
     /* @__PURE__ */ jsxs("div", { className: "cb-split cb-split-2", children: [
-      /* @__PURE__ */ jsxs("div", { className: "cb-content-pad py-28 md:py-32 mt-20 md:mt-32 flex flex-col items-center md:items-start text-center md:text-left relative", children: [
+      /* @__PURE__ */ jsxs("div", { className: "cb-content-pad pt-20 pb-28 md:pt-32 md:pb-32 flex flex-col items-center md:items-start text-center md:text-left relative", children: [
         /* @__PURE__ */ jsx(
           "img",
           {
@@ -582,7 +650,7 @@ function HeroSection() {
           /* @__PURE__ */ jsx("a", { href: "/docs", className: "funnel-btn funnel-btn-subtle", children: "Documentation" })
         ] })
       ] }),
-      /* @__PURE__ */ jsxs("div", { className: "cb-content-pad py-28 md:py-32 mt-20 md:mt-28 flex flex-col items-center justify-center gap-4", children: [
+      /* @__PURE__ */ jsxs("div", { className: "cb-content-pad pt-20 pb-28 md:pt-28 md:pb-32 flex flex-col items-center justify-center gap-4", children: [
         /* @__PURE__ */ jsx(TerminalCard$1, {}),
         /* @__PURE__ */ jsx("p", { className: "funnel-mono text-[11px] text-center text-white/20", children: "automate the server work. keep shipping product." })
       ] })
@@ -1472,16 +1540,16 @@ function HomePage() {
     /* @__PURE__ */ jsx(Footer, {})
   ] }) }) });
 }
-const DashboardPage = lazy(() => import("./assets/DashboardPage-C-V2FrBX.js"));
+const DashboardPage = lazy(() => import("./assets/DashboardPage-R3JKqmrb.js"));
 const About = lazy(() => import("./assets/About-COLVXPnX.js"));
 const Compare = lazy(() => import("./assets/Compare-BvaYsUZG.js"));
 const Contact = lazy(() => import("./assets/Contact-DGk-0rMT.js"));
-const Docs = lazy(() => import("./assets/Docs-ChodqmnN.js"));
+const Docs = lazy(() => import("./assets/Docs-ClW3rnAn.js"));
 const Faq = lazy(() => import("./assets/Faq-D0aFlNPc.js"));
-const Login = lazy(() => import("./assets/Login-DF2p4XYp.js"));
+const Login = lazy(() => import("./assets/Login-oYNsdNfP.js"));
 const Pricing = lazy(() => import("./assets/Pricing-tq7efVER.js"));
 const Privacy = lazy(() => import("./assets/Privacy-DK81Pm53.js"));
-const Register = lazy(() => import("./assets/Register-CT09GOHd.js"));
+const Register = lazy(() => import("./assets/Register-C47F4xQF.js"));
 const Safety = lazy(() => import("./assets/Safety-BNJLC9p1.js"));
 const Terms = lazy(() => import("./assets/Terms-B_VfDbsH.js"));
 function HomeWrapper() {

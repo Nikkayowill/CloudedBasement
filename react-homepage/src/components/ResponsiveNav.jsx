@@ -7,6 +7,14 @@ export default function ResponsiveNav() {
   const lastY = useRef(0);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/auth/status', { credentials: 'same-origin' })
+      .then((r) => r.json())
+      .then((d) => setLoggedIn(d.loggedIn))
+      .catch(() => {});
+  }, []);
 
   // Hide on scroll-down past 80px, show on scroll-up
   useEffect(() => {
@@ -115,16 +123,26 @@ export default function ResponsiveNav() {
             </button>
 
             <div className="hidden md:flex" style={{ gap: '0.75rem' }}>
-              <a href="/login"
-                 className="funnel-btn funnel-btn-ghost"
-                 style={{ padding: '0.375rem 0.875rem', fontSize: '0.875rem' }}>
-                Sign in
-              </a>
-              <a href="/register"
-                 className="funnel-btn funnel-btn-primary"
-                 style={{ padding: '0.375rem 0.875rem', fontSize: '0.875rem' }}>
-                Start free trial
-              </a>
+              {loggedIn ? (
+                <a href="/dashboard"
+                   className="funnel-btn funnel-btn-primary"
+                   style={{ padding: '0.375rem 0.875rem', fontSize: '0.875rem' }}>
+                  Dashboard
+                </a>
+              ) : (
+                <>
+                  <a href="/login"
+                     className="funnel-btn funnel-btn-ghost"
+                     style={{ padding: '0.375rem 0.875rem', fontSize: '0.875rem' }}>
+                    Sign in
+                  </a>
+                  <a href="/register"
+                     className="funnel-btn funnel-btn-primary"
+                     style={{ padding: '0.375rem 0.875rem', fontSize: '0.875rem' }}>
+                    Start free trial
+                  </a>
+                </>
+              )}
             </div>
 
             {/* Mobile hamburger */}
@@ -200,22 +218,35 @@ export default function ResponsiveNav() {
           </div>
 
           <div style={{ padding: '0.9rem 1.25rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-            <a
-              href="/login"
-              onClick={() => setMobileOpen(false)}
-              className="funnel-btn funnel-btn-ghost"
-              style={{ width: '100%', justifyContent: 'center' }}
-            >
-              Sign in
-            </a>
-            <a
-              href="/register"
-              onClick={() => setMobileOpen(false)}
-              className="funnel-btn funnel-btn-primary"
-              style={{ width: '100%', justifyContent: 'center' }}
-            >
-              Start free trial
-            </a>
+            {loggedIn ? (
+              <a
+                href="/dashboard"
+                onClick={() => setMobileOpen(false)}
+                className="funnel-btn funnel-btn-primary"
+                style={{ width: '100%', justifyContent: 'center' }}
+              >
+                Dashboard
+              </a>
+            ) : (
+              <>
+                <a
+                  href="/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="funnel-btn funnel-btn-ghost"
+                  style={{ width: '100%', justifyContent: 'center' }}
+                >
+                  Sign in
+                </a>
+                <a
+                  href="/register"
+                  onClick={() => setMobileOpen(false)}
+                  className="funnel-btn funnel-btn-primary"
+                  style={{ width: '100%', justifyContent: 'center' }}
+                >
+                  Start free trial
+                </a>
+              </>
+            )}
           </div>
         </div>
       </nav>

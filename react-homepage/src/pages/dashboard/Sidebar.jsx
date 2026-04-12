@@ -99,6 +99,8 @@ function SidebarInner({ nav, active, onNav, userEmail, initial, plan, planStyle,
         <div className="mt-2 flex gap-4 text-[0.6875rem]">
           <a
             href="/docs"
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-[rgba(120,120,120,1)] no-underline transition-colors duration-150 hover:text-[#2DA7DF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2DA7DF]/70"
           >
             Docs
