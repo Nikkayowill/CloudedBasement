@@ -1540,7 +1540,9 @@ function HomePage() {
     /* @__PURE__ */ jsx(Footer, {})
   ] }) }) });
 }
-const DashboardPage = lazy(() => import("./assets/DashboardPage-R3JKqmrb.js"));
+const DashboardPage = lazy(() => import("./assets/DashboardPage-DmYW1l4H.js"));
+const AdminPage = lazy(() => import("./assets/AdminPage-C_0vg4oA.js"));
+const AdminUpdatesPage = lazy(() => import("./assets/AdminUpdatesPage-hJRJOb1H.js"));
 const About = lazy(() => import("./assets/About-COLVXPnX.js"));
 const Compare = lazy(() => import("./assets/Compare-BvaYsUZG.js"));
 const Contact = lazy(() => import("./assets/Contact-DGk-0rMT.js"));
@@ -1593,6 +1595,20 @@ function App() {
       {
         path: "/dashboard",
         element: /* @__PURE__ */ jsx(Suspense, { fallback: null, children: /* @__PURE__ */ jsx(DashboardPage, {}) })
+      }
+    ),
+    /* @__PURE__ */ jsx(
+      Route,
+      {
+        path: "/admin",
+        element: /* @__PURE__ */ jsx(Suspense, { fallback: null, children: /* @__PURE__ */ jsx(AdminPage, {}) })
+      }
+    ),
+    /* @__PURE__ */ jsx(
+      Route,
+      {
+        path: "/admin/updates",
+        element: /* @__PURE__ */ jsx(Suspense, { fallback: null, children: /* @__PURE__ */ jsx(AdminUpdatesPage, {}) })
       }
     )
   ] });

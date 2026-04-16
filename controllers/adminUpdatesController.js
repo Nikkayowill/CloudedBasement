@@ -284,7 +284,7 @@ apt upgrade -y" class="admin-input" style="font-family:monospace;font-size:0.812
                                                     <input type="hidden" name="_csrf" value="${req.csrfToken()}">
                                                     <label class="block text-xs mb-2" style="color:var(--dash-text-secondary)">Select test server:</label>
                                                     <select name="serverId" required class="admin-input text-xs mb-2" style="font-size:0.75rem;padding:0.25rem 0.5rem">
-                                                        ${testServers.map(s => `<option value="${s.id}">${escapeHtml(s.hostname || s.ip_address)} (${escapeHtml(s.owner_email || 'unknown')})</option>`).join('')}
+                                                        ${testServers.map(s => `<option value="${s.id}">${escapeHtml(s.ip_address)} (${escapeHtml(s.owner_email || 'unknown')})</option>`).join('')}
                                                     </select>
                                                     <button type="submit" class="admin-btn admin-btn-orange w-full" style="justify-content:center">
                                                         Run Test
@@ -395,7 +395,7 @@ const showUpdateDetail = async (req, res) => {
     let executionLogs = [];
     if (update.status === 'released') {
       const logsResult = await pool.query(`
-        SELECT sul.*, s.hostname, s.ip_address, u.email as triggered_by_email
+        SELECT sul.*, s.ip_address, u.email as triggered_by_email
         FROM server_update_log sul
         JOIN servers s ON sul.server_id = s.id
         LEFT JOIN users u ON sul.triggered_by = u.id
@@ -542,7 +542,7 @@ ${getHTMLHead(`Update: ${update.title} - Admin`)}
                 ${testResults.map(t => `
                 <div style="background:rgba(0,0,0,0.3);padding:1rem;border-radius:0.5rem">
                     <div class="flex items-center justify-between mb-2">
-                        <span style="color:var(--dash-text-primary);font-weight:500">${escapeHtml(t.hostname || t.ip_address)}</span>
+                        <span style="color:var(--dash-text-primary);font-weight:500">${escapeHtml(t.ip_address)}</span>
                         <span class="admin-badge ${t.success ? 'admin-badge-green' : 'admin-badge-red'}">
                             ${t.success ? '✓ Passed' : '✗ Failed'} (exit ${t.exit_code})
                         </span>
@@ -579,7 +579,7 @@ ${getHTMLHead(`Update: ${update.title} - Admin`)}
                     <tbody>
                         ${executionLogs.map(l => `
                         <tr>
-                            <td style="color:var(--dash-text-primary)">${escapeHtml(l.hostname || l.ip_address)}</td>
+                            <td style="color:var(--dash-text-primary)">${escapeHtml(l.ip_address)}</td>
                             <td>
                                 <span style="color:${l.status === 'success' ? '#4ade80' : '#f87171'}">
                                     ${l.status === 'success' ? '✓' : '✗'} ${l.status}
@@ -779,15 +779,39 @@ const toggleKillSwitch = async (req, res) => {
   }
 };
 
-module.exports = { 
-  showUpdates, 
+// GET /admin/updates/data - JSON API for React admin updates dashboard
+const getUpdatesData = async (req, res) => {
+  try {
+    const [updates, killSwitchActive, testServers, serversResult] = await Promise.all([
+      serverUpdates.getAllUpdates(),
+      serverUpdates.isKillSwitchActive(),
+      serverUpdates.getEligibleTestServers(),
+      pool.query("SELECT COUNT(*) FROM servers WHERE status = 'running'"),
+    ]);
+
+    res.json({
+      csrfToken: req.csrfToken(),
+      updates,
+      killSwitchActive,
+      testServers,
+      totalServers: parseInt(serversResult.rows[0].count, 10),
+    });
+  } catch (error) {
+    console.error('Admin updates data API error:', error);
+    res.status(500).json({ error: 'Failed to load updates data' });
+  }
+};
+
+module.exports = {
+  showUpdates,
   showUpdateDetail,
-  createUpdate, 
+  createUpdate,
   testUpdate,
   releaseUpdate,
-  pushUpdate, 
+  pushUpdate,
   retryFailedServers,
   archiveUpdate,
   deleteUpdate,
-  toggleKillSwitch
+  toggleKillSwitch,
+  getUpdatesData,
 };

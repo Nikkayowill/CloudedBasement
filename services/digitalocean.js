@@ -313,11 +313,11 @@ async function pollDropletStatus(dropletId, serverId) {
         
         // Send welcome email when server is ready
         try {
-          const serverResult = await pool.query('SELECT user_id, hostname FROM servers WHERE id = $1', [serverId]);
+          const serverResult = await pool.query('SELECT user_id, droplet_name FROM servers WHERE id = $1', [serverId]);
           const userResult = await pool.query('SELECT email FROM users WHERE id = $1', [serverResult.rows[0]?.user_id]);
-          
+
           if (userResult.rows[0]?.email) {
-            const serverName = serverResult.rows[0]?.hostname || 'cloudedbasement-server';
+            const serverName = serverResult.rows[0]?.droplet_name || 'cloudedbasement-server';
             await sendServerReadyEmail(userResult.rows[0].email, ipv4, ipv6, serverName);
             console.log(`Welcome email sent to ${userResult.rows[0].email}`);
           }

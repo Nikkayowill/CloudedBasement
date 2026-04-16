@@ -1,3 +1,32 @@
+// Validate Git URL against trusted hosts and repo path format
+function isValidGitUrl(gitUrl, trustedHosts) {
+  if (typeof gitUrl !== 'string') return false;
+  // Support git://, ssh://, https://, and scp-like syntax
+  let host = null;
+  let repoPath = null;
+  try {
+    // HTTPS or SSH URL
+    const urlMatch = gitUrl.match(/^(https?|ssh|git):\/\/(.+?)(?:[:/])([^\s]+?)(?:\.git)?$/i);
+    if (urlMatch) {
+      host = urlMatch[2].replace(/[:/].*$/, '');
+      repoPath = urlMatch[3];
+    } else {
+      // SCP-like SSH syntax: git@host:owner/repo.git
+      const scpMatch = gitUrl.match(/^([\w.-]+)@([\w.-]+):(.+?)(?:\.git)?$/);
+      if (scpMatch) {
+        host = scpMatch[2];
+        repoPath = scpMatch[3];
+      }
+    }
+    if (!host || !repoPath) return false;
+    if (!trustedHosts.includes(host.toLowerCase())) return false;
+    // Basic repo path validation: must be owner/repo or group/subgroup/repo
+    if (!/^([\w.-]+\/)+[\w.-]+$/.test(repoPath)) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
 const axios = require('axios');
 const crypto = require('crypto');
 const { Client } = require('ssh2');
@@ -2559,6 +2588,92 @@ exports.startTrial = async (req, res) => {
   }
 };
 
+// Stream live logs for a deployment via Server-Sent Events
+exports.streamLogs = async (req, res) => {
+  const userId = req.session.userId;
+  const { deploymentId } = req.query;
+
+  if (!deploymentId || !/^\d+$/.test(deploymentId)) {
+    return res.status(400).json({ error: 'Invalid deployment ID' });
+  }
+
+  // Ownership check — two queries to avoid column name collisions on SELECT *
+  let depResult, dep, serverResult, server, sshPassword;
+  try {
+    depResult = await pool.query(
+      'SELECT id, git_url, user_id, server_id FROM deployments WHERE id = $1 AND user_id = $2',
+      [deploymentId, userId]
+    );
+    if (depResult.rows.length === 0) return res.status(404).json({ error: 'Deployment not found' });
+
+    dep = depResult.rows[0];
+    serverResult = await pool.query(
+      'SELECT ip_address, ssh_password, ssh_password_iv FROM servers WHERE id = $1 AND user_id = $2',
+      [dep.server_id, userId]
+    );
+    if (serverResult.rows.length === 0) return res.status(404).json({ error: 'Server not found' });
+
+    server = serverResult.rows[0];
+    sshPassword = decryptSshPassword(server.ssh_password, server.ssh_password_iv);
+  } catch (err) {
+    console.error('[streamLogs] DB error:', err);
+    return res.status(500).json({ error: 'Database error' });
+  }
+
+  // Service name is deterministic — same logic used at deploy time
+  const repoName = dep.git_url.split('/').pop().replace(/\.git$/, '').replace(/[^a-zA-Z0-9_-]/g, '');
+  if (!repoName) return res.status(400).json({ error: 'Cannot derive service name' });
+  const serviceName = `${repoName}.service`;
+
+  // SSE headers — X-Accel-Buffering disables nginx proxy buffering
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders();
+
+  const send = (type, text) => {
+    res.write(`data: ${JSON.stringify({ type, text })}\n\n`);
+  };
+
+  const conn = new Client();
+  let logStream = null;
+
+  const cleanup = () => {
+    try { logStream?.close(); } catch (_) {}
+    try { conn.destroy(); } catch (_) {}
+  };
+
+  // When the browser closes the tab / navigates away, kill the SSH connection
+  req.on('close', cleanup);
+
+  try {
+    await new Promise((resolve, reject) => {
+      conn.on('ready', resolve);
+      conn.on('error', reject);
+      conn.connect({ host: server.ip_address, port: 22, username: 'root', password: sshPassword, readyTimeout: 15000 });
+    });
+
+    send('info', `Connected — streaming ${serviceName}`);
+
+    await new Promise((resolve, reject) => {
+      conn.exec(`journalctl -u ${serviceName} -n 200 -f --no-pager --output=short-iso`, (err, stream) => {
+        if (err) return reject(err);
+        logStream = stream;
+        const pipe = (data) => data.toString().split('\n').filter(Boolean).forEach(line => send('log', line));
+        stream.on('data', pipe);
+        stream.stderr.on('data', pipe);
+        stream.on('close', resolve);
+      });
+    });
+  } catch (err) {
+    send('error', `Connection failed: ${err.message}`);
+  } finally {
+    cleanup();
+    res.end();
+  }
+};
+
 module.exports = {
   serverAction: exports.serverAction,
   deleteServer: exports.deleteServer,
@@ -2579,4 +2694,6 @@ module.exports = {
   startTrial: exports.startTrial,
   // Preview deployments
   triggerPreviewDeploy: exports.triggerPreviewDeploy,
+  // Log streaming
+  streamLogs: exports.streamLogs,
 };

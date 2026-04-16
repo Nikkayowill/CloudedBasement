@@ -4,6 +4,7 @@ const { requireAuth, requireAdmin } = require('../middleware/auth');
 const adminController = require('../controllers/adminController');
 const adminUpdatesController = require('../controllers/adminUpdatesController');
 const domainController = require('../controllers/domainController');
+const { renderReactHtml } = require('../src/utils/reactSPA');
 
 const router = Router();
 
@@ -11,14 +12,23 @@ const router = Router();
 router.use(requireAuth, requireAdmin);
 
 // ── Admin dashboard ───────────────────────────────────────────────────────────
-router.get('/', csrf, adminController.listUsers);
+// Serve React SPA for the admin UI
+router.get('/', (req, res) => {
+  res.send(renderReactHtml(res.locals.nonce || ''));
+});
+
+// JSON API for the React admin dashboard
+router.get('/data', csrf, adminController.getAdminData);
 router.post('/delete-user/:id', csrf, adminController.deleteUser);
 router.post('/cancel-provisioning/:id', csrf, adminController.cancelProvisioning);
 router.post('/delete-server/:id', csrf, adminController.deleteServer);
 router.post('/destroy-droplet/:id', csrf, adminController.destroyDroplet);
 
 // ── Server updates ────────────────────────────────────────────────────────────
-router.get('/updates', csrf, adminUpdatesController.showUpdates);
+router.get('/updates', (req, res) => {
+  res.send(renderReactHtml(res.locals.nonce || ''));
+});
+router.get('/updates/data', csrf, adminUpdatesController.getUpdatesData);
 router.get('/updates/:id', csrf, adminUpdatesController.showUpdateDetail);
 router.post('/updates/create', csrf, adminUpdatesController.createUpdate);
 router.post('/updates/kill-switch', csrf, adminUpdatesController.toggleKillSwitch);

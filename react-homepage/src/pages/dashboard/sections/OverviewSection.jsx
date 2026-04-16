@@ -362,12 +362,111 @@ function UptimeSummaryCard({ uptimeStatus }) {
   );
 }
 
+function UpdatesCard({ pendingUpdates = [], updateHistory = [], csrfToken, hasServer }) {
+  const [applying, setApplying] = useState(false);
+  const [msg, setMsg]           = useState(null);
+
+  if (!hasServer || (pendingUpdates.length === 0 && updateHistory.length === 0)) return null;
+
+  const criticalCount = pendingUpdates.filter(u => u.is_critical).length;
+
+  async function applyUpdates(e) {
+    e.preventDefault();
+    if (!window.confirm(`Apply ${pendingUpdates.length} update(s) to your server?`)) return;
+    setApplying(true);
+    setMsg(null);
+    try {
+      const body = new URLSearchParams({ _csrf: csrfToken });
+      const r = await fetch('/apply-updates', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body });
+      if (!r.ok) {
+        let errorText = r.statusText;
+        try { errorText = await r.text(); } catch {}
+        setMsg({ type: 'error', text: errorText });
+        return;
+      }
+      const finalUrl = new URL(r.url, window.location.origin);
+      const success  = finalUrl.searchParams.get('success');
+      const warning  = finalUrl.searchParams.get('warning');
+      const error    = finalUrl.searchParams.get('error');
+      if (error)   setMsg({ type: 'error',   text: decodeURIComponent(error) });
+      else if (warning) setMsg({ type: 'warning', text: decodeURIComponent(warning) });
+      else         setMsg({ type: 'success',  text: decodeURIComponent(success || 'Done.') });
+    } catch (err) {
+      setMsg({ type: 'error', text: err.message });
+    } finally {
+      setApplying(false);
+    }
+  }
+
+  const msgColor = msg?.type === 'error' ? '#ef4444' : msg?.type === 'warning' ? '#eab308' : '#22c55e';
+
+  return (
+    <div style={{ border: '1px solid rgba(255,255,255,0.07)', borderRadius: '0.625rem', marginBottom: '1.25rem', overflow: 'hidden' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.875rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+        <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--dash-text-primary, #fafafa)' }}>
+          Server Updates
+        </span>
+        {pendingUpdates.length > 0 && (
+          <span style={{ fontSize: '0.6875rem', fontWeight: 700, padding: '0.125rem 0.5rem', borderRadius: 999, background: criticalCount > 0 ? 'rgba(239,68,68,0.15)' : 'rgba(59,130,246,0.15)', color: criticalCount > 0 ? '#f87171' : '#60a5fa' }}>
+            {pendingUpdates.length} available{criticalCount > 0 ? ` · ${criticalCount} critical` : ''}
+          </span>
+        )}
+      </div>
+
+      {/* Pending list */}
+      {pendingUpdates.length > 0 && (
+        <div style={{ padding: '0.75rem 1.25rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+          {pendingUpdates.slice(0, 5).map(u => (
+            <div key={u.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.375rem 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+              {u.is_critical && (
+                <span style={{ fontSize: '0.625rem', fontWeight: 700, padding: '0.1rem 0.35rem', borderRadius: 4, background: 'rgba(239,68,68,0.15)', color: '#f87171', flexShrink: 0 }}>CRITICAL</span>
+              )}
+              <span style={{ flex: 1, fontSize: '0.8125rem', color: 'var(--dash-text-secondary, #a1a1a1)' }}>{u.title}</span>
+              {u.version && <span style={{ fontSize: '0.6875rem', color: '#525252', fontFamily: 'JetBrains Mono, monospace' }}>v{u.version}</span>}
+            </div>
+          ))}
+          {pendingUpdates.length > 5 && (
+            <div style={{ fontSize: '0.75rem', color: '#525252', padding: '0.375rem 0' }}>+ {pendingUpdates.length - 5} more</div>
+          )}
+          <div style={{ padding: '0.75rem 0' }}>
+            {msg && <div style={{ fontSize: '0.75rem', color: msgColor, marginBottom: '0.5rem' }}>{msg.text}</div>}
+            <button
+              onClick={applyUpdates}
+              disabled={applying}
+              style={{ padding: '0.4375rem 0.875rem', borderRadius: '0.375rem', background: '#2563eb', border: 'none', color: '#fff', fontSize: '0.8125rem', fontWeight: 500, cursor: applying ? 'not-allowed' : 'pointer', opacity: applying ? 0.7 : 1 }}
+            >
+              {applying ? 'Applying…' : `Apply ${pendingUpdates.length} Update${pendingUpdates.length > 1 ? 's' : ''}`}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* History */}
+      {updateHistory.length > 0 && (
+        <div style={{ padding: '0 1.25rem' }}>
+          {updateHistory.slice(0, 5).map(log => (
+            <div key={log.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+              <span style={{ fontSize: '0.8125rem', color: log.status === 'success' ? 'var(--dash-text-secondary, #a1a1a1)' : '#f87171' }}>{log.title}</span>
+              <span style={{ fontSize: '0.6875rem', color: log.status === 'success' ? '#22c55e' : '#ef4444', fontFamily: 'JetBrains Mono, monospace' }}>
+                {log.status}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function OverviewSection({ data, onNav }) {
   const {
     hasServer, isProvisioning, hasPaid, trialAvailable,
     serverStatus, serverName, ipAddress, ipv6Address,
     plan, siteCount, siteLimit, csrfToken,
     uptimeStatus = {},
+    pendingUpdates = [],
+    updateHistory  = [],
   } = data;
 
   const atLimit = siteCount >= siteLimit;
@@ -441,6 +540,9 @@ export default function OverviewSection({ data, onNav }) {
 
         {/* Uptime summary — shown when we have at least one check result */}
         {hasServer && <UptimeSummaryCard uptimeStatus={uptimeStatus} />}
+
+        {/* Pending updates + history */}
+        <UpdatesCard pendingUpdates={pendingUpdates} updateHistory={updateHistory} csrfToken={csrfToken} hasServer={hasServer} />
 
         {/* Server card */}
         {(hasServer || (isProvisioning && hasServer)) && (

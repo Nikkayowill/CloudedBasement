@@ -427,17 +427,40 @@ const applyUpdates = async (req, res) => {
       return res.redirect('/dashboard?success=Server already up to date');
     }
     
-    // Apply all pending updates
-    const results = await serverUpdates.applyAllPendingUpdates(server, 'user');
+    // Apply all pending updates — pass real userId so the audit log records who triggered it
+    const results = await serverUpdates.applyAllPendingUpdates(server, userId);
     
     const successCount = results.filter(r => r.success).length;
     const failCount = results.filter(r => !r.success).length;
     
-    if (failCount === 0) {
-      return res.redirect(`/dashboard?success=${successCount} update(s) applied successfully`);
-    } else {
-      return res.redirect(`/dashboard?error=${failCount} update(s) failed. ${successCount} succeeded.`);
+    if (failCount > 0) {
+    return res.redirect(`/dashboard?error=${encodeURIComponent(failCount + ' update(s) failed. ' + successCount + ' succeeded.')}`);
     }
+
+    // Post-apply health check — ping the server's live URL to confirm it's still up
+    let healthWarning = null;
+    const domains = await pool.query('SELECT domain, ssl_enabled FROM domains WHERE user_id = $1 ORDER BY ssl_enabled DESC LIMIT 1', [userId]);
+    const healthUrl = domains.rows[0]
+      ? `${domains.rows[0].ssl_enabled ? 'https' : 'http'}://${domains.rows[0].domain}`
+      : `http://${server.ip_address}`;
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const healthRes = await fetch(healthUrl, { signal: controller.signal, redirect: 'follow' });
+      clearTimeout(timeoutId);
+      if (!healthRes.ok && healthRes.status >= 500) {
+        healthWarning = `Updates applied but server returned HTTP ${healthRes.status}. Verify your app is running.`;
+      }
+    } catch (healthErr) {
+      healthWarning = `Updates applied but health check failed (${healthErr.message}). Verify your app is running.`;
+      console.warn('[DASHBOARD] Post-update health check failed for user', userId, ':', healthErr.message);
+    }
+
+    if (healthWarning) {
+      return res.redirect(`/dashboard?warning=${encodeURIComponent(healthWarning)}`);
+    }
+    return res.redirect(`/dashboard?success=${encodeURIComponent(successCount + ' update(s) applied successfully')}`);
   } catch (error) {
     console.error('[DASHBOARD] Apply updates error:', error);
     res.redirect('/dashboard?error=Failed to apply updates. Please try again or contact support.');
@@ -542,17 +565,21 @@ const getDashboardData = async (req, res) => {
             const demoPlan = req.query.demoPlan || 'pro';
             const now = Date.now();
             return res.json({
+                // Identity
                 userEmail:        req.session.userEmail,
                 userRole:         req.session.userRole,
-                plan:             demoPlan,
-                hasPaid:          true,
-                hasServer:        true,
-                isProvisioning:   false,
                 isDemo:           true,
                 emailConfirmed:   true,
+                // Plan / payment
+                plan:             demoPlan,
+                hasPaid:          true,
                 trialAvailable:   false,
+                paymentInterval:  'monthly',
+                // Server
+                hasServer:        true,
+                isProvisioning:   false,
                 serverStatus:     'running',
-                serverName:       'basement-core',
+                serverName:       'basement-demo',
                 serverId:         999,
                 ipAddress:        '143.198.167.42',
                 ipv6Address:      '2604:a880:800:c1::1a9:d001',
@@ -561,17 +588,40 @@ const getDashboardData = async (req, res) => {
                 mongodbInstalled:  false,
                 siteCount:        3,
                 siteLimit:        5,
-                paymentInterval:  'monthly',
+                // Deployments
                 deployments: [
-                    { id: 101, git_url: 'https://github.com/demo-user/my-saas-app',   branch: 'main',       status: 'success', subdomain: 'my-saas-app',   deployed_at: new Date(now - 2 * 3600 * 1000),      created_at: new Date(now - 2 * 3600 * 1000),      deployment_type: 'github' },
-                    { id: 100, git_url: 'https://github.com/demo-user/landing-page',  branch: 'main',       status: 'success', subdomain: 'landing-page',  deployed_at: new Date(now - 3 * 86400 * 1000),    created_at: new Date(now - 3 * 86400 * 1000),    deployment_type: 'github' },
-                    { id: 99,  git_url: 'https://github.com/demo-user/api-backend',   branch: 'production', status: 'success', subdomain: 'api-backend',   deployed_at: new Date(now - 5 * 86400 * 1000),    created_at: new Date(now - 5 * 86400 * 1000),    deployment_type: 'github' },
+                    { id: 101, git_url: 'https://github.com/demo-user/my-saas-app',   branch: 'main',       status: 'success', subdomain: 'my-saas-app',   commit_sha: 'a1b2c3d', is_preview: false, deployed_at: new Date(now - 2 * 3600 * 1000),   created_at: new Date(now - 2 * 3600 * 1000),   deployment_type: 'github' },
+                    { id: 100, git_url: 'https://github.com/demo-user/landing-page',  branch: 'main',       status: 'success', subdomain: 'landing-page',  commit_sha: 'e4f5a6b', is_preview: false, deployed_at: new Date(now - 3 * 86400 * 1000), created_at: new Date(now - 3 * 86400 * 1000), deployment_type: 'github' },
+                    { id: 99,  git_url: 'https://github.com/demo-user/api-backend',   branch: 'production', status: 'success', subdomain: 'api-backend',   commit_sha: 'c7d8e9f', is_preview: false, deployed_at: new Date(now - 5 * 86400 * 1000), created_at: new Date(now - 5 * 86400 * 1000), deployment_type: 'github' },
+                    { id: 98,  git_url: 'https://github.com/demo-user/preview-branch', branch: 'feat/auth', status: 'success', subdomain: 'preview-auth',  commit_sha: '1a2b3c4', is_preview: true,  deployed_at: new Date(now - 1 * 86400 * 1000), created_at: new Date(now - 1 * 86400 * 1000), deployment_type: 'github' },
                 ],
+                // Domains
                 domains: [
-                    { id: 201, domain: 'myapp.com',     ssl_enabled: true, verified: true, created_at: new Date(now - 10 * 86400 * 1000) },
-                    { id: 202, domain: 'api.myapp.com', ssl_enabled: true, verified: true, created_at: new Date(now -  8 * 86400 * 1000) },
+                    { id: 201, domain: 'myapp.com',     ssl_enabled: true,  verified: true,  created_at: new Date(now - 10 * 86400 * 1000) },
+                    { id: 202, domain: 'api.myapp.com', ssl_enabled: true,  verified: true,  created_at: new Date(now -  8 * 86400 * 1000) },
+                    { id: 203, domain: 'staging.myapp.com', ssl_enabled: false, verified: false, created_at: new Date(now - 2 * 86400 * 1000) },
                 ],
                 liveSiteUrl: 'https://myapp.com',
+                // Uptime monitoring
+                uptimeStatus: {
+                    'https://myapp.com':     { status: 'up',   latency: 142, checked_at: new Date(now - 60 * 1000) },
+                    'https://api.myapp.com': { status: 'up',   latency: 89,  checked_at: new Date(now - 60 * 1000) },
+                },
+                // API keys
+                apiKeys: [
+                    { id: 1, name: 'CI/CD Pipeline',   key_prefix: 'cb_live_Kx9m', scopes: ['deploy'], last_used_at: new Date(now - 2 * 3600 * 1000),   expires_at: null, created_at: new Date(now - 30 * 86400 * 1000) },
+                    { id: 2, name: 'Monitoring Agent', key_prefix: 'cb_live_Rp4n', scopes: ['read'],   last_used_at: new Date(now - 5 * 60 * 1000),     expires_at: null, created_at: new Date(now - 14 * 86400 * 1000) },
+                ],
+                // Server updates
+                pendingUpdates: [
+                    { id: 10, title: 'Node.js 20 LTS security patch',  description: 'Patches CVE-2024-1234', type: 'security', version: '20.15.1', is_critical: true,  status: 'released', created_at: new Date(now - 2 * 86400 * 1000) },
+                    { id: 11, title: 'Nginx performance tuning',        description: 'Increases worker connections', type: 'performance', version: '1.26.1', is_critical: false, status: 'released', created_at: new Date(now - 4 * 86400 * 1000) },
+                ],
+                updateHistory: [
+                    { id: 50, update_id: 8, title: 'SSL certificate renewal', type: 'maintenance', version: null,     is_critical: false, status: 'success', applied_at: new Date(now - 7 * 86400 * 1000),  execution_time_ms: 4200 },
+                    { id: 49, update_id: 7, title: 'Fail2ban rule update',     type: 'security',   version: '1.0.2',  is_critical: false, status: 'success', applied_at: new Date(now - 14 * 86400 * 1000), execution_time_ms: 8100 },
+                    { id: 48, update_id: 6, title: 'Disk cleanup script',      type: 'maintenance', version: null,    is_critical: false, status: 'success', applied_at: new Date(now - 21 * 86400 * 1000), execution_time_ms: 12500 },
+                ],
                 csrfToken: typeof req.csrfToken === 'function' ? req.csrfToken() : '',
             });
         }
@@ -625,6 +675,13 @@ const getDashboardData = async (req, res) => {
             [userId]
         );
 
+        const [pendingUpdates, updateHistory] = hasServer
+            ? await Promise.all([
+                serverUpdates.getPendingUpdates(server.id),
+                serverUpdates.getUpdateHistory(server.id),
+              ])
+            : [[], []];
+
         res.json({
             userEmail:      req.session.userEmail,
             userRole:       req.session.userRole,
@@ -649,8 +706,10 @@ const getDashboardData = async (req, res) => {
             domains,
             liveSiteUrl,
             uptimeStatus,
-            apiKeys:      apiKeysResult.rows || [],
-            csrfToken:    typeof req.csrfToken === 'function' ? req.csrfToken() : '',
+            apiKeys:        apiKeysResult.rows || [],
+            pendingUpdates,
+            updateHistory,
+            csrfToken:      typeof req.csrfToken === 'function' ? req.csrfToken() : '',
         });
     } catch (error) {
         console.error('[API] /api/dashboard error:', error);

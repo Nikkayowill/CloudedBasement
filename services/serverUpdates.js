@@ -1,3 +1,7 @@
+// Simple HTML escape helper
+function escapeHtml(str) {
+  return String(str || '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+}
 /**
  * Server Updates Service - Secure Update Orchestration
  * 
@@ -14,6 +18,7 @@
 const pool = require('../db');
 const { Client } = require('ssh2');
 const { validateScript, hashScript, verifyScriptHash, ensureSafetyHeaders } = require('./scriptValidator');
+const { sendEmail } = require('./email');
 
 // Execution constants
 const SSH_CONNECT_TIMEOUT = 30000;  // 30s to establish connection
@@ -375,9 +380,8 @@ async function testUpdateOnServer(updateId, serverId, adminId) {
  */
 async function getTestResults(updateId) {
   const result = await pool.query(`
-    SELECT 
+    SELECT
       t.*,
-      s.hostname,
       s.ip_address,
       u.email as tested_by_email
     FROM server_update_tests t
@@ -425,13 +429,50 @@ async function releaseUpdate(updateId, adminId) {
     throw new Error('Update must have at least one successful test before release');
   }
   
-  await pool.query(`
-    UPDATE server_updates 
+  // Atomic status transition — WHERE clause enforces status = 'tested' to prevent
+  // TOCTOU race conditions where a concurrent action could change status between
+  // the check above and this write.
+  const releaseResult = await pool.query(`
+    UPDATE server_updates
     SET status = $1, released_at = NOW(), released_by = $2
-    WHERE id = $3
-  `, [UPDATE_STATUS.RELEASED, adminId, updateId]);
-  
+    WHERE id = $3 AND status = $4
+    RETURNING id
+  `, [UPDATE_STATUS.RELEASED, adminId, updateId, UPDATE_STATUS.TESTED]);
+
+  if (releaseResult.rowCount === 0) {
+    throw new Error('Release failed — update status changed before write (concurrent modification). Refresh and try again.');
+  }
+
   console.log(`[Updates] Update ${updateId} released by admin ${adminId}`);
+
+  // Notify customers with running servers when a critical update is released
+  if (update.is_critical) {
+    try {
+      const usersResult = await pool.query(`
+        SELECT DISTINCT u.email
+        FROM users u
+        JOIN servers s ON s.user_id = u.id
+        WHERE s.status = 'running'
+          AND u.email IS NOT NULL
+      `);
+      await Promise.allSettled(usersResult.rows.map(({ email }) => {
+        const safeTitle = escapeHtml(update.title);
+        const safeDesc = escapeHtml(update.description);
+        return sendEmail(
+          email,
+          `Critical update available: ${safeTitle}`,
+          `<p>A critical update (<strong>${safeTitle}</strong>) is now available for your server.</p>
+           <p>Log in to your dashboard to apply it: <a href="${process.env.BASE_URL || 'https://cloudedbasement.com'}/dashboard">Apply now</a></p>
+           <p><em>${safeDesc}</em></p>`,
+          `A critical update (${safeTitle}) is available. Log in to apply it: ${process.env.BASE_URL || 'https://cloudedbasement.com'}/dashboard`
+        );
+      }));
+      console.log(`[Updates] Critical release notification sent to ${usersResult.rows.length} user(s)`);
+    } catch (emailErr) {
+      // Non-fatal — update is released, email failure shouldn't block
+      console.error('[Updates] Failed to send critical release notifications:', emailErr.message);
+    }
+  }
 }
 
 /**
@@ -482,9 +523,13 @@ function executeUpdateOnServer(server, update) {
         let stderr = '';
         let truncated = false;
         
-        // Set execution timeout (this actually enforces the limit)
+        // Set execution timeout. stream.close() alone only closes the local channel —
+        // the remote process would keep running. Send SIGTERM first, then destroy the
+        // full TCP connection so the remote process gets SIGHUP and the OS reclaims it.
         executionTimeout = setTimeout(() => {
-          stream.close();
+          try { stream.signal('TERM'); } catch (_) { /* ignore if channel already closed */ }
+          try { stream.close(); } catch (_) { /* ignore */ }
+          try { conn.destroy(); } catch (_) { /* ignore */ }
           safeReject(new Error(`Script execution timed out after ${SSH_EXEC_TIMEOUT / 1000}s`));
         }, SSH_EXEC_TIMEOUT);
         
@@ -743,9 +788,9 @@ async function pushUpdateToAll(updateId, adminId) {
     const batchPromises = batch.map(async (server) => {
       try {
         const result = await applyUpdate(server, update, adminId, 'admin_push');
-        return { serverId: server.id, hostname: server.hostname, ...result };
+        return { serverId: server.id, ip: server.ip_address, ...result };
       } catch (err) {
-        return { serverId: server.id, hostname: server.hostname, success: false, error: err.message };
+        return { serverId: server.id, ip: server.ip_address, success: false, error: err.message };
       }
     });
     
@@ -799,13 +844,13 @@ async function retryFailedServers(updateId, adminId) {
  */
 async function getEligibleTestServers() {
   const result = await pool.query(`
-    SELECT s.id, s.hostname, s.ip_address, u.email as owner_email
+    SELECT s.id, s.ip_address, u.email as owner_email
     FROM servers s
     LEFT JOIN users u ON s.user_id = u.id
     WHERE s.status = 'running'
       AND s.ip_address IS NOT NULL
       AND s.ssh_password IS NOT NULL
-    ORDER BY s.hostname
+    ORDER BY s.ip_address
   `);
   return result.rows;
 }

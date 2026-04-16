@@ -88,6 +88,17 @@ async function runMigrations() {
     const { up: createApiKeys } = require('./032-create-api-keys');
     await createApiKeys();
 
+    // Create server_updates, server_update_log, and system_settings tables
+    const { up: createServerUpdates } = require('./024-create-server-updates');
+    await createServerUpdates();
+
+    const { up: enhanceServerUpdates } = require('./025-enhance-server-updates');
+    await enhanceServerUpdates();
+
+    // Add CHECK constraint on server_updates.status to enforce the state machine at DB level
+    const { up: serverUpdatesConstraints } = require('./033-server-updates-status-constraint');
+    await serverUpdatesConstraints();
+
   } catch (error) {
     // Safely rollback transaction (may not have started if error was early)
     try {

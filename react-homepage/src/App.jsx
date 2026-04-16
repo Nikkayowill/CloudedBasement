@@ -5,6 +5,8 @@ import HomePage from './HomePage';
 
 // Dashboard is code-split — only loads when /dashboard is visited
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const AdminPage        = lazy(() => import('./pages/AdminPage'));
+const AdminUpdatesPage = lazy(() => import('./pages/AdminUpdatesPage'));
 
 // Public pages — code-split per route
 const About    = lazy(() => import('./pages/About'));
@@ -74,6 +76,24 @@ function App() {
         element={
           <Suspense fallback={null}>
             <DashboardPage />
+          </Suspense>
+        }
+      />
+
+      {/* Admin */}
+      <Route
+        path="/admin"
+        element={
+          <Suspense fallback={null}>
+            <AdminPage />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/admin/updates"
+        element={
+          <Suspense fallback={null}>
+            <AdminUpdatesPage />
           </Suspense>
         }
       />

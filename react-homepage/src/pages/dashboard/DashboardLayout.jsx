@@ -7,6 +7,7 @@ import DevToolsSection from './sections/DevToolsSection';
 import EnvSection from './sections/EnvSection';
 import SettingsSection from './sections/SettingsSection';
 import ApiKeysSection from './sections/ApiKeysSection';
+import LogsSection from './sections/LogsSection';
 
 const NAV = [
   {
@@ -70,6 +71,16 @@ const NAV = [
     ),
   },
   {
+    id: 'logs',
+    label: 'Logs',
+    icon: (
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width={15} height={15}>
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+          d="M4 6h16M4 10h16M4 14h10M4 18h6" />
+      </svg>
+    ),
+  },
+  {
     id: 'settings',
     label: 'Settings',
     icon: (
@@ -88,6 +99,7 @@ const SECTIONS = {
   deploy: DeploySection,
   'dev-tools': DevToolsSection,
   env: EnvSection,
+  logs: LogsSection,
   settings: SettingsSection,
   'api-keys': ApiKeysSection,
 };

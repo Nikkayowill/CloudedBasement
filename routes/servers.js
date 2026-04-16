@@ -36,6 +36,9 @@ router.post('/setup-database', requireAuth, csrf, serverController.setupDatabase
 // Server provisioning
 router.post('/start-trial', requireAuth, deploymentLimiter, csrf, serverController.startTrial);
 
+// Log streaming — GET with EventSource, no CSRF needed (session auth only)
+router.get('/logs/stream', requireAuth, serverController.streamLogs);
+
 // API-key-authenticated deploy (no session, no CSRF — Bearer token only)
 router.post('/api/deploy', requireApiKey, requireScope('deploy'), deploymentLimiter, serverController.apiDeploy);
 
