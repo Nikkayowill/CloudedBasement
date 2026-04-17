@@ -493,6 +493,20 @@ async function sendUptimeAlertEmail(userEmail, targetUrl, alertType, downDuratio
   return sendEmail(userEmail, subject, html, text);
 }
 
+async function sendDeploySuccessEmail(userEmail, repoUrl, subdomain) {
+  const liveUrl = subdomain ? `https://${subdomain}.cloudedbasement.ca` : null;
+  const subject = '✅ Deployment Successful';
+  const html = `
+    <h2>Deployment Successful</h2>
+    <p>Your deployment from <code>${repoUrl || 'your repository'}</code> completed successfully.</p>
+    ${liveUrl ? `<p style="margin-top:16px;"><a href="${liveUrl}" style="background:#22c55e;color:white;padding:12px 24px;text-decoration:none;border-radius:4px;display:inline-block;">View Live Site</a></p>` : ''}
+    <p style="margin-top:24px;"><a href="https://cloudedbasement.ca/dashboard" style="color:#2DA7DF;">Open Dashboard</a></p>
+    ${emailFooterHtml}
+  `;
+  const text = `Deployment Successful\n\nYour deployment from "${repoUrl || 'your repository'}" completed successfully.${liveUrl ? `\n\nLive site: ${liveUrl}` : ''}\n\nDashboard: https://cloudedbasement.ca/dashboard${emailFooterText}`;
+  return sendEmail(userEmail, subject, html, text);
+}
+
 module.exports = {
   sendConfirmationEmail,
   sendEmail,
@@ -503,5 +517,6 @@ module.exports = {
   sendWelcomeEmail,
   sendTrialEndingEmail,
   sendDeployErrorEmail,
+  sendDeploySuccessEmail,
   sendUptimeAlertEmail,
 };

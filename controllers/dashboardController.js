@@ -622,6 +622,7 @@ const getDashboardData = async (req, res) => {
                     { id: 49, update_id: 7, title: 'Fail2ban rule update',     type: 'security',   version: '1.0.2',  is_critical: false, status: 'success', applied_at: new Date(now - 14 * 86400 * 1000), execution_time_ms: 8100 },
                     { id: 48, update_id: 6, title: 'Disk cleanup script',      type: 'maintenance', version: null,    is_critical: false, status: 'success', applied_at: new Date(now - 21 * 86400 * 1000), execution_time_ms: 12500 },
                 ],
+                notifyWebhookUrl: null,
                 csrfToken: typeof req.csrfToken === 'function' ? req.csrfToken() : '',
             });
         }
@@ -706,10 +707,11 @@ const getDashboardData = async (req, res) => {
             domains,
             liveSiteUrl,
             uptimeStatus,
-            apiKeys:        apiKeysResult.rows || [],
+            apiKeys:          apiKeysResult.rows || [],
             pendingUpdates,
             updateHistory,
-            csrfToken:      typeof req.csrfToken === 'function' ? req.csrfToken() : '',
+            notifyWebhookUrl: server?.notify_webhook_url || null,
+            csrfToken:        typeof req.csrfToken === 'function' ? req.csrfToken() : '',
         });
     } catch (error) {
         console.error('[API] /api/dashboard error:', error);
@@ -876,7 +878,47 @@ const getMetrics = async (req, res) => {
   }
 };
 
-module.exports = { showDashboard: exports.showDashboard, getDashboardData, submitSupportTicket, changePassword, applyUpdates, getCredentials, getEnvVars, createEnvVar, deleteEnvVar, getDeploymentStatus, getMetrics };
+const WEBHOOK_URL_RE = /^https:\/\/[^\s/$.?#].[^\s]*$/i;
+const PRIVATE_IP_RE  = /^https?:\/\/(localhost|127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.)/i;
+
+const setNotifyWebhook = async (req, res) => {
+    try {
+        const userId = req.session.userId;
+        const { webhookUrl } = req.body;
+
+        // Check for server existence
+        const serverResult = await pool.query('SELECT id FROM servers WHERE user_id = $1', [userId]);
+        if (serverResult.rows.length === 0) {
+            return res.status(404).json({ error: 'No server found for this user.' });
+        }
+        const serverId = serverResult.rows[0].id;
+
+        // Clear webhook
+        if (!webhookUrl || webhookUrl.trim() === '') {
+            const updateResult = await pool.query('UPDATE servers SET notify_webhook_url = NULL WHERE id = $1', [serverId]);
+            if (updateResult.rowCount === 0) {
+                return res.status(400).json({ error: 'Failed to remove webhook.' });
+            }
+            return res.json({ success: true, message: 'Webhook removed.' });
+        }
+
+        const url = webhookUrl.trim();
+        if (!WEBHOOK_URL_RE.test(url))       return res.status(400).json({ error: 'Webhook URL must be a valid https:// URL.' });
+        if (PRIVATE_IP_RE.test(url))         return res.status(400).json({ error: 'Webhook URL cannot point to a local or private address.' });
+        if (url.length > 500)                return res.status(400).json({ error: 'URL too long.' });
+
+        const updateResult = await pool.query('UPDATE servers SET notify_webhook_url = $1 WHERE id = $2', [url, serverId]);
+        if (updateResult.rowCount === 0) {
+            return res.status(400).json({ error: 'Failed to save webhook.' });
+        }
+        res.json({ success: true, message: 'Webhook saved.' });
+    } catch (err) {
+        console.error('[WEBHOOK] setNotifyWebhook error:', err);
+        res.status(500).json({ error: 'Failed to save webhook.' });
+    }
+};
+
+module.exports = { showDashboard: exports.showDashboard, getDashboardData, submitSupportTicket, changePassword, applyUpdates, getCredentials, getEnvVars, createEnvVar, deleteEnvVar, getDeploymentStatus, getMetrics, setNotifyWebhook };
 
 /**
  * Dashboard Template Builder - Tech-View Design

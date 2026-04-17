@@ -104,11 +104,12 @@ const SECTIONS = {
   'api-keys': ApiKeysSection,
 };
 
-export default function DashboardLayout({ data, flashSuccess, flashError }) {
+export default function DashboardLayout({ data, flashSuccess, flashError, flashWarning }) {
   const [active, setActive] = useState('overview');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [localFlashSuccess, setLocalFlashSuccess] = useState(flashSuccess || null);
   const [localFlashError, setLocalFlashError] = useState(flashError || null);
+  const [localFlashWarning, setLocalFlashWarning] = useState(flashWarning || null);
   const ActiveSection = SECTIONS[active] ?? OverviewSection;
 
   const handleDismissSuccess = () => {
@@ -117,6 +118,10 @@ export default function DashboardLayout({ data, flashSuccess, flashError }) {
   };
   const handleDismissError = () => {
     setLocalFlashError(null);
+    window.history.replaceState({}, '', '/dashboard');
+  };
+  const handleDismissWarning = () => {
+    setLocalFlashWarning(null);
     window.history.replaceState({}, '', '/dashboard');
   };
 
@@ -143,7 +148,7 @@ export default function DashboardLayout({ data, flashSuccess, flashError }) {
             />
 
             <main className="cb-dashboard-main">
-              {(localFlashSuccess || localFlashError) && (
+              {(localFlashSuccess || localFlashError || localFlashWarning) && (
                 <div className="cb-flash-wrap">
                   {localFlashSuccess && (
                     <div style={{
@@ -164,6 +169,23 @@ export default function DashboardLayout({ data, flashSuccess, flashError }) {
                         aria-label="Dismiss notification"
                         style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}
                       >x</button>
+                    </div>
+                  )}
+                  {localFlashWarning && (
+                    <div style={{
+                      background: 'rgba(234,179,8,0.07)',
+                      border: '1px solid rgba(234,179,8,0.25)',
+                      borderRadius: '0.5rem',
+                      padding: '0.625rem 1rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      color: '#fde047',
+                      fontSize: '0.8125rem',
+                      marginBottom: '0.5rem',
+                    }}>
+                      <span style={{ flex: 1 }}>{localFlashWarning}</span>
+                      <button onClick={handleDismissWarning} aria-label="Dismiss notification" style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}>x</button>
                     </div>
                   )}
                   {localFlashError && (

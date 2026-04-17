@@ -99,6 +99,10 @@ async function runMigrations() {
     const { up: serverUpdatesConstraints } = require('./033-server-updates-status-constraint');
     await serverUpdatesConstraints();
 
+    // Add notify_webhook_url to servers for deploy event notifications
+    const { up: addNotifyWebhook } = require('./034-add-notify-webhook');
+    await addNotifyWebhook();
+
   } catch (error) {
     // Safely rollback transaction (may not have started if error was early)
     try {

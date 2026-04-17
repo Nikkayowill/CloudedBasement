@@ -17,6 +17,7 @@ router.get('/dashboard', requireAuth, csrf, (_req, res) =>
 router.post('/submit-ticket', requireAuth, csrf, dashboardController.submitSupportTicket);
 router.post('/change-password', requireAuth, csrf, dashboardController.changePassword);
 router.post('/apply-updates', requireAuth, csrf, dashboardController.applyUpdates);
+router.post('/set-notify-webhook', requireAuth, csrf, dashboardController.setNotifyWebhook);
 router.post('/dashboard/dismiss-next-steps', requireAuth, csrf, (req, res) => {
   req.session.dismissedNextSteps = true;
   res.json({ success: true });

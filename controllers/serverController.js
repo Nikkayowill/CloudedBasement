@@ -29,12 +29,14 @@ function isValidGitUrl(gitUrl, trustedHosts) {
 }
 const axios = require('axios');
 const crypto = require('crypto');
+const dns = require('dns').promises;
+const net = require('net');
 const { Client } = require('ssh2');
 const pool = require('../db');
 const { escapeHtml } = require('../src/utils/helpers');
 const { getUserServer, verifyServerOwnership, updateServerStatus, appendDeploymentOutput, updateDeploymentStatus } = require('../src/utils/db-helpers');
 const { SERVER_STATUS, DEPLOYMENT_STATUS, TIMEOUTS, PORTS } = require('../src/utils/constants');
-const { sendDeployErrorEmail } = require('../services/email');
+const { sendDeployErrorEmail, sendDeploySuccessEmail } = require('../services/email');
 const { analyzeDeploymentFailure } = require('../services/aiDiagnosis');
 const { decryptSshPassword } = require('../src/utils/sshCrypto');
 const { createRealServer } = require('../services/digitalocean');
@@ -666,7 +668,18 @@ async function performDeployment(server, gitUrl, repoName, deploymentId, subdoma
 
     output += `\n✅ Deployment completed successfully!\n`;
     await updateDeploymentOutput(deploymentId, output, 'success');
-    
+
+    // Success notifications — fire-and-forget, never block the deploy
+    try {
+      const notifyResult = await pool.query(
+        'SELECT u.email, s.notify_webhook_url FROM users u JOIN servers s ON s.user_id = u.id WHERE s.id = $1',
+        [server.id]
+      );
+      const { email, notify_webhook_url } = notifyResult.rows[0] || {};
+      if (email) sendDeploySuccessEmail(email, gitUrl, subdomain).catch(() => {});
+      if (notify_webhook_url) fireDeployWebhook(notify_webhook_url, 'deploy.success', { gitUrl, branch, subdomain, deploymentId, commitSha: rollbackSha || commitSha });
+    } catch (_) {}
+
   } catch (error) {
     console.error(`[DEPLOY] Deployment #${deploymentId} error:`, error);
     output += `\n❌ Deployment failed: ${error.message}\n`;
@@ -676,12 +689,15 @@ async function performDeployment(server, gitUrl, repoName, deploymentId, subdoma
     // AI diagnosis — fire-and-forget, never blocks
     analyzeDeploymentFailure(deploymentId, output);
 
-    // Send deploy error email to user
+    // Failure notifications
     try {
-      const userResult = await pool.query('SELECT u.email FROM users u JOIN servers s ON s.user_id = u.id WHERE s.id = $1', [server.id]);
-      if (userResult.rows[0]?.email) {
-        await sendDeployErrorEmail(userResult.rows[0].email, gitUrl, error.message);
-      }
+      const notifyResult = await pool.query(
+        'SELECT u.email, s.notify_webhook_url FROM users u JOIN servers s ON s.user_id = u.id WHERE s.id = $1',
+        [server.id]
+      );
+      const { email, notify_webhook_url } = notifyResult.rows[0] || {};
+      if (email) sendDeployErrorEmail(email, gitUrl, error.message).catch(() => {});
+      if (notify_webhook_url) fireDeployWebhook(notify_webhook_url, 'deploy.failure', { gitUrl, branch, subdomain, deploymentId, error: error.message });
     } catch (emailErr) {
       console.error(`[DEPLOY] Failed to send deploy error email:`, emailErr.message);
     }
@@ -1453,6 +1469,38 @@ function sanitizeOutput(output) {
 }
 
 // Helper: Execute SSH command with timeout
+// Helper: Validate and fire webhook
+async function fireDeployWebhook(url, event, payload) {
+  try {
+    let parsed;
+    try { parsed = new URL(url); } catch { throw new Error('Invalid webhook URL'); }
+    if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error('Webhook URL must use http or https');
+    const hostname = parsed.hostname;
+    const denyPatterns = [/^localhost$/i, /^127\./, /^10\./, /^192\.168\./, /^172\.(1[6-9]|2\d|3[01])\./];
+    if (denyPatterns.some(re => re.test(hostname))) throw new Error('Webhook URL cannot point to local/private address');
+    let addresses;
+    try { addresses = await dns.lookup(hostname, { all: true }); } catch { throw new Error('Could not resolve webhook host'); }
+    for (const addr of addresses) {
+      if (net.isPrivate && net.isPrivate(addr.address)) throw new Error('Webhook host resolves to private IP');
+      if (/^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|127\.)/.test(addr.address)) throw new Error('Webhook host resolves to private IP');
+    }
+    let fetchFn = global.fetch;
+    if (!fetchFn) fetchFn = require('node-fetch');
+    const body = JSON.stringify({ event, timestamp: new Date().toISOString(), ...payload });
+    const controller = new AbortController();
+    const tid = setTimeout(() => controller.abort(), 5000);
+    await fetchFn(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'User-Agent': 'CloudedBasement/1.0' },
+      body,
+      signal: controller.signal,
+    });
+    clearTimeout(tid);
+  } catch (err) {
+    console.warn('[WEBHOOK] Delivery failed:', err.message);
+  }
+}
+
 function execSSH(conn, command, timeoutMs = 900000) { // 15 min default timeout
   return new Promise((resolve, reject) => {
     const timeoutId = setTimeout(() => {

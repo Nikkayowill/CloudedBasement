@@ -30,7 +30,8 @@ export default function DashboardPage() {
 
   const params = new URLSearchParams(window.location.search);
   const flashSuccess = params.get('success') || '';
-  const flashError = params.get('error') || '';
+  const flashError   = params.get('error')   || '';
+  const flashWarning = params.get('warning') || '';
 
   if (loading) return (
     <div className="cb-screen-state">
@@ -44,5 +45,5 @@ export default function DashboardPage() {
     </div>
   );
 
-  return <DashboardLayout data={data} flashSuccess={flashSuccess} flashError={flashError} />;
+  return <DashboardLayout data={data} flashSuccess={flashSuccess} flashError={flashError} flashWarning={flashWarning} />;
 }

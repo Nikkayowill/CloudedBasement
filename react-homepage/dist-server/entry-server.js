@@ -1540,9 +1540,9 @@ function HomePage() {
     /* @__PURE__ */ jsx(Footer, {})
   ] }) }) });
 }
-const DashboardPage = lazy(() => import("./assets/DashboardPage-DmYW1l4H.js"));
+const DashboardPage = lazy(() => import("./assets/DashboardPage-Cnqb7U5I.js"));
 const AdminPage = lazy(() => import("./assets/AdminPage-C_0vg4oA.js"));
-const AdminUpdatesPage = lazy(() => import("./assets/AdminUpdatesPage-hJRJOb1H.js"));
+const AdminUpdatesPage = lazy(() => import("./assets/AdminUpdatesPage-DnY9iKkz.js"));
 const About = lazy(() => import("./assets/About-COLVXPnX.js"));
 const Compare = lazy(() => import("./assets/Compare-BvaYsUZG.js"));
 const Contact = lazy(() => import("./assets/Contact-DGk-0rMT.js"));

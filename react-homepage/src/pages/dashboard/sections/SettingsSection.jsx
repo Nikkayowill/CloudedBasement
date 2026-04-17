@@ -339,14 +339,85 @@ function PlanCard({ data }) {
   );
 }
 
+function WebhookCard({ csrfToken, notifyWebhookUrl }) {
+  const [url, setUrl]       = useState(notifyWebhookUrl || '');
+  const [saving, setSaving] = useState(false);
+  const [result, setResult] = useState(null);
+
+  async function save(e) {
+    e.preventDefault();
+    setSaving(true);
+    setResult(null);
+    try {
+      const r = await fetch('/set-notify-webhook', {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ _csrf: csrfToken, webhookUrl: url.trim() }),
+      });
+      const json = await r.json();
+      if (json.success) setResult({ type: 'success', message: json.message });
+      else              setResult({ type: 'error',   message: json.error || 'Failed to save.' });
+    } catch {
+      setResult({ type: 'error', message: 'Network error.' });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <CardShell title="Deploy Notifications">
+      <p style={{ fontSize: '0.8125rem', color: 'var(--dash-text-secondary, #a1a1a1)', marginBottom: '1rem', lineHeight: 1.5 }}>
+        Post a JSON payload to a URL on every deploy success or failure. Works with Slack, Discord, or any custom endpoint.
+      </p>
+      <form onSubmit={save} style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+        <div>
+          <label style={labelStyle}>Webhook URL (https:// only)</label>
+          <input
+            type="url"
+            value={url}
+            onChange={e => setUrl(e.target.value)}
+            placeholder="https://hooks.slack.com/services/…"
+            style={inputStyle}
+            onFocus={e  => { e.currentTarget.style.borderColor = 'rgba(59,130,246,0.5)'; }}
+            onBlur={e   => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+          />
+        </div>
+        {result && <InlineAlert type={result.type} message={result.message} />}
+        <div style={{ display: 'flex', gap: '0.625rem' }}>
+          <button type="submit" disabled={saving} style={{
+            padding: '0.5rem 1.125rem', background: '#2563eb', border: 'none',
+            borderRadius: '0.375rem', color: '#fff', fontSize: '0.875rem', fontWeight: 500,
+            cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.7 : 1,
+          }}>
+            {saving ? 'Saving…' : 'Save'}
+          </button>
+          {url && (
+            <button type="button" onClick={() => { setUrl(''); fetch('/set-notify-webhook', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ _csrf: csrfToken, webhookUrl: '' }) }).then(r => r.json()).then(json => { if (json.success) setResult({ type: 'success', message: json.message }); else setResult({ type: 'error', message: json.error || 'Failed to remove.' }); }).catch(() => setResult({ type: 'error', message: 'Network error.' })); }} style={{
+              padding: '0.5rem 1rem', background: 'transparent',
+              border: '1px solid rgba(239,68,68,0.3)', borderRadius: '0.375rem',
+              color: '#f87171', fontSize: '0.875rem', cursor: 'pointer',
+            }}>
+              Remove
+            </button>
+          )}
+        </div>
+        <p style={{ fontSize: '0.75rem', color: 'var(--dash-text-muted, #525252)', lineHeight: 1.5 }}>
+          Payload includes: <code style={{ fontFamily: 'JetBrains Mono, monospace' }}>event</code>, <code style={{ fontFamily: 'JetBrains Mono, monospace' }}>gitUrl</code>, <code style={{ fontFamily: 'JetBrains Mono, monospace' }}>branch</code>, <code style={{ fontFamily: 'JetBrains Mono, monospace' }}>subdomain</code>, <code style={{ fontFamily: 'JetBrains Mono, monospace' }}>timestamp</code>
+        </p>
+      </form>
+    </CardShell>
+  );
+}
+
 export default function SettingsSection({ data }) {
-  const { csrfToken } = data;
+  const { csrfToken, notifyWebhookUrl } = data;
 
   return (
     <section>
       <SectionHeader title="Settings" />
       <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         <PlanCard data={data} />
+        <WebhookCard csrfToken={csrfToken} notifyWebhookUrl={notifyWebhookUrl} />
         <ChangePasswordCard csrfToken={csrfToken} />
         <SupportTicketCard csrfToken={csrfToken} />
       </div>
