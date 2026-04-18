@@ -2857,6 +2857,7 @@ function BillingUsageCard() {
   const totalPaid = ((usage?.total_paid_cents || 0) / 100).toFixed(2);
   const recentPayments = usage?.recent_payments || [];
   const monthly = usage?.monthly_breakdown || [];
+  const billingLabel = usage?.is_trial ? "Trial" : usage?.has_subscription ? `${usage?.payment_interval === "yearly" ? "Yearly" : "Monthly"} recurring` : "No recurring billing";
   return /* @__PURE__ */ jsxs(CardShell, { title: "Billing Snapshot", children: [
     /* @__PURE__ */ jsxs("div", { style: {
       display: "grid",
@@ -2876,11 +2877,11 @@ function BillingUsageCard() {
         ] })
       ] }),
       /* @__PURE__ */ jsxs("div", { style: { padding: "0.75rem", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "0.5rem" }, children: [
-        /* @__PURE__ */ jsx("div", { style: { fontSize: "0.6875rem", color: "var(--dash-text-muted, #525252)", marginBottom: "0.25rem" }, children: "Subscription" }),
-        /* @__PURE__ */ jsx("div", { style: { fontSize: "0.875rem", fontWeight: 600, color: usage?.has_subscription ? "#86efac" : "var(--dash-text-secondary, #a1a1a1)" }, children: usage?.has_subscription ? "Active" : "One-time" })
+        /* @__PURE__ */ jsx("div", { style: { fontSize: "0.6875rem", color: "var(--dash-text-muted, #525252)", marginBottom: "0.25rem" }, children: "Billing model" }),
+        /* @__PURE__ */ jsx("div", { style: { fontSize: "0.875rem", fontWeight: 600, color: usage?.has_subscription ? "#86efac" : "var(--dash-text-secondary, #a1a1a1)" }, children: billingLabel })
       ] })
     ] }),
-    /* @__PURE__ */ jsx("p", { style: { fontSize: "0.75rem", color: "var(--dash-text-muted, #525252)", marginBottom: "0.75rem", lineHeight: 1.5 }, children: "Even with flat monthly billing, this helps you confirm successful charges, detect failed renewals, and view payment history in one place." }),
+    /* @__PURE__ */ jsx("p", { style: { fontSize: "0.75rem", color: "var(--dash-text-muted, #525252)", marginBottom: "0.75rem", lineHeight: 1.5 }, children: "This helps you confirm successful charges, detect failed renewals, and view payment history in one place." }),
     unavailableReason && /* @__PURE__ */ jsx("p", { style: { fontSize: "0.75rem", color: "var(--dash-text-muted, #525252)", marginBottom: "0.75rem" }, children: unavailableReason }),
     recentPayments.length > 0 && /* @__PURE__ */ jsxs("div", { style: { marginBottom: "0.75rem" }, children: [
       /* @__PURE__ */ jsx("div", { style: { fontSize: "0.6875rem", color: "var(--dash-text-muted, #525252)", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }, children: "Recent payments" }),

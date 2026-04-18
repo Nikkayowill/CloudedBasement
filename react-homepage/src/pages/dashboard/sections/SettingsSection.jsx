@@ -405,6 +405,11 @@ function BillingUsageCard() {
   const totalPaid = ((usage?.total_paid_cents || 0) / 100).toFixed(2);
   const recentPayments = usage?.recent_payments || [];
   const monthly = usage?.monthly_breakdown || [];
+  const billingLabel = usage?.is_trial
+    ? 'Trial'
+    : usage?.has_subscription
+      ? `${usage?.payment_interval === 'yearly' ? 'Yearly' : 'Monthly'} recurring`
+      : 'No recurring billing';
 
   return (
     <CardShell title="Billing Snapshot">
@@ -425,15 +430,15 @@ function BillingUsageCard() {
           <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#fbbf24' }}>${totalPaid}</div>
         </div>
         <div style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '0.5rem' }}>
-          <div style={{ fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)', marginBottom: '0.25rem' }}>Subscription</div>
+          <div style={{ fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)', marginBottom: '0.25rem' }}>Billing model</div>
           <div style={{ fontSize: '0.875rem', fontWeight: 600, color: usage?.has_subscription ? '#86efac' : 'var(--dash-text-secondary, #a1a1a1)' }}>
-            {usage?.has_subscription ? 'Active' : 'One-time'}
+            {billingLabel}
           </div>
         </div>
       </div>
 
       <p style={{ fontSize: '0.75rem', color: 'var(--dash-text-muted, #525252)', marginBottom: '0.75rem', lineHeight: 1.5 }}>
-        Even with flat monthly billing, this helps you confirm successful charges, detect failed renewals, and view payment history in one place.
+        This helps you confirm successful charges, detect failed renewals, and view payment history in one place.
       </p>
 
       {unavailableReason && (

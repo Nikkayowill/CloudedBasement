@@ -42,7 +42,7 @@ function sanitiseSiteTitle(raw) {
 /**
  * Kick off WordPress provisioning for the authenticated user.
  *
- * Body: { plan, siteTitle, adminEmail }
+ * Body: { plan, interval, subscription_id, siteTitle, adminEmail }
  *
  * Returns HTTP 202 with { serverId, wpSiteId, status: 'provisioning' } so the
  * frontend can start polling /api/wordpress/status/:siteId immediately.
@@ -102,8 +102,13 @@ exports.createSite = async (req, res) => {
       });
     }
 
+    const interval = req.body.interval === 'yearly' ? 'yearly' : 'monthly';
+    const subscriptionId = typeof req.body.subscription_id === 'string' && /^sub_[A-Za-z0-9]+$/.test(req.body.subscription_id)
+      ? req.body.subscription_id
+      : null;
+
     // ── Start provisioning (async — does not block the response) ───────────
-    const serverRow = await createWordPressServer(userId, plan, siteTitle, adminEmail);
+    const serverRow = await createWordPressServer(userId, plan, siteTitle, adminEmail, interval, subscriptionId);
 
     // Fetch the wordpress_sites id created alongside the server row
     const wpSiteResult = await pool.query(

@@ -46,6 +46,9 @@ exports.showChoice = async (req, res) => {
     );
     const plan           = paymentResult.rows[0]?.plan || 'basic';
     const paymentInterval = req.query.interval === 'yearly' ? 'yearly' : 'monthly';
+    const subscriptionId = typeof req.query.subscription_id === 'string' && /^sub_[A-Za-z0-9]+$/.test(req.query.subscription_id)
+      ? req.query.subscription_id
+      : '';
 
     const csrfToken = typeof req.csrfToken === 'function' ? req.csrfToken() : '';
 
@@ -118,6 +121,7 @@ ${getDashboardHead('Choose Your Hosting - Clouded Basement')}
             <input type="hidden" name="_csrf" value="${csrfToken}">
             <input type="hidden" name="plan"  value="${escapeHtml(plan)}">
             <input type="hidden" name="interval" value="${escapeHtml(paymentInterval)}">
+            <input type="hidden" name="subscription_id" value="${escapeHtml(subscriptionId)}">
             <button type="submit" class="dash-btn dash-btn-primary w-full">
               Deploy Node.js App
             </button>
@@ -162,6 +166,8 @@ ${getDashboardHead('Choose Your Hosting - Clouded Basement')}
           <form id="wp-onboarding-form" action="/wordpress/create" method="POST" class="space-y-3">
             <input type="hidden" name="_csrf"  value="${csrfToken}">
             <input type="hidden" name="plan"   value="${escapeHtml(plan)}">
+            <input type="hidden" name="interval" value="${escapeHtml(paymentInterval)}">
+            <input type="hidden" name="subscription_id" value="${escapeHtml(subscriptionId)}">
             <div>
               <label class="block text-xs mb-1" style="color: var(--dash-text-secondary, #a1a1a1);"
                      for="ob-wp-title">Site title</label>
@@ -255,9 +261,12 @@ exports.provisionNodejs = async (req, res) => {
     const { plan, stripe_payment_id: chargeId } = paymentResult.rows[0];
     // interval was forwarded from /payment-success via the hidden form input
     const interval = req.body.interval === 'yearly' ? 'yearly' : 'monthly';
+    const subscriptionId = typeof req.body.subscription_id === 'string' && /^sub_[A-Za-z0-9]+$/.test(req.body.subscription_id)
+      ? req.body.subscription_id
+      : null;
 
     // Kick off async Node.js provisioning — same call the webhook used to make
-    await createRealServer(userId, plan, chargeId, interval);
+    await createRealServer(userId, plan, chargeId, interval, subscriptionId);
 
     return res.redirect('/dashboard?provisioning=true');
 

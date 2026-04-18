@@ -715,30 +715,28 @@ exports.stripeWebhook = async (req, res) => {
             }
           }
 
-          // Check if this is the first invoice (billing_reason = 'subscription_create')
-          if (invoice.billing_reason === 'subscription_create') {
-            console.log(`First subscription payment for user ${userId}, plan: ${plan}`);
+          const serverCheck = await client.query(
+            'SELECT id, stripe_subscription_id FROM servers WHERE user_id = $1 AND status NOT IN (\'deleted\', \'failed\')',
+            [userId]
+          );
 
-            // Check if server already exists
-            const serverCheck = await client.query(
-              'SELECT * FROM servers WHERE user_id = $1 AND status NOT IN (\'deleted\', \'failed\')',
-              [userId]
-            );
-
-            if (serverCheck.rows.length === 0) {
+          if (serverCheck.rows.length === 0) {
+            if (invoice.billing_reason === 'subscription_create') {
               // Server provisioning is deferred to /onboarding/choose.
               console.log(`[WEBHOOK] invoice.paid (subscription_create): payment recorded for user ${userId}, plan ${plan}. Server creation deferred to onboarding.`);
             } else {
-              // Server already exists — just attach the subscription ID
-              await client.query(
-                'UPDATE servers SET stripe_subscription_id = $1 WHERE user_id = $2 AND status NOT IN (\'deleted\', \'failed\')',
-                [invoice.subscription, userId]
-              );
-              console.log('Updated existing server with subscription ID');
+              console.log(`Recurring payment recorded for user ${userId}, subscription: ${invoice.subscription}`);
             }
           } else {
-            // Recurring payment - already recorded above
-            console.log(`Recurring payment recorded for user ${userId}, subscription: ${invoice.subscription}`);
+            await client.query(
+              `UPDATE servers
+                  SET stripe_subscription_id = COALESCE(stripe_subscription_id, $1),
+                      subscription_start_date = COALESCE(subscription_start_date, CURRENT_TIMESTAMP)
+                WHERE user_id = $2
+                  AND status NOT IN ('deleted', 'failed')`,
+              [invoice.subscription, userId]
+            );
+            console.log('Updated existing server with subscription ID');
           }
 
           await client.query('COMMIT');
@@ -1014,7 +1012,7 @@ exports.getBillingUsage = async (req, res) => {
     const [serverResult, totalResult, monthlyResult, recentResult] = await Promise.all([
       // Current plan from server
       pool.query(
-        'SELECT plan, status, payment_type, stripe_subscription_id FROM servers WHERE user_id = $1 LIMIT 1',
+        'SELECT plan, status, is_trial, payment_interval, stripe_subscription_id FROM servers WHERE user_id = $1 LIMIT 1',
         [userId]
       ),
       // Total paid (completed payments only)
@@ -1039,7 +1037,7 @@ exports.getBillingUsage = async (req, res) => {
       ),
       // Recent payments (last 10)
       pool.query(
-        `SELECT id, amount, plan, payment_type, status, created_at
+        `SELECT id, amount, plan, status, created_at
            FROM payments
           WHERE user_id = $1
           ORDER BY created_at DESC
@@ -1049,12 +1047,22 @@ exports.getBillingUsage = async (req, res) => {
     ]);
 
     const server = serverResult.rows[0] || null;
+    const totalPaidCents = parseInt(totalResult.rows[0].total_cents, 10);
+    const hasRecurringBilling = !!(
+      server &&
+      server.is_trial !== true &&
+      server.status !== 'deleted' &&
+      (server.stripe_subscription_id || totalPaidCents > 0)
+    );
+
     res.json({
       current_plan: server ? server.plan : null,
       server_status: server ? server.status : null,
-      payment_type: server ? server.payment_type : null,
-      has_subscription: !!(server && server.stripe_subscription_id),
-      total_paid_cents: parseInt(totalResult.rows[0].total_cents, 10),
+      is_trial: server ? server.is_trial === true : false,
+      payment_interval: server ? server.payment_interval : null,
+      subscription_linked: !!(server && server.stripe_subscription_id),
+      has_subscription: hasRecurringBilling,
+      total_paid_cents: totalPaidCents,
       monthly_breakdown: monthlyResult.rows,
       recent_payments: recentResult.rows,
     });

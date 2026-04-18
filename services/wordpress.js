@@ -213,7 +213,7 @@ const WP_SPECS = {
  * @param {string} adminEmail   - WordPress admin account email
  * @returns {Promise<object>}   - The new row from the `servers` table
  */
-async function createWordPressServer(userId, plan, siteTitle, adminEmail) {
+async function createWordPressServer(userId, plan, siteTitle, adminEmail, paymentInterval = 'monthly', stripeSubscriptionId = null) {
   const selectedSpec = WP_SPECS[plan] || WP_SPECS.basic;
 
   // ── Generate credentials ──────────────────────────────────────────────────
@@ -278,9 +278,9 @@ async function createWordPressServer(userId, plan, siteTitle, adminEmail) {
       const serverResult = await pool.query(
         `INSERT INTO servers
            (user_id, plan, status, ip_address, ssh_username, ssh_password, ssh_password_iv,
-            specs, droplet_id, droplet_name, server_type, site_limit, payment_interval)
+            specs, droplet_id, droplet_name, server_type, site_limit, payment_interval, stripe_subscription_id, subscription_start_date)
          VALUES ($1, $2, 'provisioning', 'pending', 'root', $3, $4,
-                 $5, $6, $7, 'wordpress', 1, 'monthly')
+                 $5, $6, $7, 'wordpress', 1, $8, $9, CURRENT_TIMESTAMP)
          RETURNING *`,
         [
           userId,
@@ -290,6 +290,8 @@ async function createWordPressServer(userId, plan, siteTitle, adminEmail) {
           JSON.stringify(selectedSpec),
           String(droplet.id),
           dropletName,
+          paymentInterval,
+          stripeSubscriptionId,
         ]
       );
       serverRow = serverResult.rows[0];
