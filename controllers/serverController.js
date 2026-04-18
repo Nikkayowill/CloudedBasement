@@ -37,6 +37,7 @@ const { escapeHtml } = require('../src/utils/helpers');
 const { getUserServer, verifyServerOwnership, updateServerStatus, appendDeploymentOutput, updateDeploymentStatus } = require('../src/utils/db-helpers');
 const { SERVER_STATUS, DEPLOYMENT_STATUS, TIMEOUTS, PORTS } = require('../src/utils/constants');
 const { sendDeployErrorEmail, sendDeploySuccessEmail } = require('../services/email');
+const { sendWebhook } = require('../services/notifier');
 const { analyzeDeploymentFailure } = require('../services/aiDiagnosis');
 const { decryptSshPassword } = require('../src/utils/sshCrypto');
 const { createRealServer } = require('../services/digitalocean');
@@ -305,10 +306,20 @@ exports.deploy = async (req, res) => {
       console.error(`[DEPLOY] DNS creation error:`, dnsErr);
     }
     
+    // Read optional custom startup command — validated to prevent shell/systemd injection
+    const rawStartCommand = (req.body.start_command || '').trim();
+    if (rawStartCommand.length > 500) {
+      return res.redirect('/dashboard?error=Start command too long (max 500 characters).');
+    }
+    if (rawStartCommand && /[\n\r'%\x00-\x1f]/.test(rawStartCommand)) {
+      return res.redirect('/dashboard?error=Invalid start command: contains disallowed characters.');
+    }
+    const startCommand = rawStartCommand || null;
+
     // Store deployment in database with pending status and subdomain
     const deployResult = await pool.query(
-      'INSERT INTO deployments (server_id, user_id, git_url, status, output, subdomain, dns_record_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
-      [server.id, userId, gitUrl, 'pending', 'Starting deployment...', subdomain, dnsRecordId]
+      'INSERT INTO deployments (server_id, user_id, git_url, status, output, subdomain, dns_record_id, start_command) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id',
+      [server.id, userId, gitUrl, 'pending', 'Starting deployment...', subdomain, dnsRecordId, startCommand]
     );
 
     const deploymentId = deployResult.rows[0].id;
@@ -316,7 +327,7 @@ exports.deploy = async (req, res) => {
 
     // Perform deployment asynchronously (don't block response)
     setImmediate(() => {
-      performDeployment(server, gitUrl, repoName, deploymentId, subdomain).catch(async (err) => {
+      performDeployment(server, gitUrl, repoName, deploymentId, subdomain, null, null, startCommand).catch(async (err) => {
         console.error(`[DEPLOY] Deployment #${deploymentId} failed:`, err);
         console.error(`[DEPLOY] Stack trace:`, err.stack);
         const failureOutput = `❌ Deployment failed: ${err.message}\n\nStack trace:\n${err.stack}`;
@@ -539,7 +550,7 @@ exports.rollback = async (req, res) => {
 };
 
 // Async deployment function
-async function performDeployment(server, gitUrl, repoName, deploymentId, subdomain = null, branch = null, rollbackSha = null) {
+async function performDeployment(server, gitUrl, repoName, deploymentId, subdomain = null, branch = null, rollbackSha = null, startCommand = null) {
   console.log(`[DEPLOY] ============================================`);
   console.log(`[DEPLOY] Starting performDeployment for deployment #${deploymentId}`);
   console.log(`[DEPLOY] Server IP: ${server.ip_address}, Repo: ${gitUrl}`);
@@ -652,13 +663,13 @@ async function performDeployment(server, gitUrl, repoName, deploymentId, subdoma
       }
     } else if (hasCargoToml) {
       output += `✓ Detected: Rust application\n`;
-      output = await deployRustApp(conn, repoName, output, deploymentId, server.id, subdomain);
+      output = await deployRustApp(conn, repoName, output, deploymentId, server.id, subdomain, startCommand);
     } else if (hasGoMod) {
       output += `✓ Detected: Go application\n`;
-      output = await deployGoApp(conn, repoName, output, deploymentId, server.id, subdomain);
+      output = await deployGoApp(conn, repoName, output, deploymentId, server.id, subdomain, startCommand);
     } else if (hasRequirementsTxt) {
       output += `✓ Detected: Python application\n`;
-      output = await deployPythonApp(conn, repoName, output, deploymentId, server.id, subdomain);
+      output = await deployPythonApp(conn, repoName, output, deploymentId, server.id, subdomain, startCommand);
     } else if (hasIndexHtml) {
       output += `✓ Detected: Static HTML site\n`;
       output = await deployStaticHTML(conn, repoName, output, deploymentId, subdomain);
@@ -1101,6 +1112,7 @@ async function deployNodeBackend(conn, repoName, output, deploymentId, serverId,
 
   output += `\n[4/5] Creating systemd service...\n`;
   const serviceName = `${repoName}.service`;
+  const nodeExecStart = startCommand ? startCommand : '/usr/bin/node index.js';
   const serviceContent = `[Unit]
 Description=${repoName} Node.js App
 After=network.target
@@ -1109,7 +1121,7 @@ After=network.target
 Type=simple
 User=root
 WorkingDirectory=/root/${repoName}
-ExecStart=/usr/bin/node index.js
+ExecStart=${nodeExecStart}
 Restart=on-failure
 Environment=NODE_ENV=production
 Environment=PORT=${appPort}
@@ -1174,7 +1186,7 @@ WantedBy=multi-user.target`;
 }
 
 // Deploy Python app
-async function deployPythonApp(conn, repoName, output, deploymentId, serverId, subdomain = null) {
+async function deployPythonApp(conn, repoName, output, deploymentId, serverId, subdomain = null, startCommand = null) {
   output += `\n[3/5] Installing dependencies...\n`;
 
   // Inject environment variables
@@ -1195,7 +1207,7 @@ After=network.target
 Type=simple
 User=root
 WorkingDirectory=/root/${repoName}
-ExecStart=/usr/bin/python3 app.py
+ExecStart=${startCommand || '/usr/bin/python3 app.py'}
 Restart=on-failure
 Environment=PORT=${appPort}
 
@@ -1258,7 +1270,7 @@ WantedBy=multi-user.target`;
 }
 
 // Deploy Rust app
-async function deployRustApp(conn, repoName, output, deploymentId, serverId, subdomain = null) {
+async function deployRustApp(conn, repoName, output, deploymentId, serverId, subdomain = null, startCommand = null) {
   output += `\n[3/5] Building Rust application...\n`;
   output += `This may take several minutes...\n`;
   
@@ -1308,7 +1320,7 @@ After=network.target
 Type=simple
 User=root
 WorkingDirectory=/root/${repoName}
-ExecStart=${binPath}
+ExecStart=${startCommand || binPath}
 Restart=always
 
 [Install]
@@ -1354,7 +1366,7 @@ WantedBy=multi-user.target`;
 }
 
 // Deploy Go app
-async function deployGoApp(conn, repoName, output, deploymentId, serverId, subdomain = null) {
+async function deployGoApp(conn, repoName, output, deploymentId, serverId, subdomain = null, startCommand = null) {
   output += `\n[3/5] Building Go application...\n`;
   
   // Inject environment variables
@@ -1381,7 +1393,7 @@ After=network.target
 Type=simple
 User=root
 WorkingDirectory=/root/${repoName}
-ExecStart=/root/${repoName}/${repoName}
+ExecStart=${startCommand || `/root/${repoName}/${repoName}`}
 Restart=always
 
 [Install]
@@ -1468,34 +1480,10 @@ function sanitizeOutput(output) {
   return sanitized;
 }
 
-// Helper: Execute SSH command with timeout
-// Helper: Validate and fire webhook
+// Helper: Validate and fire deploy webhook — delegates to shared notifier
 async function fireDeployWebhook(url, event, payload) {
   try {
-    let parsed;
-    try { parsed = new URL(url); } catch { throw new Error('Invalid webhook URL'); }
-    if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error('Webhook URL must use http or https');
-    const hostname = parsed.hostname;
-    const denyPatterns = [/^localhost$/i, /^127\./, /^10\./, /^192\.168\./, /^172\.(1[6-9]|2\d|3[01])\./];
-    if (denyPatterns.some(re => re.test(hostname))) throw new Error('Webhook URL cannot point to local/private address');
-    let addresses;
-    try { addresses = await dns.lookup(hostname, { all: true }); } catch { throw new Error('Could not resolve webhook host'); }
-    for (const addr of addresses) {
-      if (net.isPrivate && net.isPrivate(addr.address)) throw new Error('Webhook host resolves to private IP');
-      if (/^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|127\.)/.test(addr.address)) throw new Error('Webhook host resolves to private IP');
-    }
-    let fetchFn = global.fetch;
-    if (!fetchFn) fetchFn = require('node-fetch');
-    const body = JSON.stringify({ event, timestamp: new Date().toISOString(), ...payload });
-    const controller = new AbortController();
-    const tid = setTimeout(() => controller.abort(), 5000);
-    await fetchFn(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'User-Agent': 'CloudedBasement/1.0' },
-      body,
-      signal: controller.signal,
-    });
-    clearTimeout(tid);
+    await sendWebhook(url, { event, timestamp: new Date().toISOString(), ...payload });
   } catch (err) {
     console.warn('[WEBHOOK] Delivery failed:', err.message);
   }

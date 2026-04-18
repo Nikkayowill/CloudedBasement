@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 function SectionHeader({ title }) {
   return (
@@ -339,6 +339,121 @@ function PlanCard({ data }) {
   );
 }
 
+function BillingUsageCard() {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [usage, setUsage] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    fetch('/api/billing/usage', { credentials: 'same-origin' })
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((d) => {
+        if (!active) return;
+        setUsage(d);
+      })
+      .catch((err) => {
+        if (!active) return;
+        setError(err.message || 'Failed to load billing summary');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <CardShell title="Billing Snapshot">
+        <p style={{ fontSize: '0.8125rem', color: 'var(--dash-text-muted, #525252)' }}>Loading billing summary…</p>
+      </CardShell>
+    );
+  }
+
+  if (error) {
+    return (
+      <CardShell title="Billing Snapshot">
+        <InlineAlert type="error" message={`Failed to load billing summary: ${error}`} />
+      </CardShell>
+    );
+  }
+
+  const totalPaid = ((usage?.total_paid_cents || 0) / 100).toFixed(2);
+  const recentPayments = usage?.recent_payments || [];
+  const monthly = usage?.monthly_breakdown || [];
+
+  return (
+    <CardShell title="Billing Snapshot">
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(10rem, 1fr))',
+        gap: '0.75rem',
+        marginBottom: '1rem'
+      }}>
+        <div style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '0.5rem' }}>
+          <div style={{ fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)', marginBottom: '0.25rem' }}>Current plan</div>
+          <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--dash-text-primary, #fafafa)', textTransform: 'capitalize' }}>
+            {usage?.current_plan || '—'}
+          </div>
+        </div>
+        <div style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '0.5rem' }}>
+          <div style={{ fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)', marginBottom: '0.25rem' }}>Total paid</div>
+          <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#fbbf24' }}>${totalPaid}</div>
+        </div>
+        <div style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '0.5rem' }}>
+          <div style={{ fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)', marginBottom: '0.25rem' }}>Subscription</div>
+          <div style={{ fontSize: '0.875rem', fontWeight: 600, color: usage?.has_subscription ? '#86efac' : 'var(--dash-text-secondary, #a1a1a1)' }}>
+            {usage?.has_subscription ? 'Active' : 'One-time'}
+          </div>
+        </div>
+      </div>
+
+      <p style={{ fontSize: '0.75rem', color: 'var(--dash-text-muted, #525252)', marginBottom: '0.75rem', lineHeight: 1.5 }}>
+        Even with flat monthly billing, this helps you confirm successful charges, detect failed renewals, and view payment history in one place.
+      </p>
+
+      {recentPayments.length > 0 && (
+        <div style={{ marginBottom: '0.75rem' }}>
+          <div style={{ fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Recent payments
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+            {recentPayments.slice(0, 5).map((p) => (
+              <div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.75rem', borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: '0.25rem' }}>
+                <span style={{ color: 'var(--dash-text-secondary, #a1a1a1)', textTransform: 'capitalize' }}>{p.plan || 'plan'}</span>
+                <span style={{ color: '#fbbf24' }}>${((p.amount || 0) / 100).toFixed(2)}</span>
+                <span style={{ color: 'var(--dash-text-muted, #525252)', textTransform: 'capitalize' }}>{p.status || 'unknown'}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {monthly.length > 0 && (
+        <div>
+          <div style={{ fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Monthly totals
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            {monthly.slice(0, 4).map((m) => (
+              <div key={m.month} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.75rem' }}>
+                <span style={{ color: 'var(--dash-text-secondary, #a1a1a1)' }}>{m.month}</span>
+                <span style={{ color: '#fbbf24' }}>${((m.total_cents || 0) / 100).toFixed(2)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </CardShell>
+  );
+}
+
 function WebhookCard({ csrfToken, notifyWebhookUrl }) {
   const [url, setUrl]       = useState(notifyWebhookUrl || '');
   const [saving, setSaving] = useState(false);
@@ -409,15 +524,249 @@ function WebhookCard({ csrfToken, notifyWebhookUrl }) {
   );
 }
 
+function TwoFACard({ csrfToken, twofaEnabled: initialEnabled }) {
+  const [enabled, setEnabled]   = useState(initialEnabled);
+  const [phase, setPhase]       = useState('idle'); // idle | setup | verifying
+  const [qr, setQr]             = useState(null);
+  const [secret, setSecret]     = useState(null);
+  const [code, setCode]         = useState('');
+  const [busy, setBusy]         = useState(false);
+  const [result, setResult]     = useState(null);
+  const inputRef                = useRef(null);
+
+  async function startSetup() {
+    setBusy(true);
+    setResult(null);
+    try {
+      const r = await fetch('/auth/2fa/setup', { credentials: 'same-origin' });
+      const d = await r.json();
+      if (!r.ok) return setResult({ type: 'error', message: d.error || 'Failed to generate QR code.' });
+      setQr(d.qr);
+      setSecret(d.secret);
+      setPhase('setup');
+      setTimeout(() => inputRef.current?.focus(), 50);
+    } catch {
+      setResult({ type: 'error', message: 'Network error. Try again.' });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function verifyCode(e) {
+    e.preventDefault();
+    if (code.length !== 6) return setResult({ type: 'error', message: 'Enter the 6-digit code from your authenticator app.' });
+    setBusy(true);
+    setResult(null);
+    try {
+      const r = await fetch('/auth/2fa/verify', {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrfToken },
+        body: JSON.stringify({ code }),
+      });
+      const d = await r.json();
+      if (!r.ok || !d.success) return setResult({ type: 'error', message: d.error || 'Invalid code. Try again.' });
+      setEnabled(true);
+      setPhase('idle');
+      setQr(null); setSecret(null); setCode('');
+      setResult({ type: 'success', message: '2FA enabled successfully.' });
+    } catch {
+      setResult({ type: 'error', message: 'Network error. Try again.' });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function disable() {
+    if (!window.confirm('Disable two-factor authentication? Your account will be less secure.')) return;
+    setBusy(true);
+    setResult(null);
+    try {
+      const r = await fetch('/auth/2fa/disable', {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'x-csrf-token': csrfToken },
+      });
+      const d = await r.json();
+      if (!r.ok || !d.success) return setResult({ type: 'error', message: d.error || 'Failed to disable 2FA.' });
+      setEnabled(false);
+      setResult({ type: 'success', message: '2FA disabled.' });
+    } catch {
+      setResult({ type: 'error', message: 'Network error. Try again.' });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <CardShell title="Two-Factor Authentication">
+      {enabled && phase === 'idle' ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+            <span style={{ fontSize: '0.8125rem', color: '#86efac', fontWeight: 500 }}>✓ 2FA is enabled</span>
+          </div>
+          <p style={{ fontSize: '0.8125rem', color: 'var(--dash-text-secondary, #a1a1a1)', lineHeight: 1.5 }}>
+            Your account is protected with a time-based one-time password (TOTP). You'll need your authenticator app each time you log in.
+          </p>
+          {result && <InlineAlert type={result.type} message={result.message} />}
+          <button onClick={disable} disabled={busy} style={{
+            alignSelf: 'flex-start', padding: '0.5rem 1.125rem',
+            background: 'transparent', border: '1px solid rgba(239,68,68,0.35)',
+            borderRadius: '0.375rem', color: '#f87171', fontSize: '0.875rem',
+            cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.7 : 1,
+          }}>
+            {busy ? 'Disabling…' : 'Disable 2FA'}
+          </button>
+        </div>
+      ) : phase === 'idle' ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+          <p style={{ fontSize: '0.8125rem', color: 'var(--dash-text-secondary, #a1a1a1)', lineHeight: 1.5 }}>
+            Add an extra layer of security. After enabling, you'll need an authenticator app (Google Authenticator, Authy, etc.) to log in.
+          </p>
+          {result && <InlineAlert type={result.type} message={result.message} />}
+          <button onClick={startSetup} disabled={busy} style={{
+            alignSelf: 'flex-start', padding: '0.5rem 1.125rem',
+            background: '#2563eb', border: 'none',
+            borderRadius: '0.375rem', color: '#fff', fontSize: '0.875rem', fontWeight: 500,
+            cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.7 : 1,
+          }}>
+            {busy ? 'Loading…' : 'Enable 2FA'}
+          </button>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <p style={{ fontSize: '0.8125rem', color: 'var(--dash-text-secondary, #a1a1a1)', lineHeight: 1.5 }}>
+            Scan this QR code with your authenticator app, then enter the 6-digit code to confirm.
+          </p>
+          {qr && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.75rem' }}>
+              <img src={qr} alt="2FA QR code" style={{ width: '10rem', height: '10rem', borderRadius: '0.5rem' }} />
+              {secret && (
+                <p style={{ fontSize: '0.75rem', color: 'var(--dash-text-muted, #525252)', lineHeight: 1.5 }}>
+                  Can't scan? Manual key: <code style={{ fontFamily: 'JetBrains Mono, monospace', color: 'var(--dash-text-secondary, #a1a1a1)', letterSpacing: '0.05em' }}>{secret}</code>
+                </p>
+              )}
+            </div>
+          )}
+          <form onSubmit={verifyCode} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div>
+              <label style={labelStyle}>6-digit code</label>
+              <input
+                ref={inputRef}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]{6}"
+                maxLength={6}
+                value={code}
+                onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="000000"
+                autoComplete="one-time-code"
+                style={{ ...inputStyle, maxWidth: '10rem', textAlign: 'center', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.2em', fontSize: '1.125rem' }}
+              />
+            </div>
+            {result && <InlineAlert type={result.type} message={result.message} />}
+            <div style={{ display: 'flex', gap: '0.625rem' }}>
+              <button type="submit" disabled={busy || code.length !== 6} style={{
+                padding: '0.5rem 1.125rem', background: '#2563eb', border: 'none',
+                borderRadius: '0.375rem', color: '#fff', fontSize: '0.875rem', fontWeight: 500,
+                cursor: (busy || code.length !== 6) ? 'not-allowed' : 'pointer',
+                opacity: (busy || code.length !== 6) ? 0.6 : 1,
+              }}>
+                {busy ? 'Verifying…' : 'Verify & Enable'}
+              </button>
+              <button type="button" onClick={() => { setPhase('idle'); setCode(''); setResult(null); }} style={{
+                padding: '0.5rem 1rem', background: 'transparent',
+                border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.375rem',
+                color: 'var(--dash-text-secondary, #a1a1a1)', fontSize: '0.875rem', cursor: 'pointer',
+              }}>
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+    </CardShell>
+  );
+}
+
+function NotificationChannelsCard({ csrfToken, slackWebhookUrl, discordWebhookUrl }) {
+  const [slack,   setSlack]   = useState(slackWebhookUrl   || '');
+  const [discord, setDiscord] = useState(discordWebhookUrl || '');
+  const [saving,  setSaving]  = useState(false);
+  const [result,  setResult]  = useState(null);
+
+  async function save(e) {
+    e.preventDefault();
+    setSaving(true); setResult(null);
+    try {
+      const r = await fetch('/api/notification-channels', {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrfToken },
+        body: JSON.stringify({ slack_webhook_url: slack.trim() || null, discord_webhook_url: discord.trim() || null }),
+      });
+      const d = await r.json();
+      if (d.success) setResult({ type: 'success', message: 'Notification channels saved.' });
+      else           setResult({ type: 'error',   message: d.error || 'Failed to save.' });
+    } catch {
+      setResult({ type: 'error', message: 'Network error.' });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <CardShell title="Alert Notifications">
+      <p style={{ fontSize: '0.8125rem', color: 'var(--dash-text-secondary, #a1a1a1)', marginBottom: '1rem', lineHeight: 1.5 }}>
+        Receive resource alerts (CPU, memory, disk) on Slack and Discord in addition to email.
+      </p>
+      <form onSubmit={save} style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+        <div>
+          <label style={labelStyle}>Slack Incoming Webhook URL</label>
+          <input
+            type="url" value={slack} onChange={e => setSlack(e.target.value)}
+            placeholder="https://hooks.slack.com/services/…"
+            style={inputStyle}
+            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(59,130,246,0.5)'; }}
+            onBlur={e  => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+          />
+        </div>
+        <div>
+          <label style={labelStyle}>Discord Webhook URL</label>
+          <input
+            type="url" value={discord} onChange={e => setDiscord(e.target.value)}
+            placeholder="https://discord.com/api/webhooks/…"
+            style={inputStyle}
+            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(59,130,246,0.5)'; }}
+            onBlur={e  => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+          />
+        </div>
+        {result && <InlineAlert type={result.type} message={result.message} />}
+        <button type="submit" disabled={saving} style={{
+          alignSelf: 'flex-start', padding: '0.5rem 1.125rem',
+          background: '#2563eb', border: 'none', borderRadius: '0.375rem',
+          color: '#fff', fontSize: '0.875rem', fontWeight: 500,
+          cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.7 : 1,
+        }}>
+          {saving ? 'Saving…' : 'Save Channels'}
+        </button>
+        <p style={{ fontSize: '0.75rem', color: 'var(--dash-text-muted, #525252)', lineHeight: 1.5 }}>
+          Leave blank to disable that channel. Alert rules are configured from the Overview tab.
+        </p>
+      </form>
+    </CardShell>
+  );
+}
+
 export default function SettingsSection({ data }) {
-  const { csrfToken, notifyWebhookUrl } = data;
+  const { csrfToken, notifyWebhookUrl, slackWebhookUrl, discordWebhookUrl, twofaEnabled } = data;
 
   return (
     <section>
       <SectionHeader title="Settings" />
       <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         <PlanCard data={data} />
+        <BillingUsageCard />
         <WebhookCard csrfToken={csrfToken} notifyWebhookUrl={notifyWebhookUrl} />
+        <NotificationChannelsCard csrfToken={csrfToken} slackWebhookUrl={slackWebhookUrl} discordWebhookUrl={discordWebhookUrl} />
+        <TwoFACard csrfToken={csrfToken} twofaEnabled={twofaEnabled} />
         <ChangePasswordCard csrfToken={csrfToken} />
         <SupportTicketCard csrfToken={csrfToken} />
       </div>

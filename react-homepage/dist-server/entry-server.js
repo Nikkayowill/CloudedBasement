@@ -1540,18 +1540,18 @@ function HomePage() {
     /* @__PURE__ */ jsx(Footer, {})
   ] }) }) });
 }
-const DashboardPage = lazy(() => import("./assets/DashboardPage-Cnqb7U5I.js"));
-const AdminPage = lazy(() => import("./assets/AdminPage-C_0vg4oA.js"));
+const DashboardPage = lazy(() => import("./assets/DashboardPage-BbBjylYK.js"));
+const AdminPage = lazy(() => import("./assets/AdminPage-bd3IH45u.js"));
 const AdminUpdatesPage = lazy(() => import("./assets/AdminUpdatesPage-DnY9iKkz.js"));
 const About = lazy(() => import("./assets/About-COLVXPnX.js"));
 const Compare = lazy(() => import("./assets/Compare-BvaYsUZG.js"));
 const Contact = lazy(() => import("./assets/Contact-DGk-0rMT.js"));
 const Docs = lazy(() => import("./assets/Docs-ClW3rnAn.js"));
 const Faq = lazy(() => import("./assets/Faq-D0aFlNPc.js"));
-const Login = lazy(() => import("./assets/Login-oYNsdNfP.js"));
+const Login = lazy(() => import("./assets/Login-DrUFe9l2.js"));
 const Pricing = lazy(() => import("./assets/Pricing-tq7efVER.js"));
 const Privacy = lazy(() => import("./assets/Privacy-DK81Pm53.js"));
-const Register = lazy(() => import("./assets/Register-C47F4xQF.js"));
+const Register = lazy(() => import("./assets/Register-D_EC9MDw.js"));
 const Safety = lazy(() => import("./assets/Safety-BNJLC9p1.js"));
 const Terms = lazy(() => import("./assets/Terms-B_VfDbsH.js"));
 function HomeWrapper() {

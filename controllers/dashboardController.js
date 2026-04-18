@@ -8,6 +8,7 @@ const serverUpdates = require('../services/serverUpdates');
 const { sendEmail } = require('../services/email');
 const { getNonce } = require('../src/utils/nonce');
 const { getUptimeStatusForUser } = require('../services/uptimeMonitor');
+const { isAdminSession } = require('../src/utils/rbac');
 
 // Dashboard navigation items - centralized for consistency
 const DASHBOARD_NAV_ITEMS = [
@@ -55,7 +56,7 @@ exports.showDashboard = async (req, res) => {
         const isProvisioning = req.query.provisioning === 'true';
         
         // Demo mode: admin-only, renders dashboard with fake server data for content creation
-        const isDemoMode = req.query.demo === 'true' && req.session.userRole === 'admin';
+        const isDemoMode = req.query.demo === 'true' && isAdminSession(req);
         const isDemoProvisioning = isDemoMode && req.query.state === 'provisioning';
 
         // Check if user has paid
@@ -560,7 +561,7 @@ const getDashboardData = async (req, res) => {
         const userId = req.session.userId;
 
         // Admin-only demo mode: return realistic fake data, skip all DB queries
-        const isDemoMode = req.query.demo === 'true' && req.session.userRole === 'admin';
+        const isDemoMode = req.query.demo === 'true' && isAdminSession(req);
         if (isDemoMode) {
             const demoPlan = req.query.demoPlan || 'pro';
             const now = Date.now();
@@ -622,7 +623,10 @@ const getDashboardData = async (req, res) => {
                     { id: 49, update_id: 7, title: 'Fail2ban rule update',     type: 'security',   version: '1.0.2',  is_critical: false, status: 'success', applied_at: new Date(now - 14 * 86400 * 1000), execution_time_ms: 8100 },
                     { id: 48, update_id: 6, title: 'Disk cleanup script',      type: 'maintenance', version: null,    is_critical: false, status: 'success', applied_at: new Date(now - 21 * 86400 * 1000), execution_time_ms: 12500 },
                 ],
-                notifyWebhookUrl: null,
+                notifyWebhookUrl:   null,
+                slackWebhookUrl:    null,
+                discordWebhookUrl:  null,
+                twofaEnabled:       false,
                 csrfToken: typeof req.csrfToken === 'function' ? req.csrfToken() : '',
             });
         }
@@ -630,6 +634,9 @@ const getDashboardData = async (req, res) => {
         const hasPaid = await hasSuccessfulPayment(userId);
         const server  = await getUserServer(userId);
         const hasServer = !!server;
+
+        const userResult = await pool.query('SELECT twofa_enabled FROM users WHERE id = $1', [userId]);
+        const twofaEnabled = userResult.rows[0]?.twofa_enabled === true;
 
         const paymentResult = hasPaid ? await pool.query(
             'SELECT plan FROM payments WHERE user_id = $1 AND status = $2 ORDER BY created_at DESC LIMIT 1',
@@ -676,12 +683,18 @@ const getDashboardData = async (req, res) => {
             [userId]
         );
 
-        const [pendingUpdates, updateHistory] = hasServer
-            ? await Promise.all([
-                serverUpdates.getPendingUpdates(server.id),
-                serverUpdates.getUpdateHistory(server.id),
-              ])
-            : [[], []];
+        let pendingUpdates = [], updateHistory = [];
+        if (hasServer) {
+            try {
+                [pendingUpdates, updateHistory] = await Promise.all([
+                    serverUpdates.getPendingUpdates(server.id),
+                    serverUpdates.getUpdateHistory(server.id),
+                ]);
+            } catch (updErr) {
+                // Tables may not exist yet in this environment — degrade gracefully
+                console.warn('[API] Could not load server updates (migration pending?):', updErr.message);
+            }
+        }
 
         res.json({
             userEmail:      req.session.userEmail,
@@ -710,8 +723,11 @@ const getDashboardData = async (req, res) => {
             apiKeys:          apiKeysResult.rows || [],
             pendingUpdates,
             updateHistory,
-            notifyWebhookUrl: server?.notify_webhook_url || null,
-            csrfToken:        typeof req.csrfToken === 'function' ? req.csrfToken() : '',
+            notifyWebhookUrl:  server?.notify_webhook_url  || null,
+            slackWebhookUrl:   server?.slack_webhook_url   || null,
+            discordWebhookUrl: server?.discord_webhook_url || null,
+            twofaEnabled,
+            csrfToken:         typeof req.csrfToken === 'function' ? req.csrfToken() : '',
         });
     } catch (error) {
         console.error('[API] /api/dashboard error:', error);
@@ -918,7 +934,203 @@ const setNotifyWebhook = async (req, res) => {
     }
 };
 
-module.exports = { showDashboard: exports.showDashboard, getDashboardData, submitSupportTicket, changePassword, applyUpdates, getCredentials, getEnvVars, createEnvVar, deleteEnvVar, getDeploymentStatus, getMetrics, setNotifyWebhook };
+// GET /api/alert-rules — list alert rules for the user
+const getAlertRules = async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT id, metric, threshold_pct, state, triggered_at, resolved_at, snoozed_until
+               FROM resource_alert_rules
+              WHERE user_id = $1
+              ORDER BY metric`,
+            [req.session.userId]
+        );
+        res.json({ rules: result.rows });
+    } catch (err) {
+        console.error('[ALERTS] getAlertRules error:', err);
+        res.status(500).json({ error: 'Failed to load alert rules.' });
+    }
+};
+
+// POST /api/alert-rules — upsert an alert rule (resets state to armed on threshold change)
+const setAlertRule = async (req, res) => {
+    try {
+        const { metric, threshold_pct } = req.body;
+        if (!['cpu', 'memory', 'disk'].includes(metric)) return res.status(400).json({ error: 'metric must be cpu, memory, or disk.' });
+        const pct = parseInt(threshold_pct);
+        if (isNaN(pct) || pct < 1 || pct > 100) return res.status(400).json({ error: 'threshold_pct must be 1–100.' });
+        const result = await pool.query(
+            `INSERT INTO resource_alert_rules (user_id, metric, threshold_pct, state)
+             VALUES ($1, $2, $3, 'armed')
+             ON CONFLICT (user_id, metric) DO UPDATE
+               SET threshold_pct = EXCLUDED.threshold_pct,
+                   state = 'armed',
+                   triggered_at = NULL,
+                   resolved_at = NULL,
+                   snoozed_until = NULL
+             RETURNING id, metric, threshold_pct, state, triggered_at, resolved_at, snoozed_until`,
+            [req.session.userId, metric, pct]
+        );
+        res.json({ rule: result.rows[0] });
+    } catch (err) {
+        console.error('[ALERTS] setAlertRule error:', err);
+        res.status(500).json({ error: 'Failed to save alert rule.' });
+    }
+};
+
+// DELETE /api/alert-rules/:metric — remove an alert rule
+const deleteAlertRule = async (req, res) => {
+    try {
+        const { metric } = req.params;
+        if (!['cpu', 'memory', 'disk'].includes(metric)) return res.status(400).json({ error: 'Invalid metric.' });
+        await pool.query(
+            'DELETE FROM resource_alert_rules WHERE user_id = $1 AND metric = $2',
+            [req.session.userId, metric]
+        );
+        res.json({ success: true });
+    } catch (err) {
+        console.error('[ALERTS] deleteAlertRule error:', err);
+        res.status(500).json({ error: 'Failed to delete alert rule.' });
+    }
+};
+
+// POST /api/alert-rules/:id/snooze — snooze a triggered rule for N minutes
+const snoozeAlertRule = async (req, res) => {
+    try {
+        const ruleId  = parseInt(req.params.id);
+        const minutes = parseInt(req.body.minutes) || 60;
+        if (minutes < 1 || minutes > 1440) return res.status(400).json({ error: 'minutes must be 1–1440.' });
+
+        const result = await pool.query(
+            `UPDATE resource_alert_rules
+                SET snoozed_until = NOW() + ($1 || ' minutes')::interval
+              WHERE id = $2 AND user_id = $3
+              RETURNING id, metric, state, snoozed_until`,
+            [minutes, ruleId, req.session.userId]
+        );
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Rule not found.' });
+        res.json({ rule: result.rows[0] });
+    } catch (err) {
+        console.error('[ALERTS] snoozeAlertRule error:', err);
+        res.status(500).json({ error: 'Failed to snooze alert rule.' });
+    }
+};
+
+// GET /api/alert-history — last 30 alert events for the user
+const getAlertHistory = async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT id, metric, threshold_pct, peak_value, event_type, channels_notified, dismissed, created_at
+               FROM alert_history
+              WHERE user_id = $1
+              ORDER BY created_at DESC
+              LIMIT 30`,
+            [req.session.userId]
+        );
+        res.json({ history: result.rows });
+    } catch (err) {
+        console.error('[ALERTS] getAlertHistory error:', err);
+        res.status(500).json({ error: 'Failed to load alert history.' });
+    }
+};
+
+// POST /api/alert-history/:id/dismiss — mark an alert history entry as dismissed
+const dismissAlertHistory = async (req, res) => {
+    try {
+        const entryId = parseInt(req.params.id);
+        const result = await pool.query(
+            `UPDATE alert_history SET dismissed = TRUE
+              WHERE id = $1 AND user_id = $2
+              RETURNING id`,
+            [entryId, req.session.userId]
+        );
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Entry not found.' });
+        res.json({ success: true });
+    } catch (err) {
+        console.error('[ALERTS] dismissAlertHistory error:', err);
+        res.status(500).json({ error: 'Failed to dismiss alert.' });
+    }
+};
+
+// POST /api/notification-channels — save Slack/Discord webhook URLs on the user's server
+const setNotificationChannels = async (req, res) => {
+    try {
+        const { slack_webhook_url, discord_webhook_url } = req.body;
+        const slack   = slack_webhook_url?.trim();
+        const discord = discord_webhook_url?.trim();
+
+        // Validate URLs — reuse module-level regex constants
+        if (slack) {
+            if (slack.length > 500)              return res.status(400).json({ error: 'Slack webhook URL too long.' });
+            if (!WEBHOOK_URL_RE.test(slack))     return res.status(400).json({ error: 'Invalid Slack webhook URL.' });
+            if (PRIVATE_IP_RE.test(slack))       return res.status(400).json({ error: 'Slack webhook URL cannot point to a local or private address.' });
+        }
+        if (discord) {
+            if (discord.length > 500)            return res.status(400).json({ error: 'Discord webhook URL too long.' });
+            if (!WEBHOOK_URL_RE.test(discord))   return res.status(400).json({ error: 'Invalid Discord webhook URL.' });
+            if (PRIVATE_IP_RE.test(discord))     return res.status(400).json({ error: 'Discord webhook URL cannot point to a local or private address.' });
+        }
+
+        const server = await getUserServer(req.session.userId);
+        if (!server) return res.status(400).json({ error: 'No server found.' });
+
+        await pool.query(
+            `UPDATE servers
+                SET slack_webhook_url   = $1,
+                    discord_webhook_url = $2
+              WHERE id = $3`,
+            [slack || null, discord || null, server.id]
+        );
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error('[ALERTS] setNotificationChannels error:', err);
+        res.status(500).json({ error: 'Failed to save notification channels.' });
+    }
+};
+
+// GET /api/metrics/history?period=24h|7d|30d — retrieve historical metrics for graphing
+const getMetricsHistory = async (req, res) => {
+    try {
+        const userId = req.session.userId;
+        const period = req.query.period || '24h';
+
+        // Validate period
+        const validPeriods = { '24h': 1, '7d': 7, '30d': 30 };
+        const days = validPeriods[period];
+        if (!days) return res.status(400).json({ error: 'Invalid period. Use 24h, 7d, or 30d.' });
+
+        // Get user's server
+        const server = await getUserServer(userId);
+        if (!server) return res.status(400).json({ error: 'No server found' });
+
+        // Fetch historical metrics for the requested period
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - days);
+
+        const result = await pool.query(
+            `SELECT timestamp, cpu_percent, memory_percent, disk_percent
+             FROM server_metrics_history
+             WHERE server_id = $1 AND timestamp >= $2
+             ORDER BY timestamp ASC`,
+            [server.id, cutoffDate]
+        );
+
+        // Format data for charting (array of {timestamp, cpu, memory, disk})
+        const data = result.rows.map(row => ({
+            timestamp: row.timestamp,
+            cpu: row.cpu_percent,
+            memory: row.memory_percent,
+            disk: row.disk_percent,
+        }));
+
+        res.json({ period, dataPoints: data.length, data });
+    } catch (err) {
+        console.error('[METRICS HISTORY] Error:', err);
+        res.status(500).json({ error: 'Failed to fetch metrics history' });
+    }
+};
+
+module.exports = { showDashboard: exports.showDashboard, getDashboardData, submitSupportTicket, changePassword, applyUpdates, getCredentials, getEnvVars, createEnvVar, deleteEnvVar, getDeploymentStatus, getMetrics, getMetricsHistory, setNotifyWebhook, getAlertRules, setAlertRule, deleteAlertRule, snoozeAlertRule, getAlertHistory, dismissAlertHistory, setNotificationChannels };
 
 /**
  * Dashboard Template Builder - Tech-View Design

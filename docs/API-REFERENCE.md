@@ -108,6 +108,7 @@ All routes below serve `react-homepage/dist/index.html` — React Router handles
 | GET | `/api/keys` | session | Lists all API keys for the user (metadata only — no raw key) |
 | POST | `/api/keys` | session + CSRF | Creates a new API key — body: `{ name, scopes[] }`. Returns `{ key: "cbk_..." }` once |
 | DELETE | `/api/keys/:id` | session + CSRF | Revokes an API key immediately |
+| POST | `/api/keys/:id/rotate` | session + CSRF | Rotates an active API key in place. Returns new raw key once and invalidates old secret immediately |
 
 ### Programmatic deploy endpoint
 
@@ -133,6 +134,7 @@ Requires a key with `deploy` scope. Triggers the same pipeline as the dashboard 
 | POST | `/create-payment-intent` | Creates Stripe PaymentIntent, returns `clientSecret` |
 | POST | `/create-checkout-session` | Creates Stripe Checkout Session, returns `url` |
 | POST | `/upgrade-plan` | Upgrades or downgrades plan with Stripe proration — body: `{ plan }` |
+| GET | `/api/billing/usage` | Returns billing snapshot for dashboard: current plan/status, total paid, monthly totals, recent payments |
 
 ---
 
@@ -198,6 +200,7 @@ All routes require `requireAuth` + `requireAdmin` (role validated from DB on eve
 | POST | `/admin/domains` | Creates a domain record |
 | PUT | `/admin/domains/:id` | Updates a domain record |
 | DELETE | `/admin/domains/:id` | Deletes a domain record |
+| GET | `/admin/audit-log/data` | Paginated admin audit events — query: `limit`, `offset` |
 
 ---
 

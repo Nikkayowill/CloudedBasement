@@ -4,9 +4,9 @@
  * once DNS is pointing to the correct server IP
  */
 
-const dns = require('dns').promises;
 const pool = require('../db');
 const { Client } = require('ssh2');
+const { checkDNSPointsToUs } = require('./sslVerification');
 
 /**
  * Check all domains without SSL and auto-provision certificates
@@ -48,38 +48,22 @@ async function checkAndProvisionSSL() {
  * Check if a domain's DNS points to the server and provision SSL if so
  */
 async function checkDomainAndProvision(domainRecord) {
-  const { domain, ip_address, server_id, ssh_username, ssh_password } = domainRecord;
-  
+  const { domain, ip_address } = domainRecord;
+
   try {
     console.log(`[Auto-SSL] Checking DNS for ${domain} (expected: ${ip_address})`);
-    
-    // Resolve domain A record
-    const addresses = await dns.resolve4(domain);
-    
-    if (!addresses || addresses.length === 0) {
-      console.log(`[Auto-SSL] ${domain}: No A records found`);
+
+    const dnsResult = await checkDNSPointsToUs(domain, ip_address);
+
+    if (!dnsResult.valid) {
+      console.log(`[Auto-SSL] ${domain}: ${dnsResult.reason}`);
       return;
     }
-    
-    console.log(`[Auto-SSL] ${domain} resolves to: ${addresses.join(', ')}`);
-    
-    // Check if any A record matches our server IP
-    if (!addresses.includes(ip_address)) {
-      console.log(`[Auto-SSL] ${domain}: DNS not pointing to server yet (expected ${ip_address})`);
-      return;
-    }
-    
-    console.log(`[Auto-SSL] ${domain}: DNS verified! Provisioning SSL certificate...`);
-    
-    // DNS is correct - provision SSL
+
+    console.log(`[Auto-SSL] ${domain}: DNS verified (${dnsResult.resolvedIps?.join(', ')}). Provisioning SSL...`);
     await provisionSSLCertificate(domainRecord);
-    
   } catch (error) {
-    if (error.code === 'ENOTFOUND' || error.code === 'ENODATA') {
-      console.log(`[Auto-SSL] ${domain}: Domain not resolvable yet`);
-    } else {
-      console.error(`[Auto-SSL] ${domain}: DNS check error:`, error.message);
-    }
+    console.error(`[Auto-SSL] ${domain}: DNS check error:`, error.message);
   }
 }
 
@@ -133,10 +117,21 @@ function provisionSSLCertificate(domainRecord) {
             `;
             
             conn.exec(proxyCmd, { timeout: 30000 }, async (proxyErr, proxyStream) => {
+              if (proxyErr) {
+                console.error(`[Auto-SSL] Proxy configuration exec error for ${domain}: ${proxyErr.message}`);
+                conn.end();
+                return reject(proxyErr);
+              }
+
               let proxyOut = '';
               
               proxyStream.on('close', async (proxyCode) => {
                 conn.end();
+
+                if (proxyCode !== 0) {
+                  console.error(`[Auto-SSL] Proxy configuration failed for ${domain} (exit ${proxyCode}): ${proxyOut.substring(0, 400)}`);
+                  return reject(new Error(`Proxy configuration failed with exit code ${proxyCode}`));
+                }
                 
                 // Update database - SSL is now enabled
                 try {

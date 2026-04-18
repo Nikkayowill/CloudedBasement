@@ -57,7 +57,15 @@ exports.verify2FALogin = async (req, res) => {
     token: code,
     window: 1
   });
-  if (!verified) return res.status(400).json({ success: false, error: 'Invalid code' });
+  if (!verified) {
+    logSecurityEvent({
+      userId,
+      eventType: '2FA_FAILED',
+      ip: getClientIp(req),
+      userAgent: req.headers['user-agent'],
+    }).catch(() => {});
+    return res.status(400).json({ success: false, error: 'Invalid code' });
+  }
   // Mark session as 2FA-verified
   req.session.userId = userId;
   delete req.session.pending2FAUserId;
@@ -73,6 +81,10 @@ const { createConfirmationCode, isCodeValid } = require('../src/utils/emailToken
 const { sendConfirmationEmail, sendWelcomeEmail } = require('../services/email');
 const { isDisposableEmail } = require('../src/utils/emailValidation');
 const { getNonce } = require('../src/utils/nonce');
+const { logSecurityEvent, getClientIp } = require('../services/securityLog');
+
+// Valid bcrypt hash used for constant-time comparison when user is not found.
+const DUMMY_HASH = bcrypt.hashSync('clouded-basement-dummy-password', 10);
 
 // Helper function to generate random verification code
 function generateBotCode() {
@@ -211,8 +223,9 @@ const handleRegister = async (req, res) => {
     });
   } catch (error) {
     console.error('Registration error:', error);
+    const fallbackEmail = req.body?.email || '';
     res.redirect('/register?error=' + encodeURIComponent('Registration failed. Please try again.') +
-      (email ? ('&email=' + encodeURIComponent(email)) : ''));
+      (fallbackEmail ? ('&email=' + encodeURIComponent(fallbackEmail)) : ''));
   }
 };
 
@@ -235,14 +248,19 @@ const handleLogin = async (req, res) => {
     const user = result.rows.length > 0 ? result.rows[0] : null;
     
     // Use dummy hash if user doesn't exist (same bcrypt cost as real passwords)
-    const dummyHash = '$2b$10$YourDummyHashHereForTimingConsistency1234567890123456789012';
-    const hashToCompare = user ? user.password_hash : dummyHash;
+    const hashToCompare = user ? user.password_hash : DUMMY_HASH;
     
     // Always run bcrypt (prevents timing attack that reveals valid emails)
     const match = await bcrypt.compare(password, hashToCompare);
     
     // Reject if user doesn't exist OR password doesn't match
     if (!user || !match) {
+      logSecurityEvent({
+        eventType: 'LOGIN_FAILED',
+        ip: getClientIp(req),
+        userAgent: req.headers['user-agent'],
+        email: req.body.email,
+      }).catch(() => {});
       return res.redirect('/login?error=Invalid email or password');
     }
 
@@ -267,6 +285,14 @@ const handleLogin = async (req, res) => {
       req.session.userEmail = user.email;
       req.session.userRole = user.role;
       req.session.emailConfirmed = user.email_confirmed; // Store confirmation status
+
+      logSecurityEvent({
+        userId: user.id,
+        eventType: 'LOGIN_SUCCESS',
+        ip: getClientIp(req),
+        userAgent: req.headers['user-agent'],
+        email: user.email,
+      }).catch(() => {});
 
       // Redirect based on role
       if (user.role === 'admin') {
@@ -363,7 +389,6 @@ ${getHTMLHead('Token Expired - Basement')}
         <h1 class="text-3xl font-bold text-red-400 mb-4">Link Expired</h1>
         <p class="text-gray-400 mb-6">This confirmation link has expired (valid for 24 hours).</p>
         <a href="/register" class="inline-block px-8 py-3 bg-brand text-gray-900 font-bold rounded-lg hover:bg-cyan-500 transition-colors">Register Again</a>
-      </div>
       </div>
     </main>
     ${getFooter()}
@@ -472,7 +497,7 @@ const resendConfirmation = async (req, res) => {
 
 // GET /verify-code - Display code verification form
 const showVerifyCode = (req, res) => {
-  const email = req.query.email || '';
+  const email = escapeHtml(req.query.email || '');
   res.send(`
 ${getHTMLHead('Verify Code - Basement')}
 <body class="bg-gray-900">
@@ -601,9 +626,13 @@ ${getHTMLHead('Verify Email - Basement')}
         
         try {
           const csrfToken = document.querySelector('input[name="_csrf"]')?.value;
+          if (!csrfToken) {
+            alert('Security token missing. Please refresh and try again.');
+            return;
+          }
           const response = await fetch('/resend-code', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'CSRF-Token': csrfToken }
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken }
           });
           if (response.ok) {
             alert('Code resent! Check your email.');
@@ -791,6 +820,14 @@ const handleForgotPassword = async (req, res) => {
       [resetToken, resetTokenExpires, user.id]
     );
     
+    logSecurityEvent({
+      userId: user.id,
+      eventType: 'PASSWORD_RESET_REQUESTED',
+      ip: getClientIp(req),
+      userAgent: req.headers['user-agent'],
+      email: user.email,
+    }).catch(() => {});
+
     // Send reset email (don't wait for it)
     const resetLink = `${req.protocol}://${req.get('host')}/reset-password/${resetToken}`;
     sendPasswordResetEmail(user.email, resetLink).catch(err => {
@@ -800,7 +837,8 @@ const handleForgotPassword = async (req, res) => {
     res.redirect('/forgot-password?message=' + encodeURIComponent('If that email exists, you will receive a reset link shortly.') + (email ? ('&email=' + encodeURIComponent(email)) : ''));
   } catch (error) {
     console.error('[FORGOT PASSWORD] Error:', error);
-    res.redirect('/forgot-password?error=An error occurred. Please try again.&email=' + encodeURIComponent(email));
+    const fallbackEmail = req.body?.email || '';
+    res.redirect('/forgot-password?error=An error occurred. Please try again.&email=' + encodeURIComponent(fallbackEmail));
   }
 };
 
@@ -938,7 +976,14 @@ const handleResetPassword = async (req, res) => {
     );
     
     console.log(`[RESET PASSWORD] Password reset successful for user ${userId}`);
-    
+
+    logSecurityEvent({
+      userId,
+      eventType: 'PASSWORD_RESET_COMPLETED',
+      ip: getClientIp(req),
+      userAgent: req.headers['user-agent'],
+    }).catch(() => {});
+
     res.redirect('/login?message=Password reset successful! Please login with your new password.');
   } catch (error) {
     console.error('[RESET PASSWORD] Error:', error);

@@ -8,6 +8,7 @@ import EnvSection from './sections/EnvSection';
 import SettingsSection from './sections/SettingsSection';
 import ApiKeysSection from './sections/ApiKeysSection';
 import LogsSection from './sections/LogsSection';
+import MetricsHistorySection from './sections/MetricsHistorySection';
 
 const NAV = [
   {
@@ -81,6 +82,16 @@ const NAV = [
     ),
   },
   {
+    id: 'metrics',
+    label: 'Metrics',
+    icon: (
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width={15} height={15}>
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+      </svg>
+    ),
+  },
+  {
     id: 'settings',
     label: 'Settings',
     icon: (
@@ -100,6 +111,7 @@ const SECTIONS = {
   'dev-tools': DevToolsSection,
   env: EnvSection,
   logs: LogsSection,
+  metrics: MetricsHistorySection,
   settings: SettingsSection,
   'api-keys': ApiKeysSection,
 };

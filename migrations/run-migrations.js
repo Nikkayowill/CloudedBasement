@@ -52,7 +52,21 @@ async function runMigrations() {
     // Run additional migrations
     const { addPasswordResetTokens } = require('./009-add-password-reset-tokens');
     await addPasswordResetTokens();
-    
+
+    // Add 2FA columns (twofa_enabled, twofa_secret) to users table
+    const twoFaCheck = await client.query(`
+      SELECT column_name FROM information_schema.columns
+      WHERE table_name = 'users' AND column_name = 'twofa_enabled'
+    `);
+    if (twoFaCheck.rows.length === 0) {
+      await client.query(`
+        ALTER TABLE users
+        ADD COLUMN twofa_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+        ADD COLUMN twofa_secret TEXT
+      `);
+      console.log('[MIGRATION] ✓ Added twofa_enabled and twofa_secret columns');
+    }
+
     const { up: addDatabaseCredentials } = require('./011-add-database-credentials');
     await addDatabaseCredentials();
     
@@ -102,6 +116,26 @@ async function runMigrations() {
     // Add notify_webhook_url to servers for deploy event notifications
     const { up: addNotifyWebhook } = require('./034-add-notify-webhook');
     await addNotifyWebhook();
+
+    // Add start_command to deployments for custom startup commands
+    const { up: addStartCommand } = require('./035-add-start-command');
+    await addStartCommand();
+
+    // Create resource alert rules table
+    const { up: createResourceAlerts } = require('./036-create-resource-alert-rules');
+    await createResourceAlerts();
+
+    // Create server metrics history table for graphing
+    const { up: createServerMetricsHistory } = require('./037-create-server-metrics-history');
+    await createServerMetricsHistory();
+
+    // Add alert state machine + Slack/Discord channels + alert_history table
+    const { up: enhanceAlertSystem } = require('./038-enhance-alert-system');
+    await enhanceAlertSystem();
+
+    // Add composite indexes on security_events for analytics query performance
+    const { up: securityEventsAnalyticsIndex } = require('./039-security-events-analytics-index');
+    await securityEventsAnalyticsIndex();
 
   } catch (error) {
     // Safely rollback transaction (may not have started if error was early)

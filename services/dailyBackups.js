@@ -1,9 +1,10 @@
 require('dotenv').config();
 const pool = require('../db');
 const axios = require('axios');
+const { BACKUP_RETENTION_DAYS } = require('./backupConfig');
 
 const DO_API = 'https://api.digitalocean.com/v2';
-const RETENTION_DAYS = 7;
+const RETENTION_DAYS = BACKUP_RETENTION_DAYS;
 
 /**
  * Daily Backup Service (Premium plans only)
@@ -43,12 +44,25 @@ async function createSnapshot(dropletId, dropletName) {
 // Delete old snapshots (older than RETENTION_DAYS)
 async function cleanupOldSnapshots() {
   try {
-    // List all snapshots tagged with our naming convention
-    const response = await axios.get(`${DO_API}/snapshots?resource_type=droplet&per_page=200`, {
-      headers: doHeaders()
-    });
-    
-    const snapshots = response.data.snapshots || [];
+    // List all snapshots tagged with our naming convention (paginate all pages)
+    const snapshots = [];
+    let page = 1;
+
+    while (true) {
+      const response = await axios.get(
+        `${DO_API}/snapshots?resource_type=droplet&per_page=200&page=${page}`,
+        { headers: doHeaders() }
+      );
+
+      const pageSnapshots = response.data.snapshots || [];
+      if (pageSnapshots.length === 0) {
+        break;
+      }
+
+      snapshots.push(...pageSnapshots);
+      page++;
+    }
+
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - RETENTION_DAYS);
     

@@ -4,13 +4,21 @@ const csrf = require('../middleware/csrf');
 const { emailVerifyLimiter, loginLimiter, registrationLimiter, twoFALimiter } = require('../middleware/rateLimiter');
 const { requireAuth } = require('../middleware/auth');
 const authController = require('../controllers/authController');
-const { passport } = require('../services/googleAuth');
+const { passport, isGoogleOAuthConfigured } = require('../services/googleAuth');
 const { renderReactHtml } = require('../src/utils/reactSPA');
 
 const router = Router();
 
 function serveSPA(req, res) {
   res.send(renderReactHtml(res.locals.nonce));
+}
+
+function ensureGoogleOAuthAvailable(req, res, next) {
+  if (isGoogleOAuthConfigured()) {
+    return next();
+  }
+
+  return res.redirect('/login?error=Google authentication is unavailable');
 }
 
 function generateBotCode() {
@@ -24,10 +32,11 @@ function generateBotCode() {
 
 // ── Auth status — React nav fetches this to show Dashboard vs Sign in
 router.get('/api/auth/status', (req, res) => {
+  const googleOAuthEnabled = isGoogleOAuthConfigured();
   if (req.session && req.session.userId) {
-    res.json({ loggedIn: true });
+    res.json({ loggedIn: true, googleOAuthEnabled });
   } else {
-    res.json({ loggedIn: false });
+    res.json({ loggedIn: false, googleOAuthEnabled });
   }
 });
 
@@ -62,19 +71,30 @@ router.post('/login',
   ],
   authController.handleLogin
 );
-router.get('/logout', authController.handleLogout);
-router.post('/logout', authController.handleLogout);
+router.get('/logout', requireAuth, authController.handleLogout);
+router.post('/logout', requireAuth, csrf, authController.handleLogout);
 
 // ── Google OAuth ──────────────────────────────────────────────────────────────
-router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/auth/google',
+  ensureGoogleOAuthAvailable,
+  passport.authenticate('google', { scope: ['profile', 'email'], state: true })
+);
 router.get('/auth/google/callback',
+  ensureGoogleOAuthAvailable,
   passport.authenticate('google', { failureRedirect: '/login?error=Google authentication failed' }),
   (req, res) => {
-    req.session.userId = req.user.id;
-    req.session.userEmail = req.user.email;
-    req.session.userRole = req.user.role;
-    req.session.emailConfirmed = req.user.email_confirmed;
-    res.redirect(req.user.role === 'admin' ? '/admin' : '/dashboard');
+    req.session.regenerate((err) => {
+      if (err) {
+        console.error('Session regeneration error on Google login:', err);
+        return res.redirect('/login?error=Google authentication failed');
+      }
+
+      req.session.userId = req.user.id;
+      req.session.userEmail = req.user.email;
+      req.session.userRole = req.user.role;
+      req.session.emailConfirmed = req.user.email_confirmed;
+      return res.redirect(req.user.role === 'admin' ? '/admin' : '/dashboard');
+    });
   }
 );
 
@@ -84,6 +104,7 @@ router.get('/verify-email', csrf, authController.showVerifyEmail);
 router.post('/verify-email', emailVerifyLimiter, csrf, authController.verifyEmailCode);
 router.post('/resend-code', emailVerifyLimiter, csrf, authController.resendCode);
 router.get('/resend-confirmation', emailVerifyLimiter, authController.resendConfirmation);
+router.post('/resend-confirmation', emailVerifyLimiter, csrf, authController.resendConfirmation);
 
 // ── 2FA ───────────────────────────────────────────────────────────────────────
 router.get('/auth/2fa/prompt', csrf, authController.show2FAPrompt);

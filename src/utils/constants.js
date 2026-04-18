@@ -52,41 +52,6 @@ const PORTS = {
   MONGODB: 27017
 };
 
-// Pricing plans (amounts in cents) - ACTUAL PRICING IS IN paymentController.js
-// These constants are for reference only
-const PRICING_PLANS = {
-  basic: {
-    name: 'Basic Plan',
-    monthlyPrice: 1500,     // $15.00/month
-    yearlyPrice: 16200,     // $162.00/year (save 10%)
-    displayPrice: '$15/mo',
-    ram: '1GB',
-    cpu: 1,
-    storage: '25GB',
-    dropletSize: 's-1vcpu-1gb'
-  },
-  pro: {
-    name: 'Pro Plan',
-    monthlyPrice: 3500,     // $35.00/month
-    yearlyPrice: 37800,     // $378.00/year (save 10%)
-    displayPrice: '$35/mo',
-    ram: '2GB',
-    cpu: 2,
-    storage: '60GB',
-    dropletSize: 's-2vcpu-2gb'
-  },
-  premium: {
-    name: 'Premium Plan',
-    monthlyPrice: 5500,     // $55.00/month
-    yearlyPrice: 59400,     // $594.00/year (save 10%)
-    displayPrice: '$55/mo',
-    ram: '4GB',
-    cpu: 2,
-    storage: '80GB',
-    dropletSize: 's-2vcpu-4gb'
-  }
-};
-
 // Valid DigitalOcean regions
 const DO_REGIONS = [
   'nyc1', 'nyc3', 'sfo3', 'sgp1', 'lon1', 
@@ -113,7 +78,6 @@ module.exports = {
   USER_ROLE,
   TIMEOUTS,
   PORTS,
-  PRICING_PLANS,
   DO_REGIONS,
   SESSION_CONFIG,
   EMAIL_CONFIG

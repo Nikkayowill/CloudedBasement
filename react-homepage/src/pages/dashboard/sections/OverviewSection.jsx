@@ -74,6 +74,10 @@ function MetricsGrid() {
   const load = useCallback(async () => {
     try {
       const res  = await fetch('/api/metrics', { credentials: 'same-origin' });
+      if (!res.ok) {
+        setData({ available: false });
+        return;
+      }
       const json = await res.json();
       setData(json);
     } catch {
@@ -459,6 +463,291 @@ function UpdatesCard({ pendingUpdates = [], updateHistory = [], csrfToken, hasSe
   );
 }
 
+const METRICS = [
+  { key: 'cpu',    label: 'CPU' },
+  { key: 'memory', label: 'Memory' },
+  { key: 'disk',   label: 'Disk' },
+];
+
+const DEMO_RULES = [
+  { id: 1, metric: 'cpu',    threshold_pct: 85, state: 'armed',     triggered_at: null,                              snoozed_until: null },
+  { id: 2, metric: 'memory', threshold_pct: 90, state: 'triggered', triggered_at: new Date(Date.now() - 5*60*1000), snoozed_until: null },
+];
+
+const DEMO_HISTORY = [
+  { id: 1, metric: 'memory', threshold_pct: 90, peak_value: 94.2, event_type: 'triggered', channels_notified: ['email','slack'], dismissed: false, created_at: new Date(Date.now() - 5*60*1000) },
+  { id: 2, metric: 'cpu',    threshold_pct: 85, peak_value: 91.0, event_type: 'triggered', channels_notified: ['email'],         dismissed: false, created_at: new Date(Date.now() - 3*3600*1000) },
+  { id: 3, metric: 'cpu',    threshold_pct: 85, peak_value: 72.0, event_type: 'resolved',  channels_notified: [],                dismissed: false, created_at: new Date(Date.now() - 3*3600*1000 + 10*60*1000) },
+];
+
+function AlertStateBadge({ state, snoozed_until }) {
+  const now = new Date();
+  const isSnoozed = snoozed_until && new Date(snoozed_until) > now;
+  const s = isSnoozed
+    ? { label: 'Snoozed', bg: 'rgba(234,179,8,0.12)', color: '#fde047', dot: '#eab308' }
+    : state === 'triggered'
+      ? { label: 'Triggered', bg: 'rgba(239,68,68,0.12)', color: '#fca5a5', dot: '#ef4444' }
+      : { label: 'Armed',    bg: 'rgba(34,197,94,0.08)',  color: '#86efac', dot: '#22c55e' };
+
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', padding: '0.125rem 0.5rem', borderRadius: 999, background: s.bg }}>
+      <span style={{ width: '0.375rem', height: '0.375rem', borderRadius: '50%', background: s.dot,
+        boxShadow: state === 'triggered' && !isSnoozed ? `0 0 0 2px rgba(239,68,68,0.25)` : 'none' }} />
+      <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: s.color }}>{s.label}</span>
+    </span>
+  );
+}
+
+function ResourceAlertsCard({ csrfToken, isDemo }) {
+  const [rules, setRules]     = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(null);
+  const [draft, setDraft]     = useState('');
+  const [saving, setSaving]   = useState(null);
+  const [snoozing, setSnoozing] = useState(null);
+  const [result, setResult]   = useState(null);
+
+  useEffect(() => {
+    if (isDemo) { setRules(DEMO_RULES); setLoading(false); return; }
+    fetch('/api/alert-rules', { credentials: 'same-origin' })
+      .then(async r => { if (!r.ok) throw new Error(`Error ${r.status}`); return r.json(); })
+      .then(d => setRules(d.rules || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [isDemo]);
+
+  function ruleFor(metric) { return rules.find(r => r.metric === metric) || null; }
+
+  async function save(metric) {
+    const pct = parseInt(draft);
+    if (isNaN(pct) || pct < 1 || pct > 100) return setResult({ type: 'error', message: 'Enter a number 1–100.' });
+    if (isDemo) {
+      setRules(prev => {
+        const next = prev.filter(r => r.metric !== metric);
+        return [...next, { id: Date.now(), metric, threshold_pct: pct, state: 'armed', triggered_at: null, snoozed_until: null }];
+      });
+      setEditing(null); setDraft(''); return;
+    }
+    setSaving(metric); setResult(null);
+    try {
+      const r = await fetch('/api/alert-rules', {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrfToken },
+        body: JSON.stringify({ metric, threshold_pct: pct }),
+      });
+      const d = await r.json();
+      if (!r.ok) return setResult({ type: 'error', message: d.error || 'Failed to save.' });
+      setRules(prev => { const next = prev.filter(r => r.metric !== metric); return [...next, d.rule]; });
+      setEditing(null); setDraft('');
+      setResult({ type: 'success', message: `${metric.toUpperCase()} alert set at ${pct}%.` });
+    } catch { setResult({ type: 'error', message: 'Network error.' }); }
+    finally { setSaving(null); }
+  }
+
+  async function remove(metric) {
+    if (isDemo) { setRules(prev => prev.filter(r => r.metric !== metric)); return; }
+    setSaving(metric); setResult(null);
+    try {
+      const r = await fetch(`/api/alert-rules/${metric}`, { method: 'DELETE', credentials: 'same-origin', headers: { 'x-csrf-token': csrfToken } });
+      if (!r.ok) { let msg = `Error ${r.status}`; try { const d = await r.json(); if (d?.error) msg = d.error; } catch {} return setResult({ type: 'error', message: msg }); }
+      setRules(prev => prev.filter(r => r.metric !== metric));
+    } catch { setResult({ type: 'error', message: 'Network error.' }); }
+    finally { setSaving(null); }
+  }
+
+  async function snooze(rule, minutes) {
+    if (isDemo) {
+      setRules(prev => prev.map(r => r.id === rule.id ? { ...r, snoozed_until: new Date(Date.now() + minutes * 60 * 1000) } : r));
+      return;
+    }
+    setSnoozing(rule.id); setResult(null);
+    try {
+      const r = await fetch(`/api/alert-rules/${rule.id}/snooze`, {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrfToken },
+        body: JSON.stringify({ minutes }),
+      });
+      const d = await r.json();
+      if (!r.ok) return setResult({ type: 'error', message: d.error || 'Failed to snooze.' });
+      const snoozedUntil = d.rule?.snoozed_until ?? d.snoozed_until ?? null;
+      if (snoozedUntil !== null) setRules(prev => prev.map(r => r.id === rule.id ? { ...r, snoozed_until: snoozedUntil } : r));
+      setResult({ type: 'success', message: `Snoozed for ${minutes >= 60 ? `${minutes/60}h` : `${minutes}m`}.` });
+    } catch { setResult({ type: 'error', message: 'Network error.' }); }
+    finally { setSnoozing(null); }
+  }
+
+  if (loading) return null;
+
+  return (
+    <div style={{ border: '1px solid rgba(255,255,255,0.07)', borderRadius: '0.625rem', overflow: 'hidden', marginBottom: '1.25rem' }}>
+      <div style={{ padding: '0.875rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--dash-text-primary, #fafafa)' }}>Resource Alerts</span>
+        <span style={{ fontSize: '0.75rem', color: 'var(--dash-text-muted, #525252)' }}>Email · Slack · Discord</span>
+      </div>
+      <div style={{ padding: '0.75rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        {METRICS.map(({ key, label }) => {
+          const rule = ruleFor(key);
+          const isSnoozed = rule?.snoozed_until && new Date(rule.snoozed_until) > new Date();
+          return (
+            <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '0.8125rem', color: 'var(--dash-text-secondary, #a1a1a1)', minWidth: '4rem' }}>{label}</span>
+
+                {editing === key ? (
+                  <>
+                    <input
+                      type="number" min="1" max="100" value={draft}
+                      onChange={e => setDraft(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') save(key); if (e.key === 'Escape') { setEditing(null); setDraft(''); } }}
+                      autoFocus
+                      style={{ width: '5rem', padding: '0.25rem 0.5rem', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(59,130,246,0.4)', borderRadius: '0.25rem', color: 'var(--dash-text-primary, #fafafa)', fontSize: '0.8125rem', fontFamily: 'JetBrains Mono, monospace', outline: 'none' }}
+                    />
+                    <span style={{ fontSize: '0.8125rem', color: 'var(--dash-text-muted, #525252)' }}>%</span>
+                    <button onClick={() => save(key)} disabled={!!saving} style={{ padding: '0.2rem 0.625rem', background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.3)', borderRadius: '0.25rem', color: '#60a5fa', fontSize: '0.75rem', cursor: 'pointer' }}>
+                      {saving === key ? '…' : 'Save'}
+                    </button>
+                    <button onClick={() => { setEditing(null); setDraft(''); }} style={{ padding: '0.2rem 0.5rem', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.25rem', color: 'var(--dash-text-muted, #525252)', fontSize: '0.75rem', cursor: 'pointer' }}>
+                      Cancel
+                    </button>
+                  </>
+                ) : rule ? (
+                  <>
+                    <span style={{ fontSize: '0.8125rem', fontFamily: 'JetBrains Mono, monospace', color: metricColor(rule.threshold_pct) }}>≥ {rule.threshold_pct}%</span>
+                    <AlertStateBadge state={rule.state} snoozed_until={rule.snoozed_until} />
+                    <button onClick={() => { setEditing(key); setDraft(String(rule.threshold_pct)); }} style={{ padding: '0.2rem 0.5rem', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.25rem', color: 'var(--dash-text-secondary, #a1a1a1)', fontSize: '0.75rem', cursor: 'pointer' }}>Edit</button>
+                    <button onClick={() => remove(key)} disabled={!!saving} style={{ padding: '0.2rem 0.5rem', background: 'transparent', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '0.25rem', color: '#f87171', fontSize: '0.75rem', cursor: 'pointer' }}>Remove</button>
+                  </>
+                ) : (
+                  <button onClick={() => { setEditing(key); setDraft('80'); }} style={{ padding: '0.2rem 0.75rem', background: 'transparent', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '0.25rem', color: 'var(--dash-text-muted, #525252)', fontSize: '0.75rem', cursor: 'pointer' }}>
+                    + Set alert
+                  </button>
+                )}
+              </div>
+
+              {/* Snooze row — only for triggered (non-snoozed) rules */}
+              {rule && rule.state === 'triggered' && !isSnoozed && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: '4.75rem', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)' }}>Snooze:</span>
+                  {[60, 240, 1440].map(mins => (
+                    <button
+                      key={mins}
+                      onClick={() => snooze(rule, mins)}
+                      disabled={snoozing === rule.id}
+                      style={{ padding: '0.125rem 0.5rem', background: 'rgba(234,179,8,0.08)', border: '1px solid rgba(234,179,8,0.2)', borderRadius: '0.25rem', color: '#fde047', fontSize: '0.6875rem', cursor: 'pointer' }}
+                    >
+                      {snoozing === rule.id ? '…' : mins >= 1440 ? '24h' : mins >= 60 ? `${mins/60}h` : `${mins}m`}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+        {result && (
+          <p style={{ fontSize: '0.75rem', color: result.type === 'success' ? '#86efac' : '#fca5a5', marginTop: '0.25rem' }}>{result.message}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AlertHistoryCard({ csrfToken, isDemo }) {
+  const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [dismissing, setDismissing] = useState(null);
+
+  useEffect(() => {
+    if (isDemo) { setHistory(DEMO_HISTORY); setLoading(false); return; }
+    fetch('/api/alert-history', { credentials: 'same-origin' })
+      .then(async r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(d => setHistory(d.history || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [isDemo]);
+
+  async function dismiss(id) {
+    if (isDemo) { setHistory(prev => prev.map(h => h.id === id ? { ...h, dismissed: true } : h)); return; }
+    setDismissing(id);
+    try {
+      const r = await fetch(`/api/alert-history/${id}/dismiss`, {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'x-csrf-token': csrfToken },
+      });
+      if (r.ok) setHistory(prev => prev.map(h => h.id === id ? { ...h, dismissed: true } : h));
+    } catch { /* silent */ }
+    finally { setDismissing(null); }
+  }
+
+  if (loading || history.length === 0) return null;
+
+  const visible = history.filter(h => !h.dismissed);
+  if (visible.length === 0) return null;
+
+  function timeAgo(dateStr) {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60)  return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24)   return `${hrs}h ago`;
+    return `${Math.floor(hrs / 24)}d ago`;
+  }
+
+  return (
+    <div style={{ border: '1px solid rgba(255,255,255,0.07)', borderRadius: '0.625rem', overflow: 'hidden', marginBottom: '1.25rem' }}>
+      <div style={{ padding: '0.875rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--dash-text-primary, #fafafa)' }}>Alert History</span>
+        <span style={{ fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)' }}>Last 30 events</span>
+      </div>
+      <div style={{ padding: '0.375rem 0' }}>
+        {visible.map(entry => {
+          const isTriggered = entry.event_type === 'triggered';
+          const channels    = (entry.channels_notified || []).filter(Boolean);
+          return (
+            <div key={entry.id} style={{
+              display: 'flex', alignItems: 'center', gap: '0.75rem',
+              padding: '0.5rem 1.25rem',
+              borderBottom: '1px solid rgba(255,255,255,0.04)',
+            }}>
+              {/* Event type dot */}
+              <span style={{ width: '0.5rem', height: '0.5rem', borderRadius: '50%', flexShrink: 0, background: isTriggered ? '#ef4444' : '#22c55e' }} />
+
+              {/* Metric + value */}
+              <span style={{ fontSize: '0.8125rem', color: 'var(--dash-text-secondary, #a1a1a1)', minWidth: '5rem', textTransform: 'capitalize' }}>
+                {entry.metric} {isTriggered ? `↑ ${entry.peak_value ?? '—'}%` : `↓ ${entry.peak_value ?? '—'}%`}
+              </span>
+
+              {/* Event type label */}
+              <span style={{ fontSize: '0.6875rem', fontWeight: 600, padding: '0.125rem 0.4rem', borderRadius: 4, background: isTriggered ? 'rgba(239,68,68,0.12)' : 'rgba(34,197,94,0.1)', color: isTriggered ? '#fca5a5' : '#86efac', flexShrink: 0 }}>
+                {isTriggered ? 'Triggered' : 'Resolved'}
+              </span>
+
+              {/* Channels */}
+              {channels.length > 0 && (
+                <span style={{ fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)', fontFamily: 'JetBrains Mono, monospace' }}>
+                  via {channels.join(', ')}
+                </span>
+              )}
+
+              {/* Time + dismiss */}
+              <span style={{ fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)', marginLeft: 'auto', flexShrink: 0 }}>
+                {timeAgo(entry.created_at)}
+              </span>
+              <button
+                onClick={() => dismiss(entry.id)}
+                disabled={dismissing === entry.id}
+                title="Dismiss"
+                style={{ background: 'transparent', border: 'none', color: 'var(--dash-text-muted, #525252)', cursor: 'pointer', fontSize: '0.875rem', padding: '0 0.25rem', flexShrink: 0, lineHeight: 1 }}
+              >
+                ×
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function OverviewSection({ data, onNav }) {
   const {
     hasServer, isProvisioning, hasPaid, trialAvailable,
@@ -538,6 +827,14 @@ export default function OverviewSection({ data, onNav }) {
         {/* Live metrics — only rendered when server is running */}
         {hasServer && serverStatus === 'running' && <MetricsGrid />}
 
+        {/* Resource usage alerts + history */}
+        {hasServer && serverStatus === 'running' && (
+          <>
+            <ResourceAlertsCard csrfToken={csrfToken} isDemo={!!data.isDemo} />
+            <AlertHistoryCard   csrfToken={csrfToken} isDemo={!!data.isDemo} />
+          </>
+        )}
+
         {/* Uptime summary — shown when we have at least one check result */}
         {hasServer && <UptimeSummaryCard uptimeStatus={uptimeStatus} />}
 
@@ -545,7 +842,7 @@ export default function OverviewSection({ data, onNav }) {
         <UpdatesCard pendingUpdates={pendingUpdates} updateHistory={updateHistory} csrfToken={csrfToken} hasServer={hasServer} />
 
         {/* Server card */}
-        {(hasServer || (isProvisioning && hasServer)) && (
+        {(hasServer || isProvisioning) && (
           <div style={{ border: '1px solid rgba(255,255,255,0.07)', borderRadius: '0.625rem' }}>
             {/* Card header */}
             <div style={{

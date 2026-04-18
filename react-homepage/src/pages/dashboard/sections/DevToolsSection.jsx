@@ -103,6 +103,167 @@ function CardShell({ title, badge, children }) {
   );
 }
 
+function DatabaseSetupCard({ csrfToken, isDemo }) {
+  const [busy, setBusy]     = useState(null); // 'postgres' | 'mongodb'
+  const [result, setResult] = useState(null);
+
+  async function install(dbType) {
+    setBusy(dbType); setResult(null);
+    if (isDemo) {
+      await new Promise(r => setTimeout(r, 1200));
+      setBusy(null);
+      setResult({ type: 'success', message: `${dbType === 'postgres' ? 'PostgreSQL' : 'MongoDB'} installation started. Refresh in 2–3 minutes.` });
+      return;
+    }
+    try {
+      const body = new URLSearchParams({ database_type: dbType, _csrf: csrfToken });
+      const r = await fetch('/setup-database', {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString(),
+      });
+      if (r.redirected || r.ok) {
+        setResult({ type: 'success', message: `${dbType === 'postgres' ? 'PostgreSQL' : 'MongoDB'} installation started. Refresh in 2–3 minutes.` });
+      } else {
+        setResult({ type: 'error', message: `Server error: ${r.status}` });
+      }
+    } catch {
+      setResult({ type: 'error', message: 'Network error. Try again.' });
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  return (
+    <div style={{ border: '1px solid rgba(255,255,255,0.07)', borderRadius: '0.625rem', overflow: 'hidden' }}>
+      <div style={{ padding: '0.875rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+        <span style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--dash-text-primary, #fafafa)' }}>Install a Database</span>
+        <p style={{ fontSize: '0.75rem', color: 'var(--dash-text-muted, #525252)', marginTop: '0.1875rem' }}>
+          One-click installation directly on your server. Credentials are stored securely.
+        </p>
+      </div>
+      <div style={{ padding: '1rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => install('postgres')}
+            disabled={!!busy}
+            style={{
+              padding: '0.5rem 1.125rem', borderRadius: '0.375rem',
+              background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.25)',
+              color: '#60a5fa', fontSize: '0.8125rem', fontWeight: 500,
+              cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.7 : 1,
+            }}
+          >
+            {busy === 'postgres' ? 'Installing…' : 'Install PostgreSQL'}
+          </button>
+          <button
+            onClick={() => install('mongodb')}
+            disabled={!!busy}
+            style={{
+              padding: '0.5rem 1.125rem', borderRadius: '0.375rem',
+              background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)',
+              color: '#86efac', fontSize: '0.8125rem', fontWeight: 500,
+              cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.7 : 1,
+            }}
+          >
+            {busy === 'mongodb' ? 'Installing…' : 'Install MongoDB'}
+          </button>
+        </div>
+        {result && (
+          <p style={{ fontSize: '0.8125rem', color: result.type === 'success' ? '#86efac' : '#fca5a5', margin: 0, lineHeight: 1.5 }}>
+            {result.message}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DatabaseBackupCard({ csrfToken, postgresInstalled, mongodbInstalled, isDemo }) {
+  const [busy, setBusy]     = useState(null); // db_type being backed up
+  const [result, setResult] = useState(null);
+
+  async function runBackup(dbType) {
+    setBusy(dbType); setResult(null);
+    if (isDemo) {
+      await new Promise(r => setTimeout(r, 1200));
+      setBusy(null);
+      setResult({ type: 'success', message: `Backup saved to /root/db-backups/${dbType === 'postgres' ? 'pg-app_db' : 'mongo'}-${new Date().toISOString().slice(0,10)}.${dbType === 'postgres' ? 'sql.gz' : 'tar.gz'}` });
+      return;
+    }
+    try {
+      const r = await fetch('/api/backup-database', {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrfToken },
+        body: JSON.stringify({ db_type: dbType }),
+      });
+      let d = null;
+      try { d = await r.json(); } catch { /* non-JSON response */ }
+      if (r.ok) {
+        if (d?.success) setResult({ type: 'success', message: d.message });
+        else setResult({ type: 'error', message: d?.error || (d ? 'Backup failed.' : 'Invalid response format.') });
+      } else {
+        setResult({ type: 'error', message: d?.error || `Server error: ${r.status}` });
+      }
+    } catch {
+      setResult({ type: 'error', message: 'Network error.' });
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  return (
+    <div style={{ border: '1px solid rgba(255,255,255,0.07)', borderRadius: '0.625rem', overflow: 'hidden' }}>
+      <div style={{ padding: '0.875rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+        <span style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--dash-text-primary, #fafafa)' }}>Database Backups</span>
+        <p style={{ fontSize: '0.75rem', color: 'var(--dash-text-muted, #525252)', marginTop: '0.1875rem' }}>
+          Stored in <code style={MONO}>/root/db-backups/</code> on your server · 7-day retention
+        </p>
+      </div>
+      <div style={{ padding: '1rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          {postgresInstalled && (
+            <button
+              onClick={() => runBackup('postgres')}
+              disabled={!!busy}
+              style={{
+                padding: '0.5rem 1.125rem', borderRadius: '0.375rem',
+                background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.25)',
+                color: '#60a5fa', fontSize: '0.8125rem', fontWeight: 500,
+                cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.7 : 1,
+              }}
+            >
+              {busy === 'postgres' ? 'Backing up…' : 'Backup PostgreSQL'}
+            </button>
+          )}
+          {mongodbInstalled && (
+            <button
+              onClick={() => runBackup('mongodb')}
+              disabled={!!busy}
+              style={{
+                padding: '0.5rem 1.125rem', borderRadius: '0.375rem',
+                background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)',
+                color: '#86efac', fontSize: '0.8125rem', fontWeight: 500,
+                cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.7 : 1,
+              }}
+            >
+              {busy === 'mongodb' ? 'Backing up…' : 'Backup MongoDB'}
+            </button>
+          )}
+        </div>
+        {result && (
+          <p style={{ fontSize: '0.8125rem', color: result.type === 'success' ? '#86efac' : '#fca5a5', margin: 0, lineHeight: 1.5 }}>
+            {result.message}
+          </p>
+        )}
+        <p style={{ fontSize: '0.75rem', color: 'var(--dash-text-muted, #525252)', lineHeight: 1.5 }}>
+          Backups also run automatically every 24 hours. A confirmation email is sent on completion.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function DevToolsSection({ data }) {
   const { hasServer, sshUsername, ipAddress, postgresInstalled, mongodbInstalled } = data;
   const [creds, setCreds]       = useState(null);
@@ -308,17 +469,17 @@ export default function DevToolsSection({ data }) {
 
         {/* No databases installed */}
         {!postgresInstalled && !mongodbInstalled && (
-          <div style={{
-            border: '1px solid rgba(255,255,255,0.07)', borderRadius: '0.625rem',
-            padding: '1.25rem', textAlign: 'center',
-          }}>
-            <p style={{ fontSize: '0.8125rem', color: 'var(--dash-text-muted, #525252)' }}>
-              No managed databases installed.{' '}
-              <a href="/old-dashboard#section-dev-tools" style={{ color: '#60a5fa', textDecoration: 'none' }}>
-                Set one up in the classic view →
-              </a>
-            </p>
-          </div>
+          <DatabaseSetupCard csrfToken={data.csrfToken} isDemo={!!data.isDemo} />
+        )}
+
+        {/* Database backup card — shown when a DB is installed */}
+        {(postgresInstalled || mongodbInstalled) && (
+          <DatabaseBackupCard
+            csrfToken={data.csrfToken}
+            postgresInstalled={postgresInstalled}
+            mongodbInstalled={mongodbInstalled}
+            isDemo={!!data.isDemo}
+          />
         )}
 
       </div>

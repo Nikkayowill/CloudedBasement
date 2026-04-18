@@ -47,6 +47,9 @@ function Flash({ type, children }) {
 export default function Login() {
   const [searchParams] = useSearchParams();
   const [csrf, setCsrf] = useState('');
+  const [csrfError, setCsrfError] = useState(false);
+  const [csrfLoading, setCsrfLoading] = useState(true);
+  const [googleOAuthEnabled, setGoogleOAuthEnabled] = useState(false);
 
   const error      = searchParams.get('error') || '';
   const success    = searchParams.get('message') || searchParams.get('success') || '';
@@ -56,10 +59,24 @@ export default function Login() {
   const [clientError, setClientError] = useState('');
 
   useEffect(() => {
+    setCsrfLoading(true);
     fetch('/api/csrf-token', { credentials: 'include' })
-      .then((r) => r.json())
+      .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then((d) => setCsrf(d.csrfToken))
-      .catch(() => {});
+      .catch((err) => { console.error('[Login] Failed to load CSRF token:', err); setCsrfError(true); })
+      .finally(() => setCsrfLoading(false));
+
+    fetch('/api/auth/status', { credentials: 'include' })
+      .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+      .then((d) => {
+        if (typeof d.googleOAuthEnabled === 'boolean') {
+          setGoogleOAuthEnabled(d.googleOAuthEnabled);
+        }
+      })
+      .catch((err) => {
+        console.error('[Login] Failed to load auth status:', err);
+        setGoogleOAuthEnabled(false);
+      });
   }, []);
 
   return (
@@ -85,6 +102,13 @@ export default function Login() {
         </div>
 
         {clientError && <Flash type="error">{clientError}</Flash>}
+        {csrfLoading && !csrf && !csrfError && <Flash type="info">Loading form…</Flash>}
+        {csrfError && (
+          <Flash type="error">
+            Unable to load form. Please{' '}
+            <button onClick={() => window.location.reload()} style={{ color: '#7fd6ff', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0, fontSize: 'inherit' }}>refresh the page</button>.
+          </Flash>
+        )}
         {success    && <Flash type="success">{success}</Flash>}
         {warning    && <Flash type="warning">{warning}</Flash>}
         {error      && <Flash type="error">{error}</Flash>}
@@ -133,18 +157,28 @@ export default function Login() {
           </button>
         </form>
 
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
-          <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
-          <span style={{ padding: '0 0.75rem', fontSize: '0.6875rem', color: '#4b5563' }}>or</span>
-          <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
-        </div>
+        {googleOAuthEnabled && (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
+              <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
+              <span style={{ padding: '0 0.75rem', fontSize: '0.6875rem', color: '#4b5563' }}>or</span>
+              <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
+            </div>
 
-        <a href="/auth/google" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.5rem', background: '#fff', borderRadius: '0.375rem', color: '#111', fontSize: '0.875rem', fontWeight: 500, textDecoration: 'none', transition: 'background 150ms', marginBottom: '1.25rem' }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = '#f3f4f6'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; }}>
-          <GoogleIcon />
-          Continue with Google
-        </a>
+            <a href="/auth/google" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.5rem', background: '#fff', borderRadius: '0.375rem', color: '#111', fontSize: '0.875rem', fontWeight: 500, textDecoration: 'none', transition: 'background 150ms', marginBottom: '1.25rem' }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = '#f3f4f6'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; }}>
+              <GoogleIcon />
+              Continue with Google
+            </a>
+          </>
+        )}
+
+        {!googleOAuthEnabled && (
+          <p style={{ margin: '0 0 1.25rem', fontSize: '0.75rem', color: '#6b7280', textAlign: 'center' }}>
+            Google sign-in is unavailable in this environment.
+          </p>
+        )}
 
         <p style={{ margin: 0, fontSize: '0.8125rem', color: '#6b7280', textAlign: 'center' }}>
           Don&apos;t have an account?{' '}

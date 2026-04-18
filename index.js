@@ -31,7 +31,10 @@ const { syncDigitalOceanDroplets: syncDigitalOceanDropletsService } = require('.
 const { monitorSubscriptions } = require('./services/subscriptionMonitor');
 const { checkAndProvisionSSL } = require('./services/autoSSL');
 const { runDailyBackups } = require('./services/dailyBackups');
+const { runScheduledDbBackups } = require('./services/dbBackups');
 const { checkUptimeStatus } = require('./services/uptimeMonitor');
+const { collectAndStoreMetrics } = require('./services/metricsCollector');
+const { runAlertMonitor } = require('./services/alertMonitor');
 const { generalLimiter } = require('./middleware/rateLimiter');
 const paymentController = require('./controllers/paymentController');
 const githubWebhookController = require('./controllers/githubWebhookController');
@@ -75,8 +78,8 @@ app.use(helmet({
   },
 }));
 
-app.use(express.static('public'));
-app.use(express.static(path.join(__dirname, 'react-homepage/dist'), { index: false }));
+app.use(express.static('public', { setHeaders: (res) => res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin') }));
+app.use(express.static(path.join(__dirname, 'react-homepage/dist'), { index: false, setHeaders: (res) => res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin') }));
 
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
@@ -302,19 +305,39 @@ setInterval(runDailyBackups, 24 * 60 * 60 * 1000);
 // Run daily backup check on startup (after 5 minutes)
 setTimeout(runDailyBackups, 5 * 60 * 1000);
 
+// Scheduled DB backups: pg_dump / mongodump every 24 hours for all servers with a DB
+setInterval(runScheduledDbBackups, 24 * 60 * 60 * 1000);
+
+// Run DB backup check on startup (after 7 minutes, staggered from DO snapshot)
+setTimeout(runScheduledDbBackups, 7 * 60 * 1000);
+
 // Uptime monitor: Ping all active sites every 5 minutes
 setInterval(checkUptimeStatus, 5 * 60 * 1000);
 
 // Run uptime check on startup (after 4 minutes to let server settle)
 setTimeout(checkUptimeStatus, 4 * 60 * 1000);
 
+// Metrics collector: Store server metrics every 5 minutes
+setInterval(collectAndStoreMetrics, 5 * 60 * 1000);
+
+// Run metrics collection on startup (after 8 minutes, staggered from other jobs)
+setTimeout(collectAndStoreMetrics, 8 * 60 * 1000);
+
+// Alert monitor: Check rules after each metrics collection cycle (offset by 30s)
+setInterval(runAlertMonitor, 5 * 60 * 1000);
+
+// Run alert check on startup (after 8.5 minutes, immediately after first metrics collection)
+setTimeout(runAlertMonitor, 8.5 * 60 * 1000);
+
 // Global error handler (must be last)
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
 
+module.exports = app;
+
 // Run database migrations before starting server
-runMigrations().then(() => {
+if (require.main === module) runMigrations().then(() => {
   const server = app.listen(PORT, () => console.log(`Server on http://localhost:${PORT}`));
 
   // Graceful shutdown handler to cleanup polling intervals

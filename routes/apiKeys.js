@@ -9,5 +9,6 @@ const router = Router();
 router.get('/api/keys', requireAuth, apiKeyController.listKeys);
 router.post('/api/keys', requireAuth, csrf, apiKeyController.createKey);
 router.delete('/api/keys/:id', requireAuth, csrf, apiKeyController.revokeKey);
+router.post('/api/keys/:id/rotate', requireAuth, csrf, apiKeyController.rotateKey);
 
 module.exports = router;

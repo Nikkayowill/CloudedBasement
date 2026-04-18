@@ -1,13 +1,24 @@
 // tests/api/payment.test.js
-// Jest + Supertest test for payment processing API
+// Run: node --test tests/api/payment.test.js
 
+const { test, describe } = require('node:test');
+const assert = require('node:assert/strict');
 const request = require('supertest');
-const app = require('../../index'); // Adjust path if needed
+const app = require('../../index');
 
-describe('Payment Processing', () => {
-  it('should reject unauthenticated payment attempts', async () => {
-    const res = await request(app).post('/pay').send({ plan: 'basic' });
-    expect(res.statusCode).toBe(401);
+describe('Payment API — unauthenticated access', () => {
+  test('GET /pay redirects unauthenticated users to login', async () => {
+    const res = await request(app).get('/pay');
+    assert.ok(res.statusCode === 302 || res.statusCode === 401, `expected 302 or 401, got ${res.statusCode}`);
   });
-  // Add more tests for Stripe session creation, webhook handling, etc.
+
+  test('GET /api/billing/usage returns 401 without session', async () => {
+    const res = await request(app).get('/api/billing/usage');
+    assert.equal(res.statusCode, 401);
+  });
+
+  test('POST /create-payment-intent returns 401 without session', async () => {
+    const res = await request(app).post('/create-payment-intent').send({});
+    assert.equal(res.statusCode, 401);
+  });
 });

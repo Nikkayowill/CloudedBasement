@@ -1,18 +1,31 @@
 // Google OAuth Configuration using Passport.js
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const crypto = require('crypto');
 const pool = require('../db');
+
+function isGoogleOAuthConfigured() {
+  return Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
+}
+
+function getGoogleCallbackURL() {
+  if (process.env.GOOGLE_CALLBACK_URL) {
+    return process.env.GOOGLE_CALLBACK_URL;
+  }
+
+  return process.env.NODE_ENV === 'production'
+    ? 'https://cloudedbasement.ca/auth/google/callback'
+    : 'http://localhost:3000/auth/google/callback';
+}
 
 // Initialize Google OAuth strategy
 function initializeGoogleAuth() {
-  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+  if (!isGoogleOAuthConfigured()) {
     console.log('[OAUTH] Google OAuth not configured - missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET');
     return;
   }
 
-  const callbackURL = process.env.NODE_ENV === 'production'
-    ? 'https://cloudedbasement.ca/auth/google/callback'
-    : 'http://localhost:3000/auth/google/callback';
+  const callbackURL = getGoogleCallbackURL();
 
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
@@ -23,7 +36,6 @@ function initializeGoogleAuth() {
     try {
       const email = profile.emails?.[0]?.value;
       const googleId = profile.id;
-      const displayName = profile.displayName || email?.split('@')[0] || 'User';
 
       if (!email) {
         return done(new Error('No email provided by Google'), null);
@@ -66,7 +78,8 @@ function initializeGoogleAuth() {
         [email.toLowerCase(), googleId]
       );
 
-      console.log(`[OAUTH] New user registered via Google: ${email}`);
+      const emailHash = crypto.createHash('sha256').update(email.toLowerCase()).digest('hex').slice(0, 12);
+      console.log(`[OAUTH] New user registered via Google: id=${emailHash}`);
       return done(null, insertResult.rows[0]);
 
     } catch (error) {
@@ -93,4 +106,4 @@ function initializeGoogleAuth() {
   console.log('[OAUTH] Google OAuth initialized');
 }
 
-module.exports = { passport, initializeGoogleAuth };
+module.exports = { passport, initializeGoogleAuth, isGoogleOAuthConfigured, getGoogleCallbackURL };

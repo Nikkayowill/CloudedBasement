@@ -1,5 +1,9 @@
 const pool = require('../db');
 const { getHTMLHead, getFooter, getScripts, getResponsiveNav, escapeHtml } = require('../src/utils/helpers');
+const { logAdminAction } = require('../services/auditLog');
+const { runReconciliation } = require('../services/billingReconciliation');
+const { runSecurityAnalytics, runFilteredAnalytics } = require('../services/securityAnalytics');
+const { dispatchSecurityAlerts } = require('../services/securityAlerts');
 
 // GET /admin - Simple scrollable admin dashboard
 const listUsers = async (req, res) => {
@@ -416,10 +420,14 @@ ${getHTMLHead('Admin Dashboard')}
 const deleteUser = async (req, res) => {
   try {
     const userId = req.params.id;
-    
-    // Delete user (cascade will handle related records if foreign keys are set up)
+
+    const userResult = await pool.query('SELECT email FROM users WHERE id = $1', [userId]);
+    const targetEmail = userResult.rows[0]?.email || `id:${userId}`;
+
     await pool.query('DELETE FROM users WHERE id = $1', [userId]);
-    
+
+    logAdminAction(req.session.userId, req.session.userEmail, 'delete_user', targetEmail, null, null).catch(() => {});
+
     res.redirect('/admin?success=User deleted successfully');
   } catch (error) {
     console.error('Delete user error:', error);
@@ -431,13 +439,17 @@ const deleteUser = async (req, res) => {
 const cancelProvisioning = async (req, res) => {
   try {
     const serverId = req.params.id;
-    
-    // Update server status to failed
-    await pool.query(
-      'UPDATE servers SET status = $1 WHERE id = $2',
-      ['failed', serverId]
+
+    const serverResult = await pool.query(
+      'SELECT s.id, u.email as owner_email FROM servers s LEFT JOIN users u ON s.user_id = u.id WHERE s.id = $1',
+      [serverId]
     );
-    
+    const ownerEmail = serverResult.rows[0]?.owner_email || null;
+
+    await pool.query('UPDATE servers SET status = $1 WHERE id = $2', ['failed', serverId]);
+
+    logAdminAction(req.session.userId, req.session.userEmail, 'cancel_provisioning', ownerEmail, `server:${serverId}`, 'failed').catch(() => {});
+
     console.log(`Admin cancelled provisioning for server ${serverId}`);
     res.redirect('/admin?success=Provisioning cancelled successfully');
   } catch (error) {
@@ -450,10 +462,17 @@ const cancelProvisioning = async (req, res) => {
 const deleteServer = async (req, res) => {
   try {
     const serverId = req.params.id;
-    
-    // Delete server record from database (does not destroy actual droplet)
+
+    const serverResult = await pool.query(
+      'SELECT s.id, u.email as owner_email FROM servers s LEFT JOIN users u ON s.user_id = u.id WHERE s.id = $1',
+      [serverId]
+    );
+    const ownerEmail = serverResult.rows[0]?.owner_email || null;
+
     await pool.query('DELETE FROM servers WHERE id = $1', [serverId]);
-    
+
+    logAdminAction(req.session.userId, req.session.userEmail, 'delete_server_record', ownerEmail, `server:${serverId}`, null).catch(() => {});
+
     res.redirect('/admin?success=Server record deleted successfully');
   } catch (error) {
     console.error('Delete server error:', error);
@@ -465,10 +484,19 @@ const deleteServer = async (req, res) => {
 const destroyDroplet = async (req, res) => {
   try {
     const serverId = req.params.id;
+
+    const serverResult = await pool.query(
+      'SELECT s.id, s.droplet_id, u.email as owner_email FROM servers s LEFT JOIN users u ON s.user_id = u.id WHERE s.id = $1',
+      [serverId]
+    );
+    const ownerEmail = serverResult.rows[0]?.owner_email || null;
+    const dropletId = serverResult.rows[0]?.droplet_id || null;
+
     const { destroyDropletByServerId } = require('../services/digitalocean');
-    
     const result = await destroyDropletByServerId(serverId);
-    
+
+    logAdminAction(req.session.userId, req.session.userEmail, 'destroy_droplet', ownerEmail, `server:${serverId}${dropletId ? `/droplet:${dropletId}` : ''}`, null).catch(() => {});
+
     res.redirect('/admin?success=' + encodeURIComponent(result.message || 'Droplet destroyed and server deleted successfully'));
   } catch (error) {
     console.error('Destroy droplet error:', error);
@@ -503,4 +531,89 @@ const getAdminData = async (req, res) => {
   }
 };
 
-module.exports = { listUsers, deleteUser, deleteServer, destroyDroplet, cancelProvisioning, getAdminData };
+// GET /admin/audit-log/data - paged audit log entries
+const getAuditLogData = async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit, 10) || 50, 200);
+    const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
+    const result = await pool.query(
+      `SELECT id, admin_email, action, target_email, old_value, new_value, created_at
+         FROM admin_audit_log
+        ORDER BY created_at DESC
+        LIMIT $1 OFFSET $2`,
+      [limit, offset]
+    );
+    const totalResult = await pool.query('SELECT COUNT(*) FROM admin_audit_log');
+    res.json({
+      entries: result.rows,
+      total: parseInt(totalResult.rows[0].count, 10),
+      limit,
+      offset,
+    });
+  } catch (error) {
+    console.error('[AUDIT] getAuditLogData error:', error);
+    res.status(500).json({ error: 'Failed to load audit log' });
+  }
+};
+
+// GET /admin/billing/reconcile — compare internal billing state against Stripe
+const getBillingReconciliation = async (req, res) => {
+  try {
+    const result = await runReconciliation();
+    res.json(result);
+  } catch (err) {
+    console.error('[RECONCILE] Unexpected error:', err.message);
+    res.status(500).json({ error: 'Reconciliation failed' });
+  }
+};
+
+// GET /admin/security/analytics — aggregated security signal report with threshold flags
+const getSecurityAnalytics = async (req, res) => {
+  try {
+    const result = await runSecurityAnalytics();
+    // Fire-and-forget alert dispatch — errors must not affect the JSON response
+    if (result.triggered_thresholds.length > 0) {
+      dispatchSecurityAlerts(result.triggered_thresholds).catch(() => {});
+    }
+    res.json(result);
+  } catch (err) {
+    console.error('[SECURITY ANALYTICS] Unexpected error:', err.message);
+    res.status(500).json({ error: 'Security analytics failed' });
+  }
+};
+
+// GET /admin/security-events/analytics — filterable security event query API
+// Supports: ?event_type=LOGIN_FAILED&ip=1.2.3.4&user_id=42&email=x@y.com&window_hours=24
+// Logs every call to the admin audit log.
+const getSecurityEventAnalytics = async (req, res) => {
+  try {
+    const result = await runFilteredAnalytics(req.query);
+
+    // Audit log — old_value column is VARCHAR(500); truncate to stay inside the limit.
+    const filterSummary = JSON.stringify(result.filters_applied).slice(0, 490);
+    logAdminAction(
+      req.session.userId,
+      req.session.userEmail,
+      'view_security_events_analytics',
+      null,
+      filterSummary,
+      null
+    ).catch(() => {});
+
+    // Background threshold check — cached (30 s TTL) so this is cheap on repeat calls.
+    // Ensures alerts fire even when the admin is using the filtered query view rather
+    // than the dedicated threshold dashboard.
+    runSecurityAnalytics().then(({ triggered_thresholds }) => {
+      if (triggered_thresholds.length > 0) {
+        return dispatchSecurityAlerts(triggered_thresholds);
+      }
+    }).catch(() => {});
+
+    res.json(result);
+  } catch (err) {
+    console.error('[SECURITY EVENTS API] Unexpected error:', err.message);
+    res.status(500).json({ error: 'Security event analytics failed' });
+  }
+};
+
+module.exports = { listUsers, deleteUser, deleteServer, destroyDroplet, cancelProvisioning, getAdminData, getAuditLogData, getBillingReconciliation, getSecurityAnalytics, getSecurityEventAnalytics };

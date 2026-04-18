@@ -1,54 +1,133 @@
 const pool = require('../db');
+const { hasRole, hasPermission, normalizeRole } = require('../src/utils/rbac');
 
 // Authentication middleware
 function requireAuth(req, res, next) {
   if (req.session.userId) {
     next();
   } else {
-    // Check if it's an API request (client expects JSON response)
-    const acceptsJson = req.headers['accept']?.includes('application/json');
-    const isApiPath = req.path.startsWith('/api') || req.path === '/create-payment-intent';
-    
-    if (acceptsJson || isApiPath || req.xhr) {
+    if (isApiRequest(req)) {
       return res.status(401).json({ error: 'Session expired. Please log in again.' });
     }
     res.redirect('/login?warning=Please login to continue');
   }
 }
 
-// Admin-only guard (always checks database for security)
-async function requireAdmin(req, res, next) {
-  if (!req.session.userId) {
-    return res.redirect('/dashboard?error=Admin access required');
+async function getUserRoleFromDb(userId) {
+  const result = await pool.query(
+    'SELECT role FROM users WHERE id = $1',
+    [userId]
+  );
+
+  if (result.rows.length === 0) {
+    return null;
   }
-  
-  try {
-    const userId = req.session.userId;
-    
-    // Always query database (no cache - prevents cache poisoning)
-    const result = await pool.query(
-      'SELECT role FROM users WHERE id = $1',
-      [userId]
-    );
-    
-    if (result.rows.length === 0) {
-      // User doesn't exist - invalidate session
-      req.session.destroy();
-      return res.redirect('/login?error=Session invalid');
-    }
-    
-    const actualRole = result.rows[0].role;
-    
-    // Verify admin role
-    if (actualRole === 'admin') {
-      return next();
-    } else {
-      return res.redirect('/dashboard?error=Admin access required');
-    }
-  } catch (error) {
-    console.error('Admin auth error:', error);
-    return res.status(500).send('Authentication error');
-  }
+
+  return normalizeRole(result.rows[0].role);
 }
 
-module.exports = { requireAuth, requireAdmin };
+async function getRoleForRequest(req) {
+  if (req.currentUserRole) {
+    return req.currentUserRole;
+  }
+
+  const actualRole = await getUserRoleFromDb(req.session.userId);
+  if (!actualRole) {
+    return null;
+  }
+
+  req.currentUserRole = actualRole;
+  req.session.userRole = actualRole;
+  return actualRole;
+}
+
+function isApiRequest(req) {
+  const acceptsJson = req.headers['accept']?.includes('application/json');
+  const isApiPath = req.path.startsWith('/api') || req.path === '/create-payment-intent' || req.xhr;
+  return acceptsJson || isApiPath;
+}
+
+function destroySessionAndRedirect(req, res, location) {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Session destroy error:', err);
+    }
+    return res.redirect(location);
+  });
+}
+
+function denyRoleAccess(req, res, denyMessage, redirectPath) {
+  if (isApiRequest(req)) {
+    return res.status(403).json({ error: denyMessage });
+  }
+
+  return res.redirect(`${redirectPath}?error=${encodeURIComponent(denyMessage)}`);
+}
+
+function requireRole(allowedRoles, options = {}) {
+  const {
+    denyMessage = 'Access denied',
+    denyRedirect = '/dashboard'
+  } = options;
+
+  return async (req, res, next) => {
+    if (!req.session.userId) {
+      return denyRoleAccess(req, res, denyMessage, denyRedirect);
+    }
+
+    try {
+      const actualRole = await getRoleForRequest(req);
+
+      if (!actualRole) {
+        return destroySessionAndRedirect(req, res, '/login?error=Session invalid');
+      }
+
+      if (!hasRole(actualRole, allowedRoles)) {
+        return denyRoleAccess(req, res, denyMessage, denyRedirect);
+      }
+
+      return next();
+    } catch (error) {
+      console.error('Role auth error:', error);
+      return res.status(500).send('Authentication error');
+    }
+  };
+}
+
+function requirePermission(permission, options = {}) {
+  const {
+    denyMessage = 'Permission denied',
+    denyRedirect = '/dashboard'
+  } = options;
+
+  return async (req, res, next) => {
+    if (!req.session.userId) {
+      return denyRoleAccess(req, res, denyMessage, denyRedirect);
+    }
+
+    try {
+      const actualRole = await getRoleForRequest(req);
+
+      if (!actualRole) {
+        return destroySessionAndRedirect(req, res, '/login?error=Session invalid');
+      }
+
+      if (!hasPermission(actualRole, permission)) {
+        return denyRoleAccess(req, res, denyMessage, denyRedirect);
+      }
+
+      return next();
+    } catch (error) {
+      console.error('Permission auth error:', error);
+      return res.status(500).send('Authentication error');
+    }
+  };
+}
+
+// Admin-only guard (always checks database for security)
+const requireAdmin = requireRole(['admin'], {
+  denyMessage: 'Admin access required',
+  denyRedirect: '/dashboard'
+});
+
+module.exports = { requireAuth, requireAdmin, requireRole, requirePermission };

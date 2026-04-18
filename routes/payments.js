@@ -16,6 +16,7 @@ router.get('/payment-cancel', requireAuth, paymentController.paymentCancel);
 // Stripe payment intents / sessions
 router.post('/create-payment-intent', requireAuth, paymentLimiter, csrf, paymentController.createPaymentIntent);
 router.post('/upgrade-plan', requireAuth, csrf, paymentController.upgradePlan);
+router.get('/api/billing/usage', requireAuth, paymentController.getBillingUsage);
 
 // NOTE: POST /webhook/stripe is registered in index.js BEFORE express.json()
 // because it requires the raw request body for Stripe signature verification.

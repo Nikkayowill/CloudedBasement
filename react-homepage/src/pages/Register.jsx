@@ -47,25 +47,40 @@ export default function Register() {
   const [csrf, setCsrf] = useState('');
   const [botCode, setBotCode] = useState('');
   const [botInput, setBotInput] = useState('');
+  const [googleOAuthEnabled, setGoogleOAuthEnabled] = useState(false);
   const [form, setForm] = useState({ email: searchParams.get('email') || '', password: '', confirmPassword: '', acceptTerms: false });
   const [clientError, setClientError] = useState('');
+  const [fetchError, setFetchError] = useState('');
 
   const error   = searchParams.get('error') || '';
   const success = searchParams.get('success') || '';
   const email   = form.email;
 
-  const botCorrect  = botInput.length > 0 && botInput === botCode;
+  const botCorrect  = botInput.length > 0 && botInput.toUpperCase() === botCode.toUpperCase();
   const submitReady = csrf && botCorrect && form.email && form.password && form.confirmPassword && form.acceptTerms && form.password === form.confirmPassword;
 
   useEffect(() => {
     fetch('/api/csrf-token', { credentials: 'include' })
-      .then((r) => r.json())
+      .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then((d) => setCsrf(d.csrfToken))
-      .catch(() => {});
+      .catch((err) => { console.error('[Register] CSRF fetch failed:', err); setFetchError('Failed to load form. Please refresh.'); });
     fetch('/api/auth/bot-challenge', { credentials: 'include' })
-      .then((r) => r.json())
+      .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then((d) => setBotCode(d.botCode))
-      .catch(() => {});
+      .catch((err) => { console.error('[Register] Bot challenge fetch failed:', err); setFetchError('Failed to load form. Please refresh.'); });
+
+    fetch('/api/auth/status', { credentials: 'include' })
+      .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+      .then((d) => {
+        if (typeof d.googleOAuthEnabled === 'boolean') {
+          setGoogleOAuthEnabled(d.googleOAuthEnabled);
+        }
+      })
+      .catch((err) => {
+        console.error('[Register] Auth status fetch failed:', err);
+        setFetchError(err?.message || 'Failed to load auth status.');
+        setGoogleOAuthEnabled(false);
+      });
   }, []);
 
   function handleChange(e) {
@@ -112,6 +127,7 @@ export default function Register() {
 
 
         {clientError && <Flash type="error">{clientError}</Flash>}
+        {fetchError  && <Flash type="error">{fetchError}</Flash>}
         {error   && <Flash type="error">{error}</Flash>}
         {success && <Flash type="success">{success}</Flash>}
 
@@ -182,18 +198,28 @@ export default function Register() {
           </button>
         </form>
 
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
-          <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
-          <span style={{ padding: '0 0.75rem', fontSize: '0.6875rem', color: '#4b5563' }}>or</span>
-          <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
-        </div>
+        {googleOAuthEnabled && (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
+              <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
+              <span style={{ padding: '0 0.75rem', fontSize: '0.6875rem', color: '#4b5563' }}>or</span>
+              <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.07)' }} />
+            </div>
 
-        <a href="/auth/google" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.5rem', background: '#fff', borderRadius: '0.375rem', color: '#111', fontSize: '0.875rem', fontWeight: 500, textDecoration: 'none', transition: 'background 150ms', marginBottom: '1.25rem' }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = '#f3f4f6'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; }}>
-          <GoogleIcon />
-          Continue with Google
-        </a>
+            <a href="/auth/google" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.5rem', background: '#fff', borderRadius: '0.375rem', color: '#111', fontSize: '0.875rem', fontWeight: 500, textDecoration: 'none', transition: 'background 150ms', marginBottom: '1.25rem' }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = '#f3f4f6'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; }}>
+              <GoogleIcon />
+              Continue with Google
+            </a>
+          </>
+        )}
+
+        {!googleOAuthEnabled && (
+          <p style={{ margin: '0 0 1.25rem', fontSize: '0.75rem', color: '#6b7280', textAlign: 'center' }}>
+            Google sign-in is unavailable in this environment.
+          </p>
+        )}
 
         <p style={{ margin: 0, fontSize: '0.8125rem', color: '#6b7280', textAlign: 'center' }}>
           Already have an account?{' '}

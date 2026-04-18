@@ -1,13 +1,24 @@
 // tests/api/provisioning.test.js
-// Example Jest + Supertest test for Express provisioning route
+// Run: node --test tests/api/provisioning.test.js
 
+const { test, describe } = require('node:test');
+const assert = require('node:assert/strict');
 const request = require('supertest');
-const app = require('../../index'); // Adjust path if needed
+const app = require('../../index');
 
-describe('Provisioning API', () => {
-  it('should reject unauthenticated requests', async () => {
-    const res = await request(app).post('/api/provision').send({});
-    expect(res.statusCode).toBe(401);
+describe('Admin / provisioning API — unauthenticated access', () => {
+  test('GET /admin/data returns 401 without session (JSON client)', async () => {
+    const res = await request(app)
+      .get('/admin/data')
+      .set('Accept', 'application/json');
+    assert.equal(res.statusCode, 401);
   });
-  // Add more tests for each route/feature as needed
+
+  test('POST /admin/delete-user/:id returns 401 without session (JSON client)', async () => {
+    const res = await request(app)
+      .post('/admin/delete-user/999')
+      .set('Accept', 'application/json')
+      .send({});
+    assert.equal(res.statusCode, 401);
+  });
 });

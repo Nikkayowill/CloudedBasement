@@ -330,7 +330,9 @@ function UptimeDot({ url, uptimeStatus }) {
 
 export default function DeploySection({ data }) {
   const { deployments = [], csrfToken, hasServer, siteCount = 0, siteLimit = 2, uptimeStatus = {} } = data;
-  const [gitUrl, setGitUrl] = useState('');
+  const [gitUrl, setGitUrl]           = useState('');
+  const [startCommand, setStartCommand] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const atLimit = siteCount >= siteLimit;
 
   // No server state
@@ -428,8 +430,55 @@ export default function DeploySection({ data }) {
                     Deploy
                   </button>
                 </div>
+
+                {/* Advanced options */}
+                <div style={{ marginTop: '0.625rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowAdvanced(s => !s)}
+                    style={{
+                      background: 'none', border: 'none', padding: 0,
+                      fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)',
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem',
+                    }}
+                  >
+                    <span style={{ fontSize: '0.5rem' }}>{showAdvanced ? '▲' : '▼'}</span>
+                    Advanced options
+                  </button>
+                  {showAdvanced && (
+                    <div style={{ marginTop: '0.625rem' }}>
+                      <label style={{ display: 'block', fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)', marginBottom: '0.3125rem' }}>
+                        Custom startup command <span style={{ color: 'var(--dash-text-muted, #525252)', fontWeight: 400 }}>(optional — overrides default)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={startCommand}
+                        onChange={e => setStartCommand(e.target.value)}
+                        placeholder="node server.js  or  npm start"
+                        style={{
+                          width: '100%', padding: '0.4375rem 0.75rem',
+                          background: 'rgba(255,255,255,0.04)',
+                          border: '1px solid rgba(255,255,255,0.08)',
+                          borderRadius: '0.375rem',
+                          color: 'var(--dash-text-primary, #fafafa)',
+                          fontSize: '0.8125rem', outline: 'none',
+                          fontFamily: 'JetBrains Mono, monospace',
+                          boxSizing: 'border-box',
+                        }}
+                        onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(59,130,246,0.4)'; }}
+                        onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
+                      />
+                      <p style={{ marginTop: '0.3rem', fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)' }}>
+                        e.g. <code style={{ fontFamily: 'JetBrains Mono, monospace' }}>node dist/server.js</code> or <code style={{ fontFamily: 'JetBrains Mono, monospace' }}>gunicorn main:app</code>
+                      </p>
+                    </div>
+                  )}
+                </div>
+
                 <p style={{ marginTop: '0.5rem', fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)' }}>
                   Deploying an existing repo will trigger a redeploy. {siteCount}/{siteLimit} sites used.
+                {/* Always submit start_command even when advanced panel is collapsed */}
+                <input type="hidden" name="start_command" value={startCommand} />
                 </p>
               </form>
             )}

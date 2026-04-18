@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 // ── Shared primitives ─────────────────────────────────────────────────────────
 
@@ -122,7 +122,10 @@ function StatCard({ label, value, color }) {
 // ── Sections ──────────────────────────────────────────────────────────────────
 
 function StatsSection({ data }) {
-  const { users, servers, domains, payments } = data;
+  const users    = data?.users    || [];
+  const servers  = data?.servers  || [];
+  const domains  = data?.domains  || [];
+  const payments = data?.payments || [];
   const running = servers.filter(s => s.status === 'running').length;
   const revenue = (payments.filter(p => p.status === 'succeeded').reduce((s, p) => s + (p.amount || 0), 0) / 100).toFixed(0);
 
@@ -140,7 +143,7 @@ function StatsSection({ data }) {
 }
 
 function PendingSection({ data }) {
-  const { pendingRequests } = data;
+  const { pendingRequests = [] } = data;
   if (!pendingRequests.length) {
     return (
       <section>
@@ -161,8 +164,12 @@ function PendingSection({ data }) {
             cols={['Customer', 'Details', 'Status', 'Date', 'Action']}
             rows={pendingRequests.map(r => {
               const details = (r.description || '').split('\n').reduce((acc, line) => {
-                const [k, v] = line.split(': ');
-                if (k && v) acc[k] = v;
+                const idx = line.indexOf(': ');
+                if (idx >= 0) {
+                  const k = line.slice(0, idx).trim();
+                  const v = line.slice(idx + 2).trim();
+                  if (k) acc[k] = v;
+                }
                 return acc;
               }, {});
               return [
@@ -351,12 +358,421 @@ function PaymentsSection({ data }) {
               <span style={{ ...MONO, fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)' }}>#{p.id}</span>,
               <span style={{ fontSize: '0.8125rem', color: 'var(--dash-text-primary, #fafafa)' }}>{p.customer_email || '—'}</span>,
               <Badge color="#60a5fa" bg="rgba(59,130,246,0.12)">{p.plan}</Badge>,
-              <span style={{ ...MONO, fontSize: '0.875rem', fontWeight: 700, color: '#fbbf24' }}>${(p.amount / 100).toFixed(2)}</span>,
+              <span style={{ ...MONO, fontSize: '0.875rem', fontWeight: 700, color: '#fbbf24' }}>${((p.amount || 0) / 100).toFixed(2)}</span>,
               statusBadge(p.status),
               <span style={{ ...MONO, fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)' }}>{fmt(p.created_at)}</span>,
             ])}
           />
         </div>
+      </div>
+    </section>
+  );
+}
+
+function AuditLogSection() {
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [offset, setOffset] = useState(0);
+  const [total, setTotal] = useState(0);
+  const limit = 50;
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setError('');
+
+    fetch(`/admin/audit-log/data?limit=${limit}&offset=${offset}`, { credentials: 'same-origin' })
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((d) => {
+        if (!active) return;
+        setRows(d.entries || []);
+        setTotal(d.total || 0);
+      })
+      .catch((err) => {
+        if (!active) return;
+        setError(err.message || 'Failed to load audit log');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [offset]);
+
+  return (
+    <section>
+      <SectionHeader title="Audit Log" />
+      <div style={{ padding: '1rem 1.5rem' }}>
+        <div style={{ border: '1px solid rgba(255,255,255,0.07)', borderRadius: '0.625rem', overflow: 'hidden' }}>
+          {loading ? (
+            <div style={{ padding: '1rem', fontSize: '0.8125rem', color: 'var(--dash-text-muted, #525252)' }}>Loading audit events…</div>
+          ) : error ? (
+            <div style={{ padding: '1rem', fontSize: '0.8125rem', color: '#f87171' }}>{error}</div>
+          ) : rows.length === 0 ? (
+            <div style={{ padding: '1rem', fontSize: '0.8125rem', color: 'var(--dash-text-muted, #525252)' }}>No audit events found.</div>
+          ) : (
+            <>
+              <Table
+                cols={['Time', 'Admin', 'Action', 'Target', 'Old Value', 'New Value']}
+                rows={rows.map((r) => [
+                  <span style={{ ...MONO, fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)' }}>{fmt(r.created_at)}</span>,
+                  <span style={{ fontSize: '0.75rem', color: 'var(--dash-text-primary, #fafafa)' }}>{r.admin_email || '—'}</span>,
+                  <span style={{ fontSize: '0.75rem', color: '#60a5fa' }}>{r.action || '—'}</span>,
+                  <span style={{ fontSize: '0.75rem' }}>{r.target_email || '—'}</span>,
+                  <span style={{ ...MONO, fontSize: '0.6875rem', maxWidth: '14rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>{r.old_value || '—'}</span>,
+                  <span style={{ ...MONO, fontSize: '0.6875rem', maxWidth: '14rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>{r.new_value || '—'}</span>,
+                ])}
+              />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                <span style={{ fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)' }}>
+                  Showing {offset + 1}-{Math.min(offset + rows.length, total)} of {total}
+                </span>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button
+                    onClick={() => setOffset(Math.max(0, offset - limit))}
+                    disabled={offset === 0}
+                    style={{ padding: '0.25rem 0.625rem', borderRadius: '0.3125rem', background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', color: 'var(--dash-text-secondary, #a1a1a1)', fontSize: '0.6875rem', cursor: offset === 0 ? 'not-allowed' : 'pointer', opacity: offset === 0 ? 0.5 : 1 }}
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => setOffset(offset + limit)}
+                    disabled={offset + rows.length >= total}
+                    style={{ padding: '0.25rem 0.625rem', borderRadius: '0.3125rem', background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', color: 'var(--dash-text-secondary, #a1a1a1)', fontSize: '0.6875rem', cursor: offset + rows.length >= total ? 'not-allowed' : 'pointer', opacity: offset + rows.length >= total ? 0.5 : 1 }}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const EVENT_COLORS = {
+  LOGIN_FAILED: '#f87171',
+  LOGIN_SUCCESS: '#4ade80',
+  '2FA_FAILED': '#fbbf24',
+  PASSWORD_RESET_REQUESTED: '#60a5fa',
+  PASSWORD_RESET_COMPLETED: '#34d399',
+  API_KEY_ROTATED: '#a78bfa',
+  REGISTER_SUCCESS: '#22d3ee',
+  REGISTER_FAILED: '#fb7185',
+};
+
+function fmtHour(ts) {
+  if (!ts) return '-';
+  const d = new Date(ts);
+  return `${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} ${d.toLocaleTimeString(undefined, { hour: 'numeric' })}`;
+}
+
+function buildTotalTrend(trendRows) {
+  const byHour = new Map();
+  for (const row of trendRows || []) {
+    const key = new Date(row.hour).toISOString();
+    const prev = byHour.get(key) || 0;
+    byHour.set(key, prev + Number(row.count || 0));
+  }
+  return Array.from(byHour.entries())
+    .sort((a, b) => new Date(a[0]) - new Date(b[0]))
+    .map(([hour, count]) => ({ hour, count }));
+}
+
+function TrendChart({ points }) {
+  const width = 680;
+  const height = 220;
+  const padX = 40;
+  const padTop = 18;
+  const padBottom = 34;
+  const plotW = width - padX * 2;
+  const plotH = height - padTop - padBottom;
+  const maxY = Math.max(1, ...points.map((p) => p.count || 0));
+
+  const coords = points.map((p, i) => {
+    const x = padX + (points.length <= 1 ? 0 : (i / (points.length - 1)) * plotW);
+    const y = padTop + (1 - (p.count || 0) / maxY) * plotH;
+    return { x, y, count: p.count || 0, hour: p.hour };
+  });
+
+  const linePath = coords.length
+    ? coords.map((c, i) => `${i === 0 ? 'M' : 'L'} ${c.x.toFixed(2)} ${c.y.toFixed(2)}`).join(' ')
+    : '';
+  const areaPath = coords.length
+    ? `${linePath} L ${coords[coords.length - 1].x.toFixed(2)} ${(padTop + plotH).toFixed(2)} L ${coords[0].x.toFixed(2)} ${(padTop + plotH).toFixed(2)} Z`
+    : '';
+
+  const yTicks = 4;
+  const yLines = Array.from({ length: yTicks + 1 }, (_, i) => {
+    const value = Math.round((maxY * (yTicks - i)) / yTicks);
+    const y = padTop + (i / yTicks) * plotH;
+    return { y, value };
+  });
+
+  const first = points[0];
+  const middle = points[Math.floor(points.length / 2)];
+  const last = points[points.length - 1];
+
+  return (
+    <div style={{ overflowX: 'auto' }}>
+      <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', minWidth: '32rem', height: 'auto', display: 'block' }} role="img" aria-label="Security event trend chart">
+        <defs>
+          <linearGradient id="security-trend-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="rgba(59,130,246,0.35)" />
+            <stop offset="100%" stopColor="rgba(59,130,246,0.04)" />
+          </linearGradient>
+        </defs>
+
+        {yLines.map((tick) => (
+          <g key={`y-${tick.y}`}>
+            <line x1={padX} y1={tick.y} x2={width - padX} y2={tick.y} stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+            <text x={padX - 8} y={tick.y + 4} textAnchor="end" fill="var(--dash-text-muted, #525252)" fontSize="10">
+              {tick.value}
+            </text>
+          </g>
+        ))}
+
+        <line x1={padX} y1={padTop + plotH} x2={width - padX} y2={padTop + plotH} stroke="rgba(255,255,255,0.16)" strokeWidth="1.2" />
+        <line x1={padX} y1={padTop} x2={padX} y2={padTop + plotH} stroke="rgba(255,255,255,0.16)" strokeWidth="1.2" />
+
+        {coords.length > 1 && <path d={areaPath} fill="url(#security-trend-fill)" />}
+        {coords.length > 1 && <path d={linePath} fill="none" stroke="#60a5fa" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />}
+
+        {coords.map((c, idx) => (
+          <circle key={`${c.hour}-${c.count}-${idx}`} cx={c.x} cy={c.y} r="2.5" fill="#93c5fd" />
+        ))}
+
+        {first && (
+          <text x={padX} y={height - 10} fill="var(--dash-text-muted, #525252)" fontSize="10" textAnchor="start">
+            {fmtHour(first.hour)}
+          </text>
+        )}
+        {middle && middle !== first && middle !== last && (
+          <text x={padX + plotW / 2} y={height - 10} fill="var(--dash-text-muted, #525252)" fontSize="10" textAnchor="middle">
+            {fmtHour(middle.hour)}
+          </text>
+        )}
+        {last && last !== first && (
+          <text x={width - padX} y={height - 10} fill="var(--dash-text-muted, #525252)" fontSize="10" textAnchor="end">
+            {fmtHour(last.hour)}
+          </text>
+        )}
+      </svg>
+    </div>
+  );
+}
+
+function SecurityAnalyticsSection() {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [eventType, setEventType] = useState('');
+  const [windowHours, setWindowHours] = useState(24);
+  const [eventData, setEventData] = useState(null);
+  const [thresholdData, setThresholdData] = useState(null);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  const loadSecurity = useCallback((signal) => {
+    if (isMountedRef.current) {
+      setLoading(true);
+      setError('');
+    }
+
+    const params = new URLSearchParams();
+    params.set('window_hours', String(windowHours));
+    if (eventType) params.set('event_type', eventType);
+
+    Promise.all([
+      fetch(`/admin/security-events/analytics?${params.toString()}`, { credentials: 'same-origin', signal }),
+      fetch('/admin/security/analytics', { credentials: 'same-origin', signal }),
+    ])
+      .then(async ([eventsRes, thresholdsRes]) => {
+        if (eventsRes.status === 401 || eventsRes.status === 403) {
+          window.location.href = '/login';
+          return null;
+        }
+        if (thresholdsRes.status === 401 || thresholdsRes.status === 403) {
+          window.location.href = '/login';
+          return null;
+        }
+        if (!eventsRes.ok) throw new Error(`Security events API error (${eventsRes.status})`);
+        if (!thresholdsRes.ok) throw new Error(`Security thresholds API error (${thresholdsRes.status})`);
+
+        const [eventsJson, thresholdsJson] = await Promise.all([eventsRes.json(), thresholdsRes.json()]);
+        return { eventsJson, thresholdsJson };
+      })
+      .then((payload) => {
+        if (!payload || !isMountedRef.current) return;
+        setEventData(payload.eventsJson);
+        setThresholdData(payload.thresholdsJson);
+      })
+      .catch((e) => {
+        if (!isMountedRef.current || e?.name === 'AbortError') return;
+        setError(e.message || 'Failed to load security analytics');
+      })
+      .finally(() => {
+        if (isMountedRef.current) setLoading(false);
+      });
+  }, [windowHours, eventType]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    loadSecurity(controller.signal);
+    return () => controller.abort();
+  }, [loadSecurity]);
+
+  const trend = buildTotalTrend(eventData?.trend || []);
+  const aggregates = eventData?.aggregates || { total_events: 0, unique_ips: 0, unique_users: 0, by_event_type: [] };
+  const triggered = thresholdData?.triggered_thresholds || [];
+  const severityCounts = thresholdData?.counts?.by_severity || { high: 0, medium: 0, low: 0 };
+
+  return (
+    <section>
+      <SectionHeader title="Security Analytics" />
+      <div style={{ padding: '1rem 1.5rem 1.5rem' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.625rem', marginBottom: '0.875rem', alignItems: 'center' }}>
+          <label style={{ fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Window
+          </label>
+          <select
+            value={windowHours}
+            onChange={(e) => setWindowHours(Number(e.target.value) || 24)}
+            style={{ background: '#0f0f0f', color: '#fafafa', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '0.375rem', padding: '0.35rem 0.5rem', fontSize: '0.75rem' }}
+          >
+            <option value={1}>1 hour</option>
+            <option value={6}>6 hours</option>
+            <option value={24}>24 hours</option>
+            <option value={72}>72 hours</option>
+            <option value={168}>7 days</option>
+          </select>
+
+          <label style={{ fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)', textTransform: 'uppercase', letterSpacing: '0.05em', marginLeft: '0.5rem' }}>
+            Event
+          </label>
+          <select
+            value={eventType}
+            onChange={(e) => setEventType(e.target.value)}
+            style={{ background: '#0f0f0f', color: '#fafafa', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '0.375rem', padding: '0.35rem 0.5rem', fontSize: '0.75rem' }}
+          >
+            <option value="">All events</option>
+            <option value="LOGIN_FAILED">LOGIN_FAILED</option>
+            <option value="LOGIN_SUCCESS">LOGIN_SUCCESS</option>
+            <option value="2FA_FAILED">2FA_FAILED</option>
+            <option value="PASSWORD_RESET_REQUESTED">PASSWORD_RESET_REQUESTED</option>
+            <option value="PASSWORD_RESET_COMPLETED">PASSWORD_RESET_COMPLETED</option>
+            <option value="API_KEY_ROTATED">API_KEY_ROTATED</option>
+            <option value="REGISTER_SUCCESS">REGISTER_SUCCESS</option>
+            <option value="REGISTER_FAILED">REGISTER_FAILED</option>
+          </select>
+
+          <button
+            type="button"
+            onClick={loadSecurity}
+            style={{ marginLeft: 'auto', padding: '0.35rem 0.625rem', borderRadius: '0.375rem', background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', color: 'var(--dash-text-secondary, #a1a1a1)', fontSize: '0.75rem', cursor: 'pointer' }}
+          >
+            Refresh
+          </button>
+        </div>
+
+        {loading ? (
+          <div style={{ padding: '1rem', fontSize: '0.8125rem', color: 'var(--dash-text-muted, #525252)' }}>Loading security analytics...</div>
+        ) : error ? (
+          <div style={{ padding: '1rem', fontSize: '0.8125rem', color: '#f87171' }}>{error}</div>
+        ) : (
+          <>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(10rem, 1fr))', gap: '0.75rem', marginBottom: '0.875rem' }}>
+              <StatCard label="Total Events" value={aggregates.total_events} color="#7fd6ff" />
+              <StatCard label="Unique IPs" value={aggregates.unique_ips} color="#4ade80" />
+              <StatCard label="Unique Users" value={aggregates.unique_users} color="#fbbf24" />
+              <StatCard label="Triggered Alerts" value={thresholdData?.counts?.total_triggered || 0} color="#f87171" />
+            </div>
+
+            <div style={{ border: '1px solid rgba(255,255,255,0.07)', borderRadius: '0.625rem', padding: '0.875rem 0.875rem 0.5rem', marginBottom: '0.875rem' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                <h3 style={{ margin: 0, fontSize: '0.8125rem', color: 'var(--dash-text-primary, #fafafa)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                  Event Volume Trend
+                </h3>
+                <span style={{ fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)' }}>Y: event count · X: time</span>
+              </div>
+              {trend.length === 0 ? (
+                <div style={{ padding: '0.875rem 0.25rem', fontSize: '0.75rem', color: 'var(--dash-text-muted, #525252)' }}>No trend data for current filters.</div>
+              ) : (
+                <TrendChart points={trend} />
+              )}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(18rem, 1fr))', gap: '0.875rem', marginBottom: '0.875rem' }}>
+              <div style={{ border: '1px solid rgba(255,255,255,0.07)', borderRadius: '0.625rem', overflow: 'hidden' }}>
+                <div style={{ padding: '0.625rem 0.75rem', borderBottom: '1px solid rgba(255,255,255,0.06)', fontSize: '0.75rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--dash-text-muted, #525252)' }}>
+                  Event Type Breakdown
+                </div>
+                <Table
+                  cols={['Type', 'Count']}
+                  rows={(aggregates.by_event_type || []).map((row) => [
+                    <Badge color={EVENT_COLORS[row.event_type] || '#a1a1a1'} bg="rgba(255,255,255,0.06)">{row.event_type}</Badge>,
+                    <span style={{ ...MONO }}>{row.count}</span>,
+                  ])}
+                />
+              </div>
+
+              <div style={{ border: '1px solid rgba(255,255,255,0.07)', borderRadius: '0.625rem', overflow: 'hidden' }}>
+                <div style={{ padding: '0.625rem 0.75rem', borderBottom: '1px solid rgba(255,255,255,0.06)', fontSize: '0.75rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--dash-text-muted, #525252)' }}>
+                  Triggered Thresholds
+                </div>
+                {triggered.length === 0 ? (
+                  <div style={{ padding: '0.875rem 0.75rem', fontSize: '0.75rem', color: 'var(--dash-text-muted, #525252)' }}>No active threshold triggers.</div>
+                ) : (
+                  <Table
+                    cols={['Signal', 'Offender', 'Count', 'Severity']}
+                    rows={triggered.slice(0, 10).map((row) => [
+                      <span style={{ ...MONO, fontSize: '0.6875rem' }}>{row.signal}</span>,
+                      <span style={{ ...MONO, fontSize: '0.6875rem' }}>{row.offender || 'global'}</span>,
+                      <span style={{ ...MONO, fontSize: '0.6875rem' }}>{row.count}</span>,
+                      <Badge
+                        color={row.severity === 'high' ? '#f87171' : row.severity === 'medium' ? '#fbbf24' : '#60a5fa'}
+                        bg={row.severity === 'high' ? 'rgba(239,68,68,0.1)' : row.severity === 'medium' ? 'rgba(234,179,8,0.12)' : 'rgba(59,130,246,0.12)'}
+                      >
+                        {row.severity}
+                      </Badge>,
+                    ])}
+                  />
+                )}
+                <div style={{ padding: '0.625rem 0.75rem', borderTop: '1px solid rgba(255,255,255,0.06)', fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)' }}>
+                  High: {severityCounts.high || 0} · Medium: {severityCounts.medium || 0} · Low: {severityCounts.low || 0}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ border: '1px solid rgba(255,255,255,0.07)', borderRadius: '0.625rem', overflow: 'hidden' }}>
+              <div style={{ padding: '0.625rem 0.75rem', borderBottom: '1px solid rgba(255,255,255,0.06)', fontSize: '0.75rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--dash-text-muted, #525252)' }}>
+                Recent Security Events
+              </div>
+              <Table
+                cols={['Time', 'Type', 'IP', 'Email', 'User ID']}
+                rows={(eventData?.recent_events || []).slice(0, 20).map((row) => [
+                  <span style={{ ...MONO, fontSize: '0.6875rem' }}>{fmtHour(row.created_at)}</span>,
+                  <Badge color={EVENT_COLORS[row.event_type] || '#a1a1a1'} bg="rgba(255,255,255,0.06)">{row.event_type}</Badge>,
+                  <span style={{ ...MONO, fontSize: '0.6875rem' }}>{row.ip_address || '-'}</span>,
+                  <span style={{ ...MONO, fontSize: '0.6875rem' }}>{row.email || '-'}</span>,
+                  <span style={{ ...MONO, fontSize: '0.6875rem' }}>{row.user_id || '-'}</span>,
+                ])}
+              />
+            </div>
+          </>
+        )}
       </div>
     </section>
   );
@@ -394,6 +810,14 @@ function buildNav(pendingCount) {
     {
       id: 'payments', label: 'Payments',
       icon: <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width={15} height={15}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>,
+    },
+    {
+      id: 'security', label: 'Security',
+      icon: <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width={15} height={15}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3l7 3v6c0 5-3.5 8.5-7 9-3.5-.5-7-4-7-9V6l7-3zm0 5v4m0 4h.01" /></svg>,
+    },
+    {
+      id: 'audit', label: 'Audit Log',
+      icon: <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width={15} height={15}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z" /></svg>,
     },
   ];
 }
@@ -477,7 +901,7 @@ function AdminSidebar({ nav, active, onNav, open, onToggle }) {
 
 // ── Root ──────────────────────────────────────────────────────────────────────
 
-const SECTIONS = { stats: StatsSection, pending: PendingSection, users: UsersSection, servers: ServersSection, domains: DomainsSection, deployments: DeploymentsSection, payments: PaymentsSection };
+const SECTIONS = { stats: StatsSection, pending: PendingSection, users: UsersSection, servers: ServersSection, domains: DomainsSection, deployments: DeploymentsSection, payments: PaymentsSection, security: SecurityAnalyticsSection, audit: AuditLogSection };
 
 export default function AdminPage() {
   const [data, setData]       = useState(null);
@@ -486,6 +910,13 @@ export default function AdminPage() {
   const [active, setActive]   = useState('stats');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [toast, setToast]     = useState(null);
+  const toastTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    };
+  }, []);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -504,7 +935,11 @@ export default function AdminPage() {
 
   function onAction(msg) {
     setToast(msg);
-    setTimeout(() => setToast(null), 3000);
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    toastTimeoutRef.current = setTimeout(() => {
+      setToast(null);
+      toastTimeoutRef.current = null;
+    }, 3000);
     load();
   }
 
@@ -520,7 +955,7 @@ export default function AdminPage() {
     </div>
   );
 
-  const nav = buildNav(data.pendingRequests.length);
+  const nav = buildNav(data?.pendingRequests?.length ?? 0);
   const ActiveSection = SECTIONS[active] ?? StatsSection;
 
   return (
@@ -529,7 +964,7 @@ export default function AdminPage() {
         <div className="cb-shell-inner min-h-screen flex flex-col">
           <header className="cb-dashboard-header">
             <a href="/admin" aria-label="Admin Dashboard" className="flex items-center">
-              <img src="/CB-logo-icon.svg" alt="Clouded Basement" className="h-12 w-auto max-w-[220px]" />
+              <img src="/CB-logo-icon.svg" alt="Clouded Basement" className="h-12 w-auto max-w-55" />
             </a>
           </header>
 

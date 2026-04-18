@@ -8,6 +8,7 @@ const { destroyDroplet } = require('../services/digitalocean');
 const { getHTMLHead, getScripts, getFooter, getResponsiveNav, escapeHtml } = require('../src/utils/helpers');
 const { sendEmail } = require('../services/email');
 const { getNonce } = require('../src/utils/nonce');
+const { isAdminSession } = require('../src/utils/rbac');
 
 // Pricing plans configuration (monthly and yearly prices in CENTS for Stripe)
 // Yearly = 10% discount (monthly × 12 × 0.90)
@@ -17,6 +18,12 @@ const PRICING_PLANS = {
   premium: { name: 'Premium', monthly: 6500, yearly: 70200, was: 90, description: 'For serious projects', features: ['4GB RAM', '2 CPUs', '80GB Storage', '10 sites'] }
 };
 
+const ALLOWED_PLAN_KEYS = Object.keys(PRICING_PLANS);
+
+function getValidatedPlan(planValue, fallback = 'basic') {
+  return ALLOWED_PLAN_KEYS.includes(planValue) ? planValue : fallback;
+}
+
 // GET /pay
 exports.showCheckout = (req, res) => {
   // Require email confirmation before payment
@@ -25,9 +32,14 @@ exports.showCheckout = (req, res) => {
   }
 
   // Demo mode: admin-only fake checkout that skips Stripe
-  if (req.query.demo === 'true' && req.session.userRole === 'admin') {
-    const plan = req.query.plan || 'pro';
-    const selectedPlan = PRICING_PLANS[plan] || PRICING_PLANS.pro;
+  if (req.query.demo === 'true' && isAdminSession(req)) {
+    const requestedDemoPlan = req.query.plan;
+    if (requestedDemoPlan && !ALLOWED_PLAN_KEYS.includes(requestedDemoPlan)) {
+      return res.status(400).send('Invalid plan selected');
+    }
+
+    const validatedDemoPlan = getValidatedPlan(requestedDemoPlan, 'pro');
+    const selectedPlan = PRICING_PLANS[validatedDemoPlan];
 
     // Render a simple "processing" page that auto-redirects to provisioning
     return res.send(`
@@ -54,16 +66,22 @@ ${getHTMLHead('Processing Payment - Clouded Basement')}
       
       <script nonce="${getNonce()}">
         // Auto-redirect to provisioning after 3 seconds
+        const demoPlan = ${JSON.stringify(validatedDemoPlan)};
         setTimeout(() => {
-          window.location.href = '/dashboard?demo=true&state=provisioning&demoPlan=${plan}';
+          window.location.href = '/dashboard?demo=true&state=provisioning&demoPlan=' + encodeURIComponent(demoPlan);
         }, 3000);
       </script>
     `);
   }
 
-  const plan = req.query.plan || 'basic';
+  const requestedPlan = req.query.plan;
+  if (requestedPlan && !ALLOWED_PLAN_KEYS.includes(requestedPlan)) {
+    return res.status(400).send('Invalid plan selected');
+  }
+
+  const validatedPlan = getValidatedPlan(requestedPlan, 'basic');
   const interval = req.query.interval || 'monthly';
-  const selectedPlan = PRICING_PLANS[plan] || PRICING_PLANS.basic;
+  const selectedPlan = PRICING_PLANS[validatedPlan];
 
   // Get the right price based on interval (convert cents to dollars for display)
   const priceInCents = interval === 'yearly' ? selectedPlan.yearly : selectedPlan.monthly;
@@ -110,7 +128,7 @@ ${getHTMLHead('Checkout - Clouded Basement')}
         </div>
         
         <form id="payment-form" class="mb-4">
-          <input type="hidden" name="plan" value="${plan}">
+          <input type="hidden" name="plan" value="${validatedPlan}">
           <input type="hidden" name="interval" value="${interval}">
           <input type="hidden" name="_csrf" value="${req.csrfToken()}">
           
@@ -319,7 +337,7 @@ ${getHTMLHead('Checkout - Clouded Basement')}
 // POST /create-payment-intent - Creates a subscription with incomplete payment for embedded form
 exports.createPaymentIntent = async (req, res) => {
   try {
-    const plan = req.body.plan || 'basic';
+    const validatedPlan = getValidatedPlan(req.body.plan, 'basic');
     const interval = req.body.interval || 'monthly';
 
     // Verify user is authenticated (double-check after middleware)
@@ -335,7 +353,7 @@ exports.createPaymentIntent = async (req, res) => {
     const userEmail = userResult.rows[0].email;
 
     // Use real pricing from PRICING_PLANS (in cents)
-    const selectedPlan = PRICING_PLANS[plan] || PRICING_PLANS.basic;
+    const selectedPlan = PRICING_PLANS[validatedPlan];
     const amount = interval === 'yearly' ? selectedPlan.yearly : selectedPlan.monthly;
     const stripeInterval = interval === 'yearly' ? 'year' : 'month';
 
@@ -358,7 +376,7 @@ exports.createPaymentIntent = async (req, res) => {
       recurring: { interval: stripeInterval },
       product_data: {
         name: `${selectedPlan.name} Plan`,
-        metadata: { plan: plan }
+        metadata: { plan: validatedPlan }
       }
     });
 
@@ -370,7 +388,7 @@ exports.createPaymentIntent = async (req, res) => {
       payment_settings: { save_default_payment_method: 'on_subscription' },
       expand: ['latest_invoice.payment_intent'],
       metadata: {
-        plan: plan,
+        plan: validatedPlan,
         interval: interval,
         user_id: String(req.session.userId)
       }
@@ -984,6 +1002,68 @@ exports.upgradePlan = async (req, res) => {
   }
 };
 
+// GET /api/billing/usage — current-user billing summary
+exports.getBillingUsage = async (req, res) => {
+  try {
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const userId = req.session.userId;
+
+    const [serverResult, totalResult, monthlyResult, recentResult] = await Promise.all([
+      // Current plan from server
+      pool.query(
+        'SELECT plan, status, payment_type, stripe_subscription_id FROM servers WHERE user_id = $1 LIMIT 1',
+        [userId]
+      ),
+      // Total paid (completed payments only)
+      pool.query(
+        `SELECT COALESCE(ROUND(SUM(amount) * 100), 0)::bigint AS total_cents
+           FROM payments
+          WHERE user_id = $1 AND status = 'succeeded'`,
+        [userId]
+      ),
+      // Monthly breakdown — last 13 months
+      pool.query(
+        `SELECT to_char(date_trunc('month', created_at), 'YYYY-MM') AS month,
+                COALESCE(ROUND(SUM(amount) * 100), 0)::bigint AS total_cents,
+                COUNT(*) AS payment_count
+           FROM payments
+          WHERE user_id = $1
+            AND status = 'succeeded'
+            AND created_at >= NOW() - INTERVAL '13 months'
+          GROUP BY 1
+          ORDER BY 1 DESC`,
+        [userId]
+      ),
+      // Recent payments (last 10)
+      pool.query(
+        `SELECT id, amount, plan, payment_type, status, created_at
+           FROM payments
+          WHERE user_id = $1
+          ORDER BY created_at DESC
+          LIMIT 10`,
+        [userId]
+      ),
+    ]);
+
+    const server = serverResult.rows[0] || null;
+    res.json({
+      current_plan: server ? server.plan : null,
+      server_status: server ? server.status : null,
+      payment_type: server ? server.payment_type : null,
+      has_subscription: !!(server && server.stripe_subscription_id),
+      total_paid_cents: parseInt(totalResult.rows[0].total_cents, 10),
+      monthly_breakdown: monthlyResult.rows,
+      recent_payments: recentResult.rows,
+    });
+  } catch (err) {
+    console.error('[BILLING] getBillingUsage error:', err);
+    res.status(500).json({ error: 'Failed to load billing usage' });
+  }
+};
+
 module.exports = {
   showCheckout: exports.showCheckout,
   createPaymentIntent: exports.createPaymentIntent,
@@ -991,4 +1071,5 @@ module.exports = {
   paymentCancel: exports.paymentCancel,
   stripeWebhook: exports.stripeWebhook,
   upgradePlan: exports.upgradePlan,
+  getBillingUsage: exports.getBillingUsage,
 };

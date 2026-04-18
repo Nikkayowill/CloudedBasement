@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const pool = require('../db');
+const { logSecurityEvent, getClientIp } = require('../services/securityLog');
 
 const VALID_SCOPES = ['deploy', 'read'];
 const MAX_KEYS_PER_USER = 10;
@@ -144,5 +145,67 @@ exports.revokeKey = async (req, res) => {
   } catch (err) {
     console.error('[API KEYS] revokeKey error:', err);
     res.status(500).json({ error: 'Failed to revoke API key' });
+  }
+};
+
+// POST /api/keys/:id/rotate
+exports.rotateKey = async (req, res) => {
+  try {
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const userId = req.session.userId;
+    const keyId = parseInt(req.params.id, 10);
+    if (isNaN(keyId)) {
+      return res.status(400).json({ error: 'Invalid key ID' });
+    }
+
+    const { key, prefix, hash } = generateKey();
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      // Advisory lock scoped to this user prevents concurrent rotate/create races
+      await client.query('SELECT pg_advisory_xact_lock($1)', [userId]);
+
+      // Swap credentials in-place; preserve id, name, scopes, expiry
+      const result = await client.query(
+        `UPDATE api_keys
+           SET key_hash = $1, key_prefix = $2, last_used_at = NULL, created_at = NOW()
+         WHERE id = $3 AND user_id = $4 AND is_active = TRUE
+         RETURNING id, name, scopes, expires_at`,
+        [hash, prefix, keyId, userId]
+      );
+
+      if (result.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({ error: 'API key not found or already revoked' });
+      }
+
+      await client.query('COMMIT');
+
+      const { name, scopes, expires_at } = result.rows[0];
+      console.log(`[API KEYS] Rotated key #${keyId} for user ${userId}`);
+
+      logSecurityEvent({
+        userId,
+        eventType: 'API_KEY_ROTATED',
+        ip: getClientIp(req),
+        userAgent: req.headers['user-agent'],
+        details: { keyId, keyName: name },
+      }).catch(() => {});
+
+      // Return new plaintext key ONCE — it is never stored
+      res.json({ key, prefix, name, scopes, expires_at });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  } catch (err) {
+    console.error('[API KEYS] rotateKey error:', err);
+    res.status(500).json({ error: 'Failed to rotate API key' });
   }
 };

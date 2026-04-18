@@ -41,11 +41,30 @@ function ScopeBadge({ scope }) {
 
 function KeyRevealModal({ apiKey: key, onClose }) {
   const [copied, setCopied] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
 
   async function copy() {
-    // Guard against browsers without clipboard API
     if (!navigator?.clipboard?.writeText) {
-      console.error('Clipboard API not available');
+      // Fallback: use execCommand via a temporary textarea
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = key;
+        ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        if (ok) {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        } else {
+          setCopyFailed(true);
+          setTimeout(() => setCopyFailed(false), 3500);
+        }
+      } catch {
+        setCopyFailed(true);
+        setTimeout(() => setCopyFailed(false), 3500);
+      }
       return;
     }
     try {
@@ -54,6 +73,8 @@ function KeyRevealModal({ apiKey: key, onClose }) {
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error('Failed to copy to clipboard:', err);
+      setCopyFailed(true);
+      setTimeout(() => setCopyFailed(false), 3500);
     }
   }
 
@@ -99,13 +120,13 @@ function KeyRevealModal({ apiKey: key, onClose }) {
               padding: '0.4rem 0.875rem',
               borderRadius: '0.375rem',
               border: '1px solid rgba(255,255,255,0.12)',
-              background: copied ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.05)',
-              color: copied ? '#86efac' : '#d1d5db',
+              background: copied ? 'rgba(34,197,94,0.12)' : copyFailed ? 'rgba(239,68,68,0.1)' : 'rgba(255,255,255,0.05)',
+              color: copied ? '#86efac' : copyFailed ? '#fca5a5' : '#d1d5db',
               fontSize: '0.75rem',
               cursor: 'pointer',
             }}
           >
-            {copied ? 'Copied!' : 'Copy key'}
+            {copied ? 'Copied!' : copyFailed ? 'Copy manually' : 'Copy key'}
           </button>
           <button
             onClick={onClose}

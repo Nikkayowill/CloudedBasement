@@ -1,5 +1,6 @@
 // HTML escaping to prevent XSS attacks
 const { getNonce } = require('./nonce');
+const { isAdminSession } = require('./rbac');
 
 function escapeHtml(unsafe) {
   if (unsafe === null || unsafe === undefined) return '';
@@ -31,7 +32,6 @@ function getNonceAttr() {
 }
 
 function getGoogleAnalyticsTags() {
-  if (!GA_MEASUREMENT_ID) return '';
   const nonceAttr = getNonceAttr();
   const id = escapeHtml(GA_MEASUREMENT_ID);
   return `
@@ -222,7 +222,7 @@ function getAuthLinks(req) {
   const linkClass = 'uppercase tracking-wider text-gray-400 text-xs transition-all duration-300 hover:text-blue-400 hover:scale-110 hover:drop-shadow-[0_0_12px_rgba(0,102,255,0.8)]';
   
   if (req.session.userId) {
-    const isAdmin = req.session.userRole === 'admin';
+    const isAdmin = isAdminSession(req);
     
     if (isAdmin) {
       return `<li><a href="/admin" class="${linkClass}">Admin</a></li><li><a href="/logout" class="${linkClass}">Logout</a></li>`;
@@ -236,7 +236,7 @@ function getAuthLinks(req) {
 
 // Responsive Nav
 function getResponsiveNav(req) {
-  const isAdmin = req.session?.userRole === 'admin';
+  const isAdmin = isAdminSession(req);
   
   let navLinks = '';
   const userInitial = req.session.userEmail ? req.session.userEmail.charAt(0).toUpperCase() : '';
