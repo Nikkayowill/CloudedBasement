@@ -1,0 +1,27 @@
+#!/bin/sh
+
+commit_msg_file="$1"
+first_line="$(head -n 1 "$commit_msg_file" | tr -d '\r')"
+
+# Allow merge commits and automated reverts.
+case "$first_line" in
+  "Merge "*|"Revert "*)
+    exit 0
+    ;;
+esac
+
+# Conventional commit format:
+# type(scope optional)! optional: subject
+# Examples:
+#   feat: add billing guardrails
+#   fix(auth): prevent session fixation
+#   chore!: drop deprecated endpoint
+if echo "$first_line" | grep -Eq '^(feat|fix|chore|docs|refactor|test|build|ci|perf|style|revert)(\([a-z0-9._/-]+\))?(!)?: .+'; then
+  exit 0
+fi
+
+echo "[Husky] Invalid commit message format."
+echo "[Husky] Use Conventional Commits, for example:"
+echo "  feat: add backup restore audit logging"
+echo "  fix(auth): validate invite acceptance email"
+exit 1

@@ -1,0 +1,10 @@
+#!/bin/sh
+
+branch_name="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo HEAD)"
+
+if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
+  echo "[Husky] Direct pushes to $branch_name are blocked. Push a feature branch and open a PR."
+  exit 1
+fi
+
+pnpm run check:secrets || exit 1
