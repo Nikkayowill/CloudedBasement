@@ -2807,19 +2807,43 @@ function PlanCard({ data }) {
 }
 function BillingUsageCard() {
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [unavailableReason, setUnavailableReason] = useState("");
   const [usage, setUsage] = useState(null);
   useEffect(() => {
     let active = true;
     fetch("/api/billing/usage", { credentials: "same-origin" }).then(async (r) => {
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      if (!r.ok) {
+        if (r.status >= 400) {
+          throw new Error("BILLING_UNAVAILABLE");
+        }
+        throw new Error(`HTTP ${r.status}`);
+      }
       return r.json();
     }).then((d) => {
       if (!active) return;
       setUsage(d);
     }).catch((err) => {
       if (!active) return;
-      setError(err.message || "Failed to load billing summary");
+      if (err?.message === "BILLING_UNAVAILABLE") {
+        setUsage({
+          current_plan: null,
+          has_subscription: false,
+          total_paid_cents: 0,
+          monthly_breakdown: [],
+          recent_payments: []
+        });
+        setUnavailableReason("Billing summary is not available yet.");
+        return;
+      }
+      setUsage({
+        current_plan: null,
+        has_subscription: false,
+        total_paid_cents: 0,
+        monthly_breakdown: [],
+        recent_payments: []
+      });
+      setUnavailableReason("Billing summary is temporarily unavailable.");
+      console.warn("[BILLING] Unable to load billing summary:", err?.message || err);
     }).finally(() => {
       if (active) setLoading(false);
     });
@@ -2829,9 +2853,6 @@ function BillingUsageCard() {
   }, []);
   if (loading) {
     return /* @__PURE__ */ jsx(CardShell, { title: "Billing Snapshot", children: /* @__PURE__ */ jsx("p", { style: { fontSize: "0.8125rem", color: "var(--dash-text-muted, #525252)" }, children: "Loading billing summary…" }) });
-  }
-  if (error) {
-    return /* @__PURE__ */ jsx(CardShell, { title: "Billing Snapshot", children: /* @__PURE__ */ jsx(InlineAlert, { type: "error", message: `Failed to load billing summary: ${error}` }) });
   }
   const totalPaid = ((usage?.total_paid_cents || 0) / 100).toFixed(2);
   const recentPayments = usage?.recent_payments || [];
@@ -2860,6 +2881,7 @@ function BillingUsageCard() {
       ] })
     ] }),
     /* @__PURE__ */ jsx("p", { style: { fontSize: "0.75rem", color: "var(--dash-text-muted, #525252)", marginBottom: "0.75rem", lineHeight: 1.5 }, children: "Even with flat monthly billing, this helps you confirm successful charges, detect failed renewals, and view payment history in one place." }),
+    unavailableReason && /* @__PURE__ */ jsx("p", { style: { fontSize: "0.75rem", color: "var(--dash-text-muted, #525252)", marginBottom: "0.75rem" }, children: unavailableReason }),
     recentPayments.length > 0 && /* @__PURE__ */ jsxs("div", { style: { marginBottom: "0.75rem" }, children: [
       /* @__PURE__ */ jsx("div", { style: { fontSize: "0.6875rem", color: "var(--dash-text-muted, #525252)", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.05em" }, children: "Recent payments" }),
       /* @__PURE__ */ jsx("div", { style: { display: "flex", flexDirection: "column", gap: "0.375rem" }, children: recentPayments.slice(0, 5).map((p) => /* @__PURE__ */ jsxs("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "0.75rem", borderBottom: "1px solid rgba(255,255,255,0.04)", paddingBottom: "0.25rem" }, children: [
@@ -3880,6 +3902,7 @@ function MetricsHistorySection() {
   const [period, setPeriod] = useState("24h");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [emptyReason, setEmptyReason] = useState("");
   const [metrics, setMetrics] = useState({ data: [] });
   useEffect(() => {
     fetchMetricsHistory();
@@ -3887,13 +3910,29 @@ function MetricsHistorySection() {
   const fetchMetricsHistory = async () => {
     setLoading(true);
     setError("");
+    setEmptyReason("");
     try {
       const response = await fetch(`/api/metrics/history?period=${period}`);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      if (!response.ok) {
+        let apiError = "";
+        try {
+          const payload = await response.json();
+          apiError = String(payload?.error || "").toLowerCase();
+        } catch {
+          apiError = "";
+        }
+        if ((response.status === 400 || response.status === 404) && apiError.includes("no server found")) {
+          setMetrics({ data: [] });
+          setEmptyReason("Metrics will appear after your first server is provisioned.");
+          return;
+        }
+        throw new Error(`HTTP ${response.status}`);
+      }
       const result = await response.json();
       setMetrics(result);
     } catch (err) {
-      setError(`Failed to load metrics: ${err.message}`);
+      setEmptyReason("Metrics are temporarily unavailable.");
+      console.warn("[METRICS HISTORY] Unable to load metrics history:", err?.message || err);
       setMetrics({ data: [] });
     } finally {
       setLoading(false);
@@ -3941,6 +3980,15 @@ function MetricsHistorySection() {
       fontSize: "0.875rem",
       marginBottom: "1.5rem"
     }, children: error }),
+    !loading && !error && emptyReason && /* @__PURE__ */ jsx("div", { style: {
+      padding: "0.875rem 1rem",
+      background: "rgba(59,130,246,0.08)",
+      border: "1px solid rgba(59,130,246,0.22)",
+      borderRadius: "0.375rem",
+      color: "#93c5fd",
+      fontSize: "0.875rem",
+      marginBottom: "1.5rem"
+    }, children: emptyReason }),
     loading && /* @__PURE__ */ jsx("div", { style: {
       display: "flex",
       justifyContent: "center",

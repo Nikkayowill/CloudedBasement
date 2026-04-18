@@ -108,6 +108,7 @@ export function MetricsHistorySection() {
   const [period, setPeriod] = useState('24h');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [emptyReason, setEmptyReason] = useState('');
   const [metrics, setMetrics] = useState({ data: [] });
 
   useEffect(() => {
@@ -117,13 +118,32 @@ export function MetricsHistorySection() {
   const fetchMetricsHistory = async () => {
     setLoading(true);
     setError('');
+    setEmptyReason('');
     try {
       const response = await fetch(`/api/metrics/history?period=${period}`);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      if (!response.ok) {
+        let apiError = '';
+        try {
+          const payload = await response.json();
+          apiError = String(payload?.error || '').toLowerCase();
+        } catch {
+          apiError = '';
+        }
+
+        // No server yet is an expected onboarding state.
+        if ((response.status === 400 || response.status === 404) && apiError.includes('no server found')) {
+          setMetrics({ data: [] });
+          setEmptyReason('Metrics will appear after your first server is provisioned.');
+          return;
+        }
+
+        throw new Error(`HTTP ${response.status}`);
+      }
       const result = await response.json();
       setMetrics(result);
     } catch (err) {
-      setError(`Failed to load metrics: ${err.message}`);
+      setEmptyReason('Metrics are temporarily unavailable.');
+      console.warn('[METRICS HISTORY] Unable to load metrics history:', err?.message || err);
       setMetrics({ data: [] });
     } finally {
       setLoading(false);
@@ -185,6 +205,20 @@ export function MetricsHistorySection() {
           marginBottom: '1.5rem',
         }}>
           {error}
+        </div>
+      )}
+
+      {!loading && !error && emptyReason && (
+        <div style={{
+          padding: '0.875rem 1rem',
+          background: 'rgba(59,130,246,0.08)',
+          border: '1px solid rgba(59,130,246,0.22)',
+          borderRadius: '0.375rem',
+          color: '#93c5fd',
+          fontSize: '0.875rem',
+          marginBottom: '1.5rem',
+        }}>
+          {emptyReason}
         </div>
       )}
 

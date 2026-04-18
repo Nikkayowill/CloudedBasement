@@ -341,14 +341,20 @@ function PlanCard({ data }) {
 
 function BillingUsageCard() {
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [unavailableReason, setUnavailableReason] = useState('');
   const [usage, setUsage] = useState(null);
 
   useEffect(() => {
     let active = true;
     fetch('/api/billing/usage', { credentials: 'same-origin' })
       .then(async (r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        if (!r.ok) {
+          // Treat unavailable billing summary as a non-fatal empty state in UI.
+          if (r.status >= 400) {
+            throw new Error('BILLING_UNAVAILABLE');
+          }
+          throw new Error(`HTTP ${r.status}`);
+        }
         return r.json();
       })
       .then((d) => {
@@ -357,7 +363,27 @@ function BillingUsageCard() {
       })
       .catch((err) => {
         if (!active) return;
-        setError(err.message || 'Failed to load billing summary');
+        if (err?.message === 'BILLING_UNAVAILABLE') {
+          setUsage({
+            current_plan: null,
+            has_subscription: false,
+            total_paid_cents: 0,
+            monthly_breakdown: [],
+            recent_payments: [],
+          });
+          setUnavailableReason('Billing summary is not available yet.');
+          return;
+        }
+
+        setUsage({
+          current_plan: null,
+          has_subscription: false,
+          total_paid_cents: 0,
+          monthly_breakdown: [],
+          recent_payments: [],
+        });
+        setUnavailableReason('Billing summary is temporarily unavailable.');
+        console.warn('[BILLING] Unable to load billing summary:', err?.message || err);
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -372,14 +398,6 @@ function BillingUsageCard() {
     return (
       <CardShell title="Billing Snapshot">
         <p style={{ fontSize: '0.8125rem', color: 'var(--dash-text-muted, #525252)' }}>Loading billing summary…</p>
-      </CardShell>
-    );
-  }
-
-  if (error) {
-    return (
-      <CardShell title="Billing Snapshot">
-        <InlineAlert type="error" message={`Failed to load billing summary: ${error}`} />
       </CardShell>
     );
   }
@@ -417,6 +435,12 @@ function BillingUsageCard() {
       <p style={{ fontSize: '0.75rem', color: 'var(--dash-text-muted, #525252)', marginBottom: '0.75rem', lineHeight: 1.5 }}>
         Even with flat monthly billing, this helps you confirm successful charges, detect failed renewals, and view payment history in one place.
       </p>
+
+      {unavailableReason && (
+        <p style={{ fontSize: '0.75rem', color: 'var(--dash-text-muted, #525252)', marginBottom: '0.75rem' }}>
+          {unavailableReason}
+        </p>
+      )}
 
       {recentPayments.length > 0 && (
         <div style={{ marginBottom: '0.75rem' }}>
