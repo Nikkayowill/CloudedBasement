@@ -1,7 +1,14 @@
 const { Router } = require('express');
 const { body } = require('express-validator');
 const csrf = require('../middleware/csrf');
-const { emailVerifyLimiter, loginLimiter, registrationLimiter, twoFALimiter } = require('../middleware/rateLimiter');
+const {
+  botChallengeLimiter,
+  emailVerifyLimiter,
+  loginLimiter,
+  registrationLimiter,
+  statusReadLimiter,
+  twoFALimiter
+} = require('../middleware/rateLimiter');
 const { requireAuth } = require('../middleware/auth');
 const authController = require('../controllers/authController');
 const { passport, isGoogleOAuthConfigured } = require('../services/googleAuth');
@@ -31,7 +38,7 @@ function generateBotCode() {
 }
 
 // ── Auth status — React nav fetches this to show Dashboard vs Sign in
-router.get('/api/auth/status', (req, res) => {
+router.get('/api/auth/status', statusReadLimiter, (req, res) => {
   const googleOAuthEnabled = isGoogleOAuthConfigured();
   if (req.session && req.session.userId) {
     res.json({ loggedIn: true, googleOAuthEnabled });
@@ -41,7 +48,7 @@ router.get('/api/auth/status', (req, res) => {
 });
 
 // ── Bot challenge — React register page fetches this to get the human-check code
-router.get('/api/auth/bot-challenge', (req, res) => {
+router.get('/api/auth/bot-challenge', botChallengeLimiter, (req, res) => {
   const botCode = generateBotCode();
   req.session.botCode = botCode;
   res.json({ botCode });

@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const { body } = require('express-validator');
 const csrf = require('../middleware/csrf');
-const { contactLimiter } = require('../middleware/rateLimiter');
+const { contactLimiter, csrfTokenReadLimiter, statusReadLimiter } = require('../middleware/rateLimiter');
 const { renderReactHtml } = require('../src/utils/reactSPA');
 const pagesController = require('../controllers/pagesController');
 
@@ -31,14 +31,14 @@ router.get('/is-this-safe', serveSPA);
 // ---------------------------------------------------------------------------
 // API: CSRF token — React Contact form fetches this before POST
 // ---------------------------------------------------------------------------
-router.get('/api/csrf-token', csrf, (req, res) => {
+router.get('/api/csrf-token', csrfTokenReadLimiter, csrf, (req, res) => {
   res.json({ csrfToken: req.csrfToken() });
 });
 
 // ---------------------------------------------------------------------------
 // API: Pricing status — returns login/trial state for the Pricing page banner
 // ---------------------------------------------------------------------------
-router.get('/api/pricing/status', pagesController.getPricingStatus);
+router.get('/api/pricing/status', statusReadLimiter, pagesController.getPricingStatus);
 
 // ---------------------------------------------------------------------------
 // API: Contact form submission (JSON)

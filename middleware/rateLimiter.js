@@ -1,15 +1,75 @@
 const rateLimit = require('express-rate-limit');
 const { ipKeyGenerator } = require('express-rate-limit');
 
+const STATIC_ASSET_PREFIXES = ['/assets/'];
+const STATIC_ASSET_EXTENSIONS = /\.(?:avif|bmp|css|eot|gif|ico|jpe?g|js|json|map|mjs|otf|png|svg|ttf|txt|webmanifest|webp|woff2?|xml)$/i;
+
+function isStaticAssetRequest(req) {
+  const method = (req.method || '').toUpperCase();
+  if (method !== 'GET' && method !== 'HEAD') {
+    return false;
+  }
+
+  const rawPath = req.path || req.url || '';
+  const pathname = rawPath.split('?')[0];
+  if (!pathname || pathname === '/') {
+    return false;
+  }
+
+  return STATIC_ASSET_PREFIXES.some((prefix) => pathname.startsWith(prefix))
+    || STATIC_ASSET_EXTENSIONS.test(pathname);
+}
+
+function logRateLimitHit(req, scope) {
+  const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+  const userId = req.session?.userId || 'guest';
+  console.warn(`[RATE_LIMIT] ${scope} ${req.method} ${req.path} ip=${ip} user=${userId}`);
+}
+
+function createReadLimiter({ windowMs, max, message, scope }) {
+  return rateLimit({
+    windowMs,
+    max,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message,
+    handler: (req, res, _next, options) => {
+      logRateLimitHit(req, scope);
+      res.status(options.statusCode).send(options.message);
+    }
+  });
+}
+
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  // Apply limiter only to non-GET requests to avoid throttling normal browsing
-  // This prevents static asset and page loads from being rate limited
-  max: 300, // 300 non-GET requests per window
+  // Apply the global limiter to dynamic GET requests as well, but never to
+  // static assets or CORS preflight traffic.
+  max: 300,
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => req.method === 'GET',
+  skip: (req) => req.method === 'OPTIONS' || isStaticAssetRequest(req),
   message: 'Too many requests, please try again later.'
+});
+
+const statusReadLimiter = createReadLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 120,
+  message: 'Too many status checks, please try again later.',
+  scope: 'status-read'
+});
+
+const csrfTokenReadLimiter = createReadLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 60,
+  message: 'Too many CSRF token requests, please try again later.',
+  scope: 'csrf-token-read'
+});
+
+const botChallengeLimiter = createReadLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: 'Too many verification code requests, please try again later.',
+  scope: 'bot-challenge-read'
 });
 
 const contactLimiter = rateLimit({
@@ -66,7 +126,11 @@ const twoFALimiter = rateLimit({
 });
 
 module.exports = {
+  isStaticAssetRequest,
   generalLimiter,
+  statusReadLimiter,
+  csrfTokenReadLimiter,
+  botChallengeLimiter,
   contactLimiter,
   paymentLimiter,
   emailVerifyLimiter,
