@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node --test --test-force-exit tests/notifier.test.js tests/backups.test.js tests/ssl.test.js tests/auth-payment-regressions.test.js tests/api/payment.test.js tests/api/provisioning.test.js tests/auth-matrix.test.js tests/google-auth.test.js tests/billing-reconciliation.test.js tests/security-analytics.test.js tests/security-events-api.test.js",
+    "test": "node --test --test-force-exit tests/notifier.test.js tests/backups.test.js tests/ssl.test.js tests/auth-payment-regressions.test.js tests/api/payment.test.js tests/api/provisioning.test.js tests/auth-matrix.test.js tests/google-auth.test.js tests/billing-reconciliation.test.js tests/security-analytics.test.js tests/security-events-api.test.js tests/backup-restore.test.js tests/billing-guardrails.test.js tests/team-management.test.js",
     "dev": "nodemon index.js",
     "build:css": "npx tailwindcss -i ./input.css -o ./public/css/tailwind.css --minify",
     "watch:css": "npx tailwindcss -i ./input.css -o ./public/css/tailwind.css --watch"
