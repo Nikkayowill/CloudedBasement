@@ -194,7 +194,7 @@ function GetStartedCard({ data, onNav }) {
       id: 'payment',
       label: 'Choose a plan',
       done: !!(data.hasPaid || data.hasServer || data.isProvisioning),
-      cta: data.emailConfirmed ? { label: 'Choose a plan', href: '/pay' } : undefined,
+      cta: data.emailConfirmed ? { label: 'Choose a plan', href: '/pricing' } : undefined,
       hidden: !data.emailConfirmed,
     },
     {
@@ -809,7 +809,7 @@ export default function OverviewSection({ data, onNav }) {
                   : 'Purchase a plan to deploy your first app.'}
             </p>
             {!hasPaid && (
-              <a href="/pay" style={{
+              <a href="/pricing" style={{
                 display: 'inline-block', marginTop: '1.25rem',
                 padding: '0.5rem 1.25rem', borderRadius: '0.375rem',
                 background: '#2563eb', color: '#fff',

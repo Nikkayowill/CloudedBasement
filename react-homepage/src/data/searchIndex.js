@@ -5,9 +5,9 @@ export const searchIndex = [
   { section: 'Features', title: 'Managed infrastructure', body: 'We handle OS updates, patches, and scaling.', href: '/#features' },
   { section: 'Features', title: 'Secure by default', body: 'HTTPS on every site, isolated containers, built-in firewall.', href: '/#features' },
   // Pricing
-  { section: 'Pricing', title: 'Basic — $15/mo', body: '1 GB RAM, 25 GB SSD, 2 sites, GitHub auto-deploy.', href: '/pay?plan=basic&interval=monthly' },
-  { section: 'Pricing', title: 'Pro — $35/mo', body: '2 GB RAM, 50 GB SSD, 5 sites, daily backups.', href: '/pay?plan=pro&interval=monthly' },
-  { section: 'Pricing', title: 'Premium — $55/mo', body: '4 GB RAM, 80 GB SSD, 10 sites, daily backups, 2FA.', href: '/pay?plan=premium&interval=monthly' },
+  { section: 'Pricing', title: 'Basic — $15/mo', body: '1 GB RAM, 25 GB SSD, 2 sites, GitHub auto-deploy.', href: '/pricing' },
+  { section: 'Pricing', title: 'Pro — $35/mo', body: '2 GB RAM, 50 GB SSD, 5 sites, daily backups.', href: '/pricing' },
+  { section: 'Pricing', title: 'Premium — $55/mo', body: '4 GB RAM, 80 GB SSD, 10 sites, daily backups, 2FA.', href: '/pricing' },
   // FAQ
   { section: 'FAQ', title: 'What is Clouded Basement?', body: 'A managed Node.js hosting platform.', href: '/#faq' },
   { section: 'FAQ', title: 'How do I deploy my first app?', body: 'Connect your GitHub repo and push to main.', href: '/#faq' },

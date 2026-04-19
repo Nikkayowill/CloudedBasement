@@ -12,6 +12,7 @@ const AdminUpdatesPage = lazy(() => import('./pages/AdminUpdatesPage'));
 const About    = lazy(() => import('./pages/About'));
 const Compare  = lazy(() => import('./pages/Compare'));
 const Contact  = lazy(() => import('./pages/Contact'));
+const Checkout = lazy(() => import('./pages/Checkout'));
 const Docs     = lazy(() => import('./pages/Docs'));
 const Faq      = lazy(() => import('./pages/Faq'));
 const Login    = lazy(() => import('./pages/Login'));
@@ -61,6 +62,7 @@ function App() {
       <Route path="/about"        element={<Suspense fallback={null}><About /></Suspense>} />
       <Route path="/compare"      element={<Suspense fallback={null}><Compare /></Suspense>} />
       <Route path="/contact"      element={<Suspense fallback={null}><Contact /></Suspense>} />
+      <Route path="/checkout"     element={<Suspense fallback={null}><Checkout /></Suspense>} />
       <Route path="/docs"         element={<Suspense fallback={null}><Docs /></Suspense>} />
       <Route path="/faq"          element={<Suspense fallback={null}><Faq /></Suspense>} />
       <Route path="/login"        element={<Suspense fallback={null}><Login /></Suspense>} />

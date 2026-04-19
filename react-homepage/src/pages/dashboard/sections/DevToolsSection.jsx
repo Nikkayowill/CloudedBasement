@@ -581,7 +581,7 @@ export default function DevToolsSection({ data }) {
             <p style={{ fontSize: '0.8125rem', color: 'var(--dash-text-muted, #525252)', marginBottom: '1.25rem' }}>
               SSH access, database credentials, and environment tools appear here once your server is provisioned.
             </p>
-            <a href="/pay" style={{
+            <a href="/pricing" style={{
               display: 'inline-block', padding: '0.5rem 1.25rem',
               borderRadius: '0.375rem', background: '#2563eb',
               color: '#fff', fontSize: '0.8125rem', fontWeight: 500, textDecoration: 'none',

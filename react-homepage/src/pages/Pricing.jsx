@@ -186,7 +186,7 @@ export default function Pricing() {
                     ))}
                   </div>
                   <a
-                    href={`/pay?plan=${plan.id}&interval=${yearly ? 'yearly' : 'monthly'}`}
+                    href={`/checkout?plan=${plan.id}&interval=${yearly ? 'yearly' : 'monthly'}`}
                     className={plan.highlight
                       ? 'funnel-btn funnel-btn-primary w-full justify-center'
                       : 'funnel-btn funnel-btn-subtle w-full justify-center'}

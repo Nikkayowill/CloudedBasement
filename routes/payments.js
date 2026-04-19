@@ -3,11 +3,28 @@ const csrf = require('../middleware/csrf');
 const { requireAuth } = require('../middleware/auth');
 const { paymentLimiter } = require('../middleware/rateLimiter');
 const paymentController = require('../controllers/paymentController');
+const { renderReactHtml } = require('../src/utils/reactSPA');
+const { isAdminSession } = require('../src/utils/rbac');
 
 const router = Router();
 
+function serveCheckoutSPA(req, res) {
+	res.send(renderReactHtml(res.locals.nonce));
+}
+
 // Checkout UI
-router.get('/pay', requireAuth, csrf, paymentController.showCheckout);
+router.get('/pay', requireAuth, csrf, (req, res, next) => {
+	// Keep legacy demo mode path for admin tooling, but move normal users to React checkout.
+	if (req.query.demo === 'true' && isAdminSession(req)) {
+		return paymentController.showCheckout(req, res, next);
+	}
+
+	const query = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+	return res.redirect(`/checkout${query}`);
+});
+
+router.get('/checkout', requireAuth, csrf, serveCheckoutSPA);
+router.get('/api/stripe/config', requireAuth, paymentController.getStripeConfig);
 
 // Payment result pages
 router.get('/payment-success', requireAuth, paymentController.paymentSuccess);
