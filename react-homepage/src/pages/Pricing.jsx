@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import PageLayout from '../components/PageLayout';
+import SectionTitle from '../components/SectionTitle';
 
 const PLANS = [
   {
@@ -30,8 +31,8 @@ const PLANS = [
       { label: 'Storage',   value: '60 GB SSD' },
       { label: 'Bandwidth', value: '3 TB/mo' },
       { label: 'Sites',     value: '5' },
-      { label: 'Support',   value: 'Priority (12hr)', valueClass: 'text-blue-400' },
-      { label: 'Backups',   value: 'Weekly',          valueClass: 'text-blue-400' },
+      { label: 'Support',   value: 'Priority (12hr)', accent: true },
+      { label: 'Backups',   value: 'Weekly',          accent: true },
     ],
     highlight: true,
     badge: 'BEST VALUE',
@@ -48,27 +49,27 @@ const PLANS = [
       { label: 'Storage',   value: '80 GB SSD' },
       { label: 'Bandwidth', value: '4 TB/mo' },
       { label: 'Sites',     value: '10' },
-      { label: 'Support',   value: 'Direct access', valueClass: 'text-purple-400' },
-      { label: 'Backups',   value: 'Daily',         valueClass: 'text-purple-400' },
+      { label: 'Support',   value: 'Direct access', purple: true },
+      { label: 'Backups',   value: 'Daily',         purple: true },
     ],
     highlight: false,
   },
 ];
 
 const FULL_FEATURES = [
-  { label: 'SSH & Root Access',          basic: '✓', pro: '✓', premium: '✓' },
-  { label: 'Git Deployment',             basic: '✓', pro: '✓', premium: '✓' },
-  { label: 'GitHub Auto-Deploy',         basic: '✓', pro: '✓', premium: '✓' },
-  { label: 'One-Click Database',         basic: '✓', pro: '✓', premium: '✓' },
-  { label: 'Custom Domains',             basic: '✓', pro: '✓', premium: '✓' },
-  { label: 'Automatic SSL',              basic: '✓', pro: '✓', premium: '✓' },
-  { label: 'Free Subdomain',             basic: '✓', pro: '✓', premium: '✓' },
-  { label: 'Environment Variables',      basic: '✓', pro: '✓', premium: '✓' },
-  { label: 'Managed Security Updates',   basic: '✓', pro: '✓', premium: '✓' },
-  { label: 'Weekly Backups',             basic: '—', pro: '✓', premium: '✓' },
-  { label: 'Daily Backups',              basic: '—', pro: '—', premium: '✓' },
-  { label: 'Priority Support',           basic: '—', pro: '✓', premium: '✓' },
-  { label: 'Direct Developer Access',    basic: '—', pro: '—', premium: '✓' },
+  { label: 'SSH & Root Access',          basic: true,  pro: true,  premium: true  },
+  { label: 'Git Deployment',             basic: true,  pro: true,  premium: true  },
+  { label: 'GitHub Auto-Deploy',         basic: true,  pro: true,  premium: true  },
+  { label: 'One-Click Database',         basic: true,  pro: true,  premium: true  },
+  { label: 'Custom Domains',             basic: true,  pro: true,  premium: true  },
+  { label: 'Automatic SSL',             basic: true,  pro: true,  premium: true  },
+  { label: 'Free Subdomain',             basic: true,  pro: true,  premium: true  },
+  { label: 'Environment Variables',      basic: true,  pro: true,  premium: true  },
+  { label: 'Managed Security Updates',   basic: true,  pro: true,  premium: true  },
+  { label: 'Weekly Backups',             basic: false, pro: true,  premium: true  },
+  { label: 'Daily Backups',              basic: false, pro: false, premium: true  },
+  { label: 'Priority Support',           basic: false, pro: true,  premium: true  },
+  { label: 'Direct Developer Access',    basic: false, pro: false, premium: true  },
 ];
 
 const STACK = [
@@ -82,200 +83,241 @@ const STACK = [
   { icon: '🔥', name: 'UFW Firewall',  sub: 'Configured' },
 ];
 
+function PricingCell({ id, name, tagline, monthly, yearly, specs, highlight, badge, interval }) {
+  const price    = interval === 'yearly' ? (yearly / 12).toFixed(2) : monthly;
+  const subline  = interval === 'yearly'
+    ? <span style={{ color: '#86efac' }}>Billed ${yearly}/yr · 2 months free</span>
+    : '3-day free trial';
+
+  return (
+    <div
+      className="py-12 px-8 flex flex-col relative"
+      style={{ background: highlight ? 'rgba(37,99,235,0.04)' : 'transparent' }}
+    >
+      {badge && <span className="funnel-badge">{badge}</span>}
+
+      <h3 className="funnel-heading-3 mb-1">{name}</h3>
+      <p className="funnel-body-sm mb-5" style={{ color: '#6b7280' }}>{tagline}</p>
+
+      <p className="mb-1">
+        <span style={{ fontSize: '2.5rem', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1, color: '#fff' }}>
+          ${price}
+        </span>
+        <span className="funnel-body-sm ml-1" style={{ color: '#6b7280' }}>/mo</span>
+      </p>
+      <p className="text-xs mb-6" style={{ color: '#4b5563', minHeight: '1.25rem' }}>{subline}</p>
+
+      <ul className="flex flex-col gap-3 mb-8 flex-1">
+        {specs.map(({ label, value, accent, purple }) => (
+          <li key={label} className="funnel-body-sm flex justify-between gap-4">
+            <span style={{ color: '#6b7280' }}>{label}</span>
+            <span style={{
+              color: purple ? '#c084fc' : accent ? '#93c5fd' : '#fff',
+              textAlign: 'right',
+            }}>
+              {value}
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      <a
+        href={`/checkout?plan=${id}&interval=${interval}`}
+        className={`funnel-btn ${highlight ? 'funnel-btn-primary' : 'funnel-btn-subtle'} w-full`}
+        style={{ justifyContent: 'center' }}
+      >
+        Get Started
+      </a>
+    </div>
+  );
+}
+
+function CheckCell({ value }) {
+  if (value === true)  return <span style={{ color: '#4ade80' }}>✓</span>;
+  if (value === false) return <span style={{ color: '#374151' }}>—</span>;
+  return <span style={{ color: '#9ca3af' }}>{value}</span>;
+}
+
 export default function Pricing() {
-  const [yearly, setYearly] = useState(false);
+  const [interval, setInterval]       = useState('monthly');
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [trialStatus, setTrialStatus] = useState({ isLoggedIn: false, trialUsed: false, loaded: false });
 
   useEffect(() => {
     fetch('/api/pricing/status', { credentials: 'include' })
-      .then((r) => {
-        if (!r.ok) throw new Error('Failed to fetch trial status');
-        return r.json();
-      })
+      .then((r) => { if (!r.ok) throw new Error(); return r.json(); })
       .then((data) => setTrialStatus({ ...data, loaded: true }))
       .catch(() => setTrialStatus({ isLoggedIn: false, trialUsed: false, loaded: true }));
   }, []);
 
   const showTrialBanner = trialStatus.loaded && !trialStatus.trialUsed;
-  const trialHref = trialStatus.isLoggedIn ? '/dashboard' : '/register';
+  const trialHref       = trialStatus.isLoggedIn ? '/dashboard' : '/register';
 
   return (
     <PageLayout>
-        {/* Pricing hero + cards */}
-        <section className="funnel-section funnel-bg-trust">
-          <div className="funnel-wide">
 
-            {/* Trial banner */}
-            {showTrialBanner && (
-              <div className="bg-linear-to-r from-blue-600/20 to-cyan-600/20 border border-blue-500/40 rounded-xl p-6 text-center mb-12">
-                <span className="funnel-heading-3 block mb-2">Try Free for 3 Days</span>
-                <p className="funnel-body-sm mb-4">No credit card required. Get a real server instantly.</p>
-                <a href={trialHref} className="funnel-btn funnel-btn-primary">
-                  Start Free Trial
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                </a>
+      {/* ── Plans ─────────────────────────────────────────────────────────── */}
+      <section>
+        <div className="cb-title-row">
+
+          {/* Trial banner */}
+          {showTrialBanner && (
+            <div style={{
+              padding: '0.875rem 1.25rem', marginBottom: '2rem',
+              border: '1px solid rgba(59,130,246,0.25)', borderRadius: '0.5rem',
+              background: 'rgba(37,99,235,0.06)', display: 'flex',
+              alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem',
+            }}>
+              <div>
+                <p className="funnel-heading-3" style={{ marginBottom: '0.25rem' }}>
+                  Try free for 3 days
+                </p>
+                <p className="funnel-body-sm">No credit card required. Get a real server instantly.</p>
               </div>
-            )}
+              <a href={trialHref} className="funnel-btn funnel-btn-primary" style={{ padding: '0.5rem 1.25rem' }}>
+                Start Free Trial
+              </a>
+            </div>
+          )}
 
-            {/* Heading */}
-            <div className="text-center mb-12">
-              <h1 className="funnel-heading-1 mb-4">Simple, Transparent&nbsp;Pricing</h1>
-              <p className="funnel-body mb-4">One server, deploy as many times as you want.</p>
-              <p className="funnel-kicker mb-8" style={{ color: '#60a5fa' }}>
-                I update, add security, and backup your server for you — you can focus on shipping&nbsp;your&nbsp;apps.
-              </p>
+          {/* Heading */}
+          <p className="funnel-kicker mb-4">Pricing</p>
+          <h1 className="funnel-heading-1 mb-4">Simple, transparent pricing</h1>
+          <p className="funnel-body mb-2">One server, deploy as many times as you want.</p>
+          <p className="funnel-body-sm mb-8" style={{ color: '#60a5fa' }}>
+            I update, patch security, and back up your server for you — so you can focus on shipping.
+          </p>
 
-              {/* Billing toggle */}
-              <div className="flex items-center justify-center gap-4">
-                <span className={`funnel-body-sm transition-colors ${!yearly ? 'text-white' : ''}`}>Monthly</span>
+          {/* Billing toggle */}
+          <div className="flex justify-center mt-2">
+            <div className="inline-flex items-center rounded-lg overflow-hidden border-dim" style={{ background: 'rgba(255,255,255,0.02)' }}>
+              {['monthly', 'yearly'].map((opt) => (
                 <button
-                  onClick={() => setYearly((y) => !y)}
-                  className="relative w-16 h-8 bg-gray-700 rounded-full hover:bg-gray-600"
-                  role="switch"
-                  aria-checked={yearly}
-                  aria-label={`Billing period: ${yearly ? 'yearly' : 'monthly'}`}
+                  key={opt}
+                  onClick={() => setInterval(opt)}
+                  className="py-2 px-5 flex items-center gap-2"
+                  style={{
+                    fontSize: '0.8125rem', fontWeight: 500,
+                    background: interval === opt ? 'rgba(255,255,255,0.07)' : 'transparent',
+                    color: interval === opt ? '#fff' : '#6b7280',
+                    border: 'none', cursor: 'pointer',
+                    transition: 'background 150ms ease, color 150ms ease',
+                  }}
+                  aria-pressed={interval === opt}
                 >
-                  <div
-                    className={`absolute top-1 w-6 h-6 bg-blue-400 rounded-full transition-all duration-300 shadow-[0_0_20px_rgba(96,165,250,0.6)] ${yearly ? 'left-8' : 'left-1'}`}
-                  />
-                </button>
-                <span className={`funnel-body-sm transition-colors ${yearly ? 'text-white' : ''}`}>
-                  Yearly <span className="text-blue-400 font-bold">(Save 10%)</span>
-                </span>
-              </div>
-            </div>
-
-            {/* Plan cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6">
-              {PLANS.map((plan) => (
-                <div
-                  key={plan.id}
-                  className={`flex flex-col rounded-xl p-6 relative ${plan.highlight ? 'funnel-card-featured' : 'funnel-card'}`}
-                >
-                  {plan.badge && (
-                    <div className="funnel-badge">{plan.badge}</div>
-                  )}
-                  <div className="mb-6">
-                    <div className="funnel-heading-3 mb-1">{plan.name}</div>
-                    <div className="funnel-body-sm">{plan.tagline}</div>
-                  </div>
-                  <div className="mb-6">
-                    <span className="text-4xl font-bold text-white">
-                      {yearly ? `$${(plan.yearly / 12).toFixed(2)}` : `$${plan.monthly}`}
-                    </span>
-                    <span className="funnel-body-sm">
-                      {yearly
-                        ? `/mo (billed yearly)`
-                        : '/mo'}
-                    </span>
-                    {yearly && (
-                      <span className="funnel-body-sm block mt-1 text-gray-400">
-                        Yearly total: <span className="font-bold text-white">${plan.yearly}</span>
+                  {opt === 'monthly' ? 'Monthly' : (
+                    <>
+                      Yearly
+                      <span style={{
+                        fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.05em',
+                        padding: '0.15rem 0.4rem', borderRadius: '0.2rem',
+                        color: '#4ade80', background: 'rgba(74,222,128,0.12)',
+                      }}>
+                        SAVE 10%
                       </span>
-                    )}
-                  </div>
-                  <div className="space-y-3 funnel-body-sm mb-6 flex-1">
-                    {plan.specs.map(({ label, value, valueClass }) => (
-                      <div key={label} className="flex justify-between">
-                        <span>{label}</span>
-                        <span className={valueClass || 'text-white'}>{value}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <a
-                    href={`/checkout?plan=${plan.id}&interval=${yearly ? 'yearly' : 'monthly'}`}
-                    className={plan.highlight
-                      ? 'funnel-btn funnel-btn-primary w-full justify-center'
-                      : 'funnel-btn funnel-btn-subtle w-full justify-center'}
-                  >
-                    Get Started
-                  </a>
-                </div>
+                    </>
+                  )}
+                </button>
               ))}
             </div>
           </div>
-        </section>
+        </div>
 
-        {/* Full feature comparison */}
-        <section className="funnel-section">
-          <div className="funnel-wide">
-            <button
-              onClick={() => setDetailsOpen((o) => !o)}
-              className="flex items-center justify-center gap-2 w-full text-gray-400 hover:text-white transition-colors py-4"
-              aria-expanded={detailsOpen}
-              aria-controls="feature-comparison"
+        {/* Plan cards */}
+        <div className="cb-grid-cells cb-grid-cells--pricing">
+          {PLANS.map((plan) => (
+            <PricingCell key={plan.id} {...plan} interval={interval} />
+          ))}
+        </div>
+
+        {/* Footer strip */}
+        <div className="border-t-dim py-4 px-10 text-center">
+          <p className="funnel-body-sm" style={{ color: '#4b5563' }}>
+            No contracts. Keep full server control.{' '}
+            <a href="/is-this-safe" style={{ color: '#60a5fa', textDecoration: 'underline' }}>
+              Is Clouded Basement safe?
+            </a>
+            {' · '}
+            <a href="/compare" style={{ color: '#60a5fa', textDecoration: 'underline' }}>
+              Compare plans
+            </a>
+          </p>
+        </div>
+      </section>
+
+      {/* ── Feature comparison ────────────────────────────────────────────── */}
+      <section>
+        <div className="cb-title-row">
+          <button
+            onClick={() => setDetailsOpen((o) => !o)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+              color: detailsOpen ? '#fff' : '#6b7280',
+              transition: 'color 150ms',
+            }}
+            aria-expanded={detailsOpen}
+          >
+            <span className="funnel-heading-3">Full feature comparison</span>
+            <svg
+              style={{
+                width: '1rem', height: '1rem', flexShrink: 0,
+                transform: detailsOpen ? 'rotate(180deg)' : 'none',
+                transition: 'transform 200ms ease',
+              }}
+              fill="none" stroke="currentColor" viewBox="0 0 24 24"
             >
-              <span className="funnel-body-sm font-medium">View full feature comparison</span>
-              <svg
-                className={`w-4 h-4 transition-transform ${detailsOpen ? 'rotate-180' : ''}`}
-                fill="none" stroke="currentColor" viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            {detailsOpen && (
-              <div
-                id="feature-comparison"
-                role="region"
-                aria-labelledby="feature-comparison-heading"
-                className="overflow-x-auto mt-6"
-              >
-                <h3 id="feature-comparison-heading" className="sr-only">Feature comparison</h3>
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-700">
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Feature</th>
-                      <th className="text-center py-3 px-4 text-gray-300">Basic</th>
-                      <th className="text-center py-3 px-4 text-blue-400">Pro</th>
-                      <th className="text-center py-3 px-4 text-purple-400">Premium</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-gray-300">
-                    {FULL_FEATURES.map((f) => (
-                      <tr key={f.label} className="border-b border-gray-800">
-                        <td className="py-2 px-4">{f.label}</td>
-                        <td className={`text-center ${f.basic === '✓' ? 'text-green-400' : 'text-gray-500'}`}>{f.basic}</td>
-                        <td className={`text-center ${f.pro === '✓' ? 'text-green-400' : 'text-gray-500'}`}>{f.pro}</td>
-                        <td className={`text-center ${f.premium === '✓' ? 'text-green-400' : 'text-gray-500'}`}>{f.premium}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </section>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
 
-        {/* Stack */}
-        <section className="funnel-section funnel-bg-process">
-          <div className="funnel-wide">
-            <h2 className="funnel-heading-2 text-center mb-8">What's Pre-Installed</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-              {STACK.map(({ icon, name, sub }) => (
-                <div key={name} className="funnel-card p-4">
-                  <div className="text-2xl mb-2">{icon}</div>
-                  <div className="funnel-heading-3 text-sm">{name}</div>
-                  <div className="funnel-body-sm">{sub}</div>
-                </div>
-              ))}
-            </div>
+        {detailsOpen && (
+          <div className="cb-content-pad" style={{ paddingBlock: '1.5rem', overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                  <th style={{ textAlign: 'left', padding: '0.75rem 1rem', color: '#6b7280', fontWeight: 500 }}>Feature</th>
+                  <th style={{ textAlign: 'center', padding: '0.75rem 1rem', color: '#d1d5db' }}>Basic</th>
+                  <th style={{ textAlign: 'center', padding: '0.75rem 1rem', color: '#93c5fd' }}>Pro</th>
+                  <th style={{ textAlign: 'center', padding: '0.75rem 1rem', color: '#c084fc' }}>Premium</th>
+                </tr>
+              </thead>
+              <tbody>
+                {FULL_FEATURES.map((f) => (
+                  <tr key={f.label} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                    <td style={{ padding: '0.625rem 1rem', color: '#9ca3af' }}>{f.label}</td>
+                    <td style={{ textAlign: 'center', padding: '0.625rem 1rem' }}><CheckCell value={f.basic} /></td>
+                    <td style={{ textAlign: 'center', padding: '0.625rem 1rem' }}><CheckCell value={f.pro} /></td>
+                    <td style={{ textAlign: 'center', padding: '0.625rem 1rem' }}><CheckCell value={f.premium} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </section>
+        )}
+      </section>
 
-        {/* Trust links */}
-        <section className="funnel-section">
-          <div className="funnel-wide text-center">
-            <p className="funnel-body mb-4">Questions about security or how this works?</p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6">
-              <a href="/is-this-safe" className="funnel-body-sm" style={{ color: '#60a5fa', textDecoration: 'underline' }}>Is Clouded Basement safe?</a>
-              <span className="hidden sm:inline text-gray-600">·</span>
-              <a href="/compare" className="funnel-body-sm" style={{ color: '#60a5fa', textDecoration: 'underline' }}>See how we compare</a>
+      {/* ── Pre-installed stack ────────────────────────────────────────────── */}
+      <section>
+        <div className="cb-title-row">
+          <SectionTitle
+            text1="Stack"
+            text2="What's pre-installed"
+            text3="Every server ships with a full developer stack, configured and ready to use."
+          />
+        </div>
+
+        <div className="cb-grid-cells cb-grid-cells--features">
+          {STACK.map(({ icon, name, sub }) => (
+            <div key={name} style={{ padding: '2rem 1.5rem', textAlign: 'center' }}>
+              <div style={{ fontSize: '1.75rem', marginBottom: '0.625rem' }}>{icon}</div>
+              <p className="funnel-heading-3" style={{ fontSize: '0.875rem', marginBottom: '0.25rem' }}>{name}</p>
+              <p className="funnel-body-sm" style={{ color: '#6b7280' }}>{sub}</p>
             </div>
-          </div>
-        </section>
+          ))}
+        </div>
+      </section>
 
     </PageLayout>
   );

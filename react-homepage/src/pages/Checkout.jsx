@@ -282,94 +282,146 @@ export default function Checkout() {
     }
   }
 
+  const fieldStyle = {
+    width: '100%', padding: '0.625rem 0.75rem',
+    background: 'rgba(255,255,255,0.04)',
+    border: '1px solid rgba(255,255,255,0.1)',
+    borderRadius: '0.375rem', color: '#f5f5f5',
+    boxSizing: 'border-box', outline: 'none',
+  };
+  const stripeFieldStyle = {
+    padding: '0.75rem',
+    background: 'rgba(255,255,255,0.04)',
+    border: '1px solid rgba(255,255,255,0.1)',
+    borderRadius: '0.375rem',
+  };
+  const labelStyle = {
+    display: 'block', fontSize: '0.75rem',
+    color: '#9ca3af', marginBottom: '0.375rem',
+  };
+
   return (
     <PageLayout>
-      <section className="funnel-section funnel-bg-trust">
-        <div className="funnel-wide" style={{ maxWidth: '40rem' }}>
-          <div className="funnel-card" style={{ padding: '1.5rem' }}>
-            <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-              <div className="funnel-kicker" style={{ marginBottom: '0.5rem' }}>{intervalLabel}</div>
+      <section>
+        {/* Back link */}
+        <div className="cb-content-pad" style={{ paddingBlock: '1.25rem' }}>
+          <a
+            href="/pricing"
+            className="funnel-body-sm"
+            style={{ color: '#6b7280', display: 'inline-flex', alignItems: 'center', gap: '0.375rem', textDecoration: 'none' }}
+          >
+            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to pricing
+          </a>
+        </div>
+
+        {/* Two-column layout: order summary (left) + payment form (right) */}
+        <div className="cb-split cb-split-2" style={{ borderTop: '1px solid var(--cb-line)' }}>
+
+          {/* ── Order summary ─────────────────────────────────── */}
+          <div className="cb-content-pad" style={{ paddingBlock: '3rem' }}>
+            <p className="funnel-kicker mb-6">Order Summary</p>
+
+            <div style={{ marginBottom: '2rem' }}>
               <h1 className="funnel-heading-2" style={{ marginBottom: '0.375rem' }}>{plan.name}</h1>
-              <p className="funnel-body-sm" style={{ marginBottom: '0.75rem' }}>{plan.description}</p>
-              <div style={{ fontSize: '2rem', fontWeight: 700, color: '#7fd6ff' }}>
-                ${displayPrice}
-                <span style={{ fontSize: '1rem', color: '#94a3b8', fontWeight: 400 }}>{intervalShort}</span>
-              </div>
-              {interval === 'yearly' ? (
-                <p className="funnel-body-sm" style={{ color: '#86efac' }}>Save 10% with yearly billing.</p>
-              ) : (
-                <p className="funnel-body-sm">Early Adopter price was ${plan.was}, locked for life.</p>
-              )}
+              <p className="funnel-body-sm" style={{ color: '#6b7280' }}>{plan.description}</p>
             </div>
 
-            {loading && <p className="funnel-body-sm">Loading checkout...</p>}
+            <div style={{
+              display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
+              padding: '1.25rem 0', borderTop: '1px solid rgba(255,255,255,0.07)',
+              borderBottom: '1px solid rgba(255,255,255,0.07)',
+            }}>
+              <span className="funnel-body-sm" style={{ color: '#9ca3af' }}>{intervalLabel}</span>
+              <span>
+                <span style={{ fontSize: '2.25rem', fontWeight: 700, color: '#fff', letterSpacing: '-0.02em' }}>
+                  ${displayPrice}
+                </span>
+                <span className="funnel-body-sm" style={{ color: '#6b7280' }}>{intervalShort}</span>
+              </span>
+            </div>
+
+            <p className="funnel-body-sm" style={{ marginTop: '1rem', color: interval === 'yearly' ? '#86efac' : '#9ca3af' }}>
+              {interval === 'yearly'
+                ? 'Save 10% with yearly billing.'
+                : `Early Adopter price was $${plan.was}, locked for life.`}
+            </p>
+
+            <div style={{ marginTop: '2rem', padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <p className="funnel-body-sm" style={{ color: '#4b5563', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#4ade80', flexShrink: 0 }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                Payments secured by Stripe. We never store card data.
+              </p>
+            </div>
+          </div>
+
+          {/* ── Payment form ───────────────────────────────────── */}
+          <div className="cb-content-pad" style={{ paddingBlock: '3rem' }}>
+            <p className="funnel-kicker mb-6">Payment Details</p>
+
+            {loading && (
+              <p className="funnel-body-sm" style={{ color: '#6b7280' }}>Loading checkout...</p>
+            )}
 
             {!loading && (
-              <form onSubmit={onSubmit}>
-                <div style={{ marginBottom: '0.75rem' }}>
-                  <label className="funnel-body-sm" style={{ display: 'block', marginBottom: '0.25rem' }}>Cardholder Name</label>
+              <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+
+                <div>
+                  <label style={labelStyle}>Cardholder Name</label>
                   <input
                     type="text"
                     value={cardholderName}
                     onChange={(e) => setCardholderName(e.target.value)}
-                    placeholder="John Doe"
+                    placeholder="Jane Smith"
                     required
-                    style={{
-                      width: '100%',
-                      padding: '0.625rem 0.75rem',
-                      background: 'rgba(255,255,255,0.04)',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      borderRadius: '0.375rem',
-                      color: '#f5f5f5',
-                      boxSizing: 'border-box',
-                    }}
+                    autoComplete="cc-name"
+                    style={fieldStyle}
                   />
                 </div>
 
-                <div style={{ marginBottom: '0.75rem' }}>
-                  <label className="funnel-body-sm" style={{ display: 'block', marginBottom: '0.25rem' }}>Card Number</label>
-                  <div
-                    ref={cardNumberContainerRef}
-                    style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.375rem' }}
-                  />
+                <div>
+                  <label style={labelStyle}>Card Number</label>
+                  <div ref={cardNumberContainerRef} style={stripeFieldStyle} />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                   <div>
-                    <label className="funnel-body-sm" style={{ display: 'block', marginBottom: '0.25rem' }}>Expiry</label>
-                    <div
-                      ref={cardExpiryContainerRef}
-                      style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.375rem' }}
-                    />
+                    <label style={labelStyle}>Expiry</label>
+                    <div ref={cardExpiryContainerRef} style={stripeFieldStyle} />
                   </div>
                   <div>
-                    <label className="funnel-body-sm" style={{ display: 'block', marginBottom: '0.25rem' }}>CVC</label>
-                    <div
-                      ref={cardCvcContainerRef}
-                      style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.375rem' }}
-                    />
+                    <label style={labelStyle}>CVC</label>
+                    <div ref={cardCvcContainerRef} style={stripeFieldStyle} />
                   </div>
                 </div>
 
                 {displayedError && (
-                  <p className="funnel-body-sm" style={{ color: '#fca5a5', marginBottom: '0.75rem' }}>{displayedError}</p>
+                  <p className="funnel-body-sm" style={{ color: '#fca5a5' }}>{displayedError}</p>
                 )}
 
                 <button
                   type="submit"
                   disabled={loading || submitting || !csrfToken}
                   className="funnel-btn funnel-btn-primary"
-                  style={{ width: '100%', justifyContent: 'center', opacity: loading || submitting || !csrfToken ? 0.7 : 1 }}
+                  style={{
+                    width: '100%', justifyContent: 'center', marginTop: '0.25rem',
+                    opacity: loading || submitting || !csrfToken ? 0.6 : 1,
+                  }}
                 >
-                  {submitting ? 'Processing...' : 'Complete Payment'}
+                  {submitting ? 'Processing…' : `Pay $${displayPrice}${intervalShort}`}
                 </button>
+
+                <p className="funnel-body-sm" style={{ textAlign: 'center', color: '#4b5563' }}>
+                  Powered by Stripe · SSL encrypted
+                </p>
               </form>
             )}
-
-            <p className="funnel-body-sm" style={{ textAlign: 'center', marginTop: '0.75rem' }}>
-              Powered by Stripe • Secure SSL encryption
-            </p>
           </div>
+
         </div>
       </section>
     </PageLayout>

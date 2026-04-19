@@ -28,9 +28,9 @@ const searchIndex = [
   { section: "Features", title: "Managed infrastructure", body: "We handle OS updates, patches, and scaling.", href: "/#features" },
   { section: "Features", title: "Secure by default", body: "HTTPS on every site, isolated containers, built-in firewall.", href: "/#features" },
   // Pricing
-  { section: "Pricing", title: "Basic — $15/mo", body: "1 GB RAM, 25 GB SSD, 2 sites, GitHub auto-deploy.", href: "/pay?plan=basic&interval=monthly" },
-  { section: "Pricing", title: "Pro — $35/mo", body: "2 GB RAM, 50 GB SSD, 5 sites, daily backups.", href: "/pay?plan=pro&interval=monthly" },
-  { section: "Pricing", title: "Premium — $55/mo", body: "4 GB RAM, 80 GB SSD, 10 sites, daily backups, 2FA.", href: "/pay?plan=premium&interval=monthly" },
+  { section: "Pricing", title: "Basic — $15/mo", body: "1 GB RAM, 25 GB SSD, 2 sites, GitHub auto-deploy.", href: "/pricing" },
+  { section: "Pricing", title: "Pro — $35/mo", body: "2 GB RAM, 50 GB SSD, 5 sites, daily backups.", href: "/pricing" },
+  { section: "Pricing", title: "Premium — $55/mo", body: "4 GB RAM, 80 GB SSD, 10 sites, daily backups, 2FA.", href: "/pricing" },
   // FAQ
   { section: "FAQ", title: "What is Clouded Basement?", body: "A managed Node.js hosting platform.", href: "/#faq" },
   { section: "FAQ", title: "How do I deploy my first app?", body: "Connect your GitHub repo and push to main.", href: "/#faq" },
@@ -1323,7 +1323,7 @@ function PricingCell({ id, name, desc, monthly, yearly, features, adds, popular,
         /* @__PURE__ */ jsx(
           "a",
           {
-            href: `/pay?plan=${id}&interval=${interval}`,
+            href: `/checkout?plan=${id}&interval=${interval}`,
             className: `funnel-btn ${popular ? "funnel-btn-primary" : "funnel-btn-subtle"} w-full text-center`,
             children: name
           }
@@ -1540,16 +1540,17 @@ function HomePage() {
     /* @__PURE__ */ jsx(Footer, {})
   ] }) }) });
 }
-const DashboardPage = lazy(() => import("./assets/DashboardPage-C5LsyAvs.js"));
+const DashboardPage = lazy(() => import("./assets/DashboardPage-BTILMVH_.js"));
 const AdminPage = lazy(() => import("./assets/AdminPage-bd3IH45u.js"));
 const AdminUpdatesPage = lazy(() => import("./assets/AdminUpdatesPage-DnY9iKkz.js"));
 const About = lazy(() => import("./assets/About-COLVXPnX.js"));
 const Compare = lazy(() => import("./assets/Compare-BvaYsUZG.js"));
 const Contact = lazy(() => import("./assets/Contact-DGk-0rMT.js"));
+const Checkout = lazy(() => import("./assets/Checkout-B8VbFLlq.js"));
 const Docs = lazy(() => import("./assets/Docs-ClW3rnAn.js"));
 const Faq = lazy(() => import("./assets/Faq-D0aFlNPc.js"));
 const Login = lazy(() => import("./assets/Login-DrUFe9l2.js"));
-const Pricing = lazy(() => import("./assets/Pricing-tq7efVER.js"));
+const Pricing = lazy(() => import("./assets/Pricing-Cw1Y8SfX.js"));
 const Privacy = lazy(() => import("./assets/Privacy-DK81Pm53.js"));
 const Register = lazy(() => import("./assets/Register-D_EC9MDw.js"));
 const Safety = lazy(() => import("./assets/Safety-BNJLC9p1.js"));
@@ -1582,6 +1583,7 @@ function App() {
     /* @__PURE__ */ jsx(Route, { path: "/about", element: /* @__PURE__ */ jsx(Suspense, { fallback: null, children: /* @__PURE__ */ jsx(About, {}) }) }),
     /* @__PURE__ */ jsx(Route, { path: "/compare", element: /* @__PURE__ */ jsx(Suspense, { fallback: null, children: /* @__PURE__ */ jsx(Compare, {}) }) }),
     /* @__PURE__ */ jsx(Route, { path: "/contact", element: /* @__PURE__ */ jsx(Suspense, { fallback: null, children: /* @__PURE__ */ jsx(Contact, {}) }) }),
+    /* @__PURE__ */ jsx(Route, { path: "/checkout", element: /* @__PURE__ */ jsx(Suspense, { fallback: null, children: /* @__PURE__ */ jsx(Checkout, {}) }) }),
     /* @__PURE__ */ jsx(Route, { path: "/docs", element: /* @__PURE__ */ jsx(Suspense, { fallback: null, children: /* @__PURE__ */ jsx(Docs, {}) }) }),
     /* @__PURE__ */ jsx(Route, { path: "/faq", element: /* @__PURE__ */ jsx(Suspense, { fallback: null, children: /* @__PURE__ */ jsx(Faq, {}) }) }),
     /* @__PURE__ */ jsx(Route, { path: "/login", element: /* @__PURE__ */ jsx(Suspense, { fallback: null, children: /* @__PURE__ */ jsx(Login, {}) }) }),
@@ -1621,5 +1623,6 @@ function render(url) {
 export {
   Footer as F,
   ResponsiveNav as R,
+  SectionTitle as S,
   render
 };

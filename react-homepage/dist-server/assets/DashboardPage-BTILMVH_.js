@@ -270,7 +270,7 @@ function GetStartedCard({ data, onNav }) {
       id: "payment",
       label: "Choose a plan",
       done: !!(data.hasPaid || data.hasServer || data.isProvisioning),
-      cta: data.emailConfirmed ? { label: "Choose a plan", href: "/pay" } : void 0,
+      cta: data.emailConfirmed ? { label: "Choose a plan", href: "/pricing" } : void 0,
       hidden: !data.emailConfirmed
     },
     {
@@ -807,7 +807,7 @@ function OverviewSection({ data, onNav }) {
       }, children: [
         /* @__PURE__ */ jsx("p", { style: { fontSize: "0.9375rem", fontWeight: 500, color: "var(--dash-text-secondary, #a1a1a1)", marginBottom: "0.375rem" }, children: "No server yet" }),
         /* @__PURE__ */ jsx("p", { style: { fontSize: "0.8125rem", color: "var(--dash-text-muted, #525252)" }, children: hasPaid ? "Server is being provisioned — contact support if this takes more than 5 minutes." : trialAvailable ? "Start your free trial to get a server." : "Purchase a plan to deploy your first app." }),
-        !hasPaid && /* @__PURE__ */ jsx("a", { href: "/pay", style: {
+        !hasPaid && /* @__PURE__ */ jsx("a", { href: "/pricing", style: {
           display: "inline-block",
           marginTop: "1.25rem",
           padding: "0.5rem 1.25rem",
@@ -1394,7 +1394,7 @@ function DeploySection({ data }) {
       }, children: [
         /* @__PURE__ */ jsx("p", { style: { fontSize: "0.9375rem", fontWeight: 500, color: "var(--dash-text-secondary, #a1a1a1)", marginBottom: "0.375rem" }, children: "No server yet" }),
         /* @__PURE__ */ jsx("p", { style: { fontSize: "0.8125rem", color: "var(--dash-text-muted, #525252)", marginBottom: "1.25rem" }, children: "You need an active server to deploy apps." }),
-        /* @__PURE__ */ jsx("a", { href: "/pay", style: {
+        /* @__PURE__ */ jsx("a", { href: "/pricing", style: {
           display: "inline-block",
           padding: "0.5rem 1.25rem",
           borderRadius: "0.375rem",
@@ -1431,7 +1431,7 @@ function DeploySection({ data }) {
             siteLimit,
             "). Upgrade your plan or delete a site to deploy a new one."
           ] }),
-          /* @__PURE__ */ jsx("a", { href: "/pay", style: {
+          /* @__PURE__ */ jsx("a", { href: "/pricing", style: {
             flexShrink: 0,
             fontSize: "0.75rem",
             fontWeight: 500,
@@ -1898,7 +1898,7 @@ function DevToolsSection({ data }) {
       }, children: [
         /* @__PURE__ */ jsx("p", { style: { fontSize: "0.9375rem", fontWeight: 500, color: "var(--dash-text-secondary, #a1a1a1)", marginBottom: "0.375rem" }, children: "No server yet" }),
         /* @__PURE__ */ jsx("p", { style: { fontSize: "0.8125rem", color: "var(--dash-text-muted, #525252)", marginBottom: "1.25rem" }, children: "SSH access, database credentials, and environment tools appear here once your server is provisioned." }),
-        /* @__PURE__ */ jsx("a", { href: "/pay", style: {
+        /* @__PURE__ */ jsx("a", { href: "/pricing", style: {
           display: "inline-block",
           padding: "0.5rem 1.25rem",
           borderRadius: "0.375rem",
@@ -2277,7 +2277,7 @@ function EnvSection({ data }) {
       }, children: [
         /* @__PURE__ */ jsx("p", { style: { fontSize: "0.9375rem", fontWeight: 500, color: "var(--dash-text-secondary, #a1a1a1)", marginBottom: "0.375rem" }, children: "No server yet" }),
         /* @__PURE__ */ jsx("p", { style: { fontSize: "0.8125rem", color: "var(--dash-text-muted, #525252)", marginBottom: "1.25rem" }, children: "Environment variables are injected into your deployments at build time." }),
-        /* @__PURE__ */ jsx("a", { href: "/pay", style: {
+        /* @__PURE__ */ jsx("a", { href: "/pricing", style: {
           display: "inline-block",
           padding: "0.5rem 1.25rem",
           borderRadius: "0.375rem",
