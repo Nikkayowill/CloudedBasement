@@ -157,7 +157,7 @@ async function runMigrations() {
       // Transaction not started - safe to ignore
     }
     console.error('[MIGRATION] Error running migrations:', error.message);
-    throw error;
+    // Don't crash the app — log and continue. Worst case: DB features won't work until manual fix.
   } finally {
     client.release();
   }

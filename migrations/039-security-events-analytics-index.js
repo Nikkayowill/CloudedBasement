@@ -12,6 +12,15 @@ const pool = require('../db');
 exports.up = async () => {
   const client = await pool.connect();
   try {
+    const tableCheck = await client.query(`
+      SELECT 1 FROM information_schema.tables
+       WHERE table_schema = 'public' AND table_name = 'security_events'
+    `);
+    if (tableCheck.rows.length === 0) {
+      console.log('[MIGRATION 039] ℹ security_events table not found — skipping index creation');
+      return;
+    }
+
     // Primary analytics index: covers WHERE event_type = ? AND created_at > ?
     // Also used by GROUP BY (event_type, created_at) trend queries.
     await client.query(`
