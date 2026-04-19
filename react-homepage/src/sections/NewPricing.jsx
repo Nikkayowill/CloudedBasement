@@ -55,7 +55,7 @@ function PricingCell({ id, name, desc, monthly, yearly, features, adds, popular,
       </ul>
 
       <a
-        href={`/pay?plan=${id}&interval=${interval}`}
+        href={`/checkout?plan=${id}&interval=${interval}`}
         className={`funnel-btn ${popular ? 'funnel-btn-primary' : 'funnel-btn-subtle'} w-full text-center`}
       >
         {name}

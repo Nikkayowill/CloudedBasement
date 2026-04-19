@@ -351,7 +351,7 @@ export default function DeploySection({ data }) {
             <p style={{ fontSize: '0.8125rem', color: 'var(--dash-text-muted, #525252)', marginBottom: '1.25rem' }}>
               You need an active server to deploy apps.
             </p>
-            <a href="/pay" style={{
+            <a href="/pricing" style={{
               display: 'inline-block', padding: '0.5rem 1.25rem',
               borderRadius: '0.375rem', background: '#2563eb',
               color: '#fff', fontSize: '0.8125rem', fontWeight: 500, textDecoration: 'none',
@@ -390,7 +390,7 @@ export default function DeploySection({ data }) {
                 <span style={{ fontSize: '0.8125rem', color: '#fca5a5' }}>
                   Site limit reached ({siteCount}/{siteLimit}). Upgrade your plan or delete a site to deploy a new one.
                 </span>
-                <a href="/pay" style={{
+                <a href="/pricing" style={{
                   flexShrink: 0, fontSize: '0.75rem', fontWeight: 500,
                   color: '#60a5fa', textDecoration: 'none', whiteSpace: 'nowrap',
                 }}>

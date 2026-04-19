@@ -24,8 +24,23 @@ function getValidatedPlan(planValue, fallback = 'basic') {
   return ALLOWED_PLAN_KEYS.includes(planValue) ? planValue : fallback;
 }
 
+// GET /api/stripe/config
+exports.getStripeConfig = (req, res) => {
+  res.json({
+    publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '',
+  });
+};
+
 // GET /pay
 exports.showCheckout = (req, res) => {
+  const requestedPlan = req.query.plan;
+
+  // Canonical pricing experience lives at /pricing.
+  // Keep /pay only as a targeted checkout endpoint when a plan is explicitly selected.
+  if (!requestedPlan) {
+    return res.redirect('/pricing');
+  }
+
   // Require email confirmation before payment
   if (!req.session.emailConfirmed) {
     return res.redirect('/dashboard?error=Please confirm your email before purchasing');
@@ -74,7 +89,6 @@ ${getHTMLHead('Processing Payment - Clouded Basement')}
     `);
   }
 
-  const requestedPlan = req.query.plan;
   if (requestedPlan && !ALLOWED_PLAN_KEYS.includes(requestedPlan)) {
     return res.status(400).send('Invalid plan selected');
   }
@@ -1073,6 +1087,7 @@ exports.getBillingUsage = async (req, res) => {
 };
 
 module.exports = {
+  getStripeConfig: exports.getStripeConfig,
   showCheckout: exports.showCheckout,
   createPaymentIntent: exports.createPaymentIntent,
   paymentSuccess: exports.paymentSuccess,
