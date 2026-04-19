@@ -85,20 +85,32 @@ function BulkImportCard({ csrfToken, onImported }) {
     const saved = [];
     let errors = 0;
     for (const { key, value } of pairs) {
+      if (!isMounted.current) return;
+
       try {
         const r = await fetch('/api/env-vars', {
           method: 'POST', credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrfToken },
           body: JSON.stringify({ key, value }),
         });
+
+        if (!isMounted.current) return;
+
         const d = await r.json();
+
+        if (!isMounted.current) return;
+
         if (r.ok && d.envVar) saved.push(d.envVar);
         else errors++;
       } catch {
         errors++;
       }
+
+      if (!isMounted.current) return;
+
       setProgress(p => ({ ...p, done: p.done + 1, errors }));
     }
+
     if (!isMounted.current) return;
     if (saved.length > 0) onImported(saved);
     if (errors === 0) setText('');

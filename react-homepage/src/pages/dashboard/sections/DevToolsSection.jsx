@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 function SectionHeader({ title }) {
   return (
@@ -264,6 +264,249 @@ function DatabaseBackupCard({ csrfToken, postgresInstalled, mongodbInstalled, is
   );
 }
 
+function RestoreCard({ csrfToken, postgresInstalled, mongodbInstalled, isDemo }) {
+  const [backups, setBackups]       = useState(null);
+  const [loadingList, setLoadingList] = useState(false);
+  const [listError, setListError]   = useState(null);
+
+  const [selected, setSelected]     = useState(null);
+  const [confirming, setConfirming] = useState(false);
+
+  const [jobId, setJobId]           = useState(null);
+  const [jobStatus, setJobStatus]   = useState(null); // { status, error_message }
+  const [busy, setBusy]             = useState(false);
+
+  const DEMO_BACKUPS = [
+    { file: '/root/db-backups/pg-app_db-2026-04-18.sql.gz',  name: 'pg-app_db-2026-04-18.sql.gz',  dbType: 'postgres', date: '2026-04-18', sizeBytes: 204800  },
+    { file: '/root/db-backups/pg-app_db-2026-04-17.sql.gz',  name: 'pg-app_db-2026-04-17.sql.gz',  dbType: 'postgres', date: '2026-04-17', sizeBytes: 196608  },
+    { file: '/root/db-backups/mongo-2026-04-18.tar.gz',       name: 'mongo-2026-04-18.tar.gz',       dbType: 'mongodb',  date: '2026-04-18', sizeBytes: 512000  },
+  ];
+
+  async function loadBackups() {
+    setLoadingList(true); setListError(null); setSelected(null); setConfirming(false);
+    if (isDemo) {
+      await new Promise(r => setTimeout(r, 700));
+      setBackups(DEMO_BACKUPS);
+      setLoadingList(false);
+      return;
+    }
+    try {
+      const r = await fetch('/api/backups/list', { credentials: 'same-origin',
+        headers: { 'x-csrf-token': csrfToken } });
+      const d = await r.json();
+      if (r.ok && d.success) setBackups(d.backups);
+      else setListError(d.error || `Error ${r.status}`);
+    } catch {
+      setListError('Network error. Try again.');
+    } finally {
+      setLoadingList(false);
+    }
+  }
+
+  async function startRestore() {
+    if (!selected) return;
+    setBusy(true); setJobStatus(null);
+    if (isDemo) {
+      await new Promise(r => setTimeout(r, 900));
+      setJobId('demo');
+      setJobStatus({ status: 'running' });
+      setBusy(false);
+      setTimeout(() => setJobStatus({ status: 'success' }), 2200);
+      setConfirming(false);
+      return;
+    }
+    try {
+      const r = await fetch('/api/backups/restore', {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrfToken },
+        body: JSON.stringify({ backup_file: selected.file, db_type: selected.dbType }),
+      });
+      const d = await r.json();
+      if (r.ok && d.success) {
+        setJobId(d.jobId);
+        setJobStatus({ status: 'running' });
+        setConfirming(false);
+      } else {
+        setJobStatus({ status: 'failed', error_message: d.error || `Error ${r.status}` });
+        setConfirming(false);
+      }
+    } catch {
+      setJobStatus({ status: 'failed', error_message: 'Network error.' });
+      setConfirming(false);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // Poll for job completion
+  useEffect(() => {
+    if (!jobId || jobId === 'demo') return;
+    if (jobStatus?.status === 'success' || jobStatus?.status === 'failed') return;
+    const id = setInterval(async () => {
+      try {
+        const r = await fetch(`/api/backups/restore-status/${jobId}`, { credentials: 'same-origin' });
+        if (!r.ok) return;
+        const d = await r.json();
+        setJobStatus({ status: d.status, error_message: d.error_message });
+      } catch { /* ignore */ }
+    }, 3000);
+    return () => clearInterval(id);
+  }, [jobId, jobStatus]);
+
+  function formatSize(bytes) {
+    if (!bytes) return '';
+    if (bytes < 1024 * 1024) return ` · ${(bytes / 1024).toFixed(0)} KB`;
+    return ` · ${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  const dbLabel = t => t === 'postgres' ? 'PostgreSQL' : 'MongoDB';
+  const visibleBackups = backups?.filter(b =>
+    (b.dbType === 'postgres' && postgresInstalled) ||
+    (b.dbType === 'mongodb'  && mongodbInstalled)
+  );
+
+  return (
+    <div style={{ border: '1px solid rgba(255,255,255,0.07)', borderRadius: '0.625rem', overflow: 'hidden' }}>
+      <div style={{ padding: '0.875rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <div>
+          <span style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--dash-text-primary, #fafafa)' }}>Restore from Backup</span>
+          <p style={{ fontSize: '0.75rem', color: 'var(--dash-text-muted, #525252)', marginTop: '0.1875rem' }}>
+            Overwrites the current database. This action cannot be undone.
+          </p>
+        </div>
+        <button
+          onClick={loadBackups}
+          disabled={loadingList}
+          style={{
+            padding: '0.375rem 0.875rem', borderRadius: '0.375rem',
+            background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+            color: 'var(--dash-text-secondary, #a1a1a1)', fontSize: '0.75rem',
+            cursor: loadingList ? 'wait' : 'pointer', whiteSpace: 'nowrap',
+          }}
+        >
+          {loadingList ? 'Loading…' : backups ? 'Refresh' : 'Show Restore Points'}
+        </button>
+      </div>
+
+      {(listError || backups) && (
+        <div style={{ padding: '0.875rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          {listError && (
+            <p style={{ fontSize: '0.8125rem', color: '#fca5a5', margin: 0 }}>{listError}</p>
+          )}
+
+          {backups && !listError && (
+            <>
+              {visibleBackups.length === 0 ? (
+                <p style={{ fontSize: '0.8125rem', color: 'var(--dash-text-muted, #525252)', margin: 0 }}>
+                  No backup files found on your server yet.
+                </p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                  {visibleBackups.map(b => (
+                    <label key={b.file} style={{
+                      display: 'flex', alignItems: 'center', gap: '0.625rem',
+                      padding: '0.5rem 0.625rem', borderRadius: '0.375rem',
+                      border: `1px solid ${selected?.file === b.file ? 'rgba(251,146,60,0.35)' : 'rgba(255,255,255,0.06)'}`,
+                      background: selected?.file === b.file ? 'rgba(251,146,60,0.06)' : 'transparent',
+                      cursor: 'pointer',
+                    }}>
+                      <input
+                        type="radio" name="backup_file" value={b.file}
+                        checked={selected?.file === b.file}
+                        onChange={() => { setSelected(b); setConfirming(false); setJobStatus(null); }}
+                        style={{ accentColor: '#fb923c' }}
+                      />
+                      <span style={{ fontSize: '0.75rem', ...MONO, color: 'var(--dash-text-secondary, #a1a1a1)', wordBreak: 'break-all' }}>
+                        {b.name}
+                      </span>
+                      <span style={{ fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)', whiteSpace: 'nowrap', marginLeft: 'auto' }}>
+                        {b.date}{formatSize(b.sizeBytes)}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              )}
+
+              {selected && !confirming && !jobStatus && (
+                <button
+                  onClick={() => setConfirming(true)}
+                  style={{
+                    alignSelf: 'flex-start', padding: '0.4375rem 1rem',
+                    borderRadius: '0.375rem', background: 'rgba(239,68,68,0.1)',
+                    border: '1px solid rgba(239,68,68,0.3)', color: '#f87171',
+                    fontSize: '0.8125rem', fontWeight: 500, cursor: 'pointer',
+                  }}
+                >
+                  Restore {dbLabel(selected.dbType)}…
+                </button>
+              )}
+
+              {confirming && (
+                <div style={{
+                  padding: '0.875rem 1rem', borderRadius: '0.375rem',
+                  border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.06)',
+                  display: 'flex', flexDirection: 'column', gap: '0.625rem',
+                }}>
+                  <p style={{ fontSize: '0.8125rem', color: '#f87171', fontWeight: 500, margin: 0 }}>
+                    This will drop and recreate your {dbLabel(selected.dbType)} database from{' '}
+                    <code style={{ ...MONO, fontSize: '0.75rem' }}>{selected.name}</code>.
+                    {' '}All current data will be lost.
+                  </p>
+                  <div style={{ display: 'flex', gap: '0.625rem' }}>
+                    <button
+                      onClick={startRestore}
+                      disabled={busy}
+                      style={{
+                        padding: '0.375rem 0.875rem', borderRadius: '0.375rem',
+                        background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.35)',
+                        color: '#f87171', fontSize: '0.8125rem', fontWeight: 500,
+                        cursor: busy ? 'wait' : 'pointer',
+                      }}
+                    >
+                      {busy ? 'Starting…' : 'Yes, restore now'}
+                    </button>
+                    <button
+                      onClick={() => setConfirming(false)}
+                      style={{
+                        padding: '0.375rem 0.875rem', borderRadius: '0.375rem',
+                        background: 'transparent', border: '1px solid rgba(255,255,255,0.1)',
+                        color: 'var(--dash-text-secondary, #a1a1a1)', fontSize: '0.8125rem',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {jobStatus && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  {jobStatus.status === 'running' && (
+                    <p style={{ fontSize: '0.8125rem', color: '#fbbf24', margin: 0 }}>
+                      Restore in progress… This may take a few minutes.
+                    </p>
+                  )}
+                  {jobStatus.status === 'success' && (
+                    <p style={{ fontSize: '0.8125rem', color: '#86efac', margin: 0 }}>
+                      Restore completed successfully.
+                    </p>
+                  )}
+                  {jobStatus.status === 'failed' && (
+                    <p style={{ fontSize: '0.8125rem', color: '#fca5a5', margin: 0 }}>
+                      Restore failed: {jobStatus.error_message || 'Unknown error'}
+                    </p>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function DevToolsSection({ data }) {
   const { hasServer, sshUsername, ipAddress, postgresInstalled, mongodbInstalled } = data;
   const [creds, setCreds]       = useState(null);
@@ -475,6 +718,16 @@ export default function DevToolsSection({ data }) {
         {/* Database backup card — shown when a DB is installed */}
         {(postgresInstalled || mongodbInstalled) && (
           <DatabaseBackupCard
+            csrfToken={data.csrfToken}
+            postgresInstalled={postgresInstalled}
+            mongodbInstalled={mongodbInstalled}
+            isDemo={!!data.isDemo}
+          />
+        )}
+
+        {/* Restore card — shown when a DB is installed */}
+        {(postgresInstalled || mongodbInstalled) && (
+          <RestoreCard
             csrfToken={data.csrfToken}
             postgresInstalled={postgresInstalled}
             mongodbInstalled={mongodbInstalled}

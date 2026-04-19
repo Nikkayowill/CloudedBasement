@@ -137,6 +137,18 @@ async function runMigrations() {
     const { up: securityEventsAnalyticsIndex } = require('./039-security-events-analytics-index');
     await securityEventsAnalyticsIndex();
 
+    // Create restore_jobs table for tracking backup restore attempts
+    const { up: createRestoreJobs } = require('./040-create-restore-jobs');
+    await createRestoreJobs();
+
+    // Create billing_guardrails and billing_threshold_sent tables
+    const { up: createBillingGuardrails } = require('./041-create-billing-guardrails');
+    await createBillingGuardrails();
+
+    // Create account_memberships and account_invites tables for team access
+    const { up: createTeamTables } = require('./042-create-team-tables');
+    await createTeamTables();
+
   } catch (error) {
     // Safely rollback transaction (may not have started if error was early)
     try {
@@ -145,8 +157,7 @@ async function runMigrations() {
       // Transaction not started - safe to ignore
     }
     console.error('[MIGRATION] Error running migrations:', error.message);
-    // Don't crash the app - log error and continue
-    // Worst case: database features won't work until manual fix
+    throw error;
   } finally {
     client.release();
   }

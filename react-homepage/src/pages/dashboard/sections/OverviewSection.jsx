@@ -379,6 +379,16 @@ function UpdatesCard({ pendingUpdates = [], updateHistory = [], csrfToken, hasSe
     if (!window.confirm(`Apply ${pendingUpdates.length} update(s) to your server?`)) return;
     setApplying(true);
     setMsg(null);
+
+    const decodeSafe = (value) => {
+      if (typeof value !== 'string' || !value.trim()) return '';
+      try {
+        return decodeURIComponent(value);
+      } catch {
+        return value;
+      }
+    };
+
     try {
       const body = new URLSearchParams({ _csrf: csrfToken });
       const r = await fetch('/apply-updates', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body });
@@ -388,13 +398,27 @@ function UpdatesCard({ pendingUpdates = [], updateHistory = [], csrfToken, hasSe
         setMsg({ type: 'error', text: errorText });
         return;
       }
-      const finalUrl = new URL(r.url, window.location.origin);
-      const success  = finalUrl.searchParams.get('success');
-      const warning  = finalUrl.searchParams.get('warning');
-      const error    = finalUrl.searchParams.get('error');
-      if (error)   setMsg({ type: 'error',   text: decodeURIComponent(error) });
-      else if (warning) setMsg({ type: 'warning', text: decodeURIComponent(warning) });
-      else         setMsg({ type: 'success',  text: decodeURIComponent(success || 'Done.') });
+
+      let success = '';
+      let warning = '';
+      let error = '';
+
+      if (r.redirected) {
+        const finalUrl = new URL(r.url, window.location.origin);
+        success = decodeSafe(finalUrl.searchParams.get('success') || '');
+        warning = decodeSafe(finalUrl.searchParams.get('warning') || '');
+        error = decodeSafe(finalUrl.searchParams.get('error') || '');
+      } else {
+        let payload = null;
+        try { payload = await r.json(); } catch {}
+        success = decodeSafe(String(payload?.success || ''));
+        warning = decodeSafe(String(payload?.warning || ''));
+        error = decodeSafe(String(payload?.error || ''));
+      }
+
+      if (error) setMsg({ type: 'error', text: error });
+      else if (warning) setMsg({ type: 'warning', text: warning });
+      else setMsg({ type: 'success', text: success || 'Done.' });
     } catch (err) {
       setMsg({ type: 'error', text: err.message });
     } finally {

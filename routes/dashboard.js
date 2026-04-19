@@ -5,6 +5,9 @@ const { requireAuth } = require('../middleware/auth');
 const dashboardController = require('../controllers/dashboardController');
 const gettingStartedController = require('../controllers/gettingStartedController');
 const { triggerBackup } = require('../services/dbBackups');
+const { listBackups, initiateRestore, getRestoreJobStatus, listRestoreJobs } = require('../services/backupRestore');
+const { getGuardrails, updateGuardrails, getSpendForecast } = require('../services/billingGuardrails');
+const teamController = require('../controllers/teamController');
 
 const router = Router();
 
@@ -67,9 +70,109 @@ router.post('/api/backup-database', requireAuth, csrf, async (req, res) => {
     else res.status(400).json(result);
   } catch (err) {
     console.error('[backup-database] Unexpected error:', err.message);
-    res.status(500).json({ error: 'backup failed', details: err.message });
+    res.status(500).json({ error: 'backup failed' });
   }
 });
+
+// ── Backup restore ────────────────────────────────────────────────────────────
+
+// List available backup files on the user's server
+router.get('/api/backups/list', requireAuth, csrf, async (req, res) => {
+  try {
+    const result = await listBackups(req.session.userId);
+    if (result.success) res.json(result);
+    else res.status(400).json(result);
+  } catch (err) {
+    console.error('[backups/list] Unexpected error:', err.message);
+    res.status(500).json({ error: 'Failed to list backups' });
+  }
+});
+
+// Initiate a restore (destructive — client must confirm)
+router.post('/api/backups/restore', requireAuth, csrf, async (req, res) => {
+  const { backup_file, db_type } = req.body;
+  if (!backup_file || !db_type) {
+    return res.status(400).json({ error: 'backup_file and db_type are required' });
+  }
+  try {
+    const result = await initiateRestore(req.session.userId, backup_file, db_type);
+    if (result.success) res.json(result);
+    else res.status(400).json(result);
+  } catch (err) {
+    console.error('[backups/restore] Unexpected error:', err.message);
+    res.status(500).json({ error: 'Failed to start restore' });
+  }
+});
+
+// Poll restore job status
+router.get('/api/backups/restore-status/:jobId', requireAuth, async (req, res) => {
+  const jobId = parseInt(req.params.jobId, 10);
+  if (!Number.isFinite(jobId)) return res.status(400).json({ error: 'Invalid job ID' });
+  try {
+    const job = await getRestoreJobStatus(req.session.userId, jobId);
+    if (!job) return res.status(404).json({ error: 'Job not found' });
+    res.json(job);
+  } catch (err) {
+    console.error('[backups/restore-status] Unexpected error:', err.message);
+    res.status(500).json({ error: 'Failed to get job status' });
+  }
+});
+
+// List recent restore jobs
+router.get('/api/backups/restore-jobs', requireAuth, async (req, res) => {
+  try {
+    const jobs = await listRestoreJobs(req.session.userId);
+    res.json({ jobs });
+  } catch (err) {
+    console.error('[backups/restore-jobs] Unexpected error:', err.message);
+    res.status(500).json({ error: 'Failed to list restore jobs' });
+  }
+});
+
+// ── Billing guardrails ────────────────────────────────────────────────────────
+
+router.get('/api/billing/guardrails', requireAuth, async (req, res) => {
+  try {
+    const guardrail = await getGuardrails(req.session.userId);
+    res.json(guardrail);
+  } catch (err) {
+    console.error('[billing/guardrails GET] Error:', err.message);
+    res.status(500).json({ error: 'Failed to load guardrails' });
+  }
+});
+
+router.put('/api/billing/guardrails', requireAuth, csrf, async (req, res) => {
+  try {
+    const updated = await updateGuardrails(req.session.userId, req.body);
+    res.json({ success: true, guardrail: updated });
+  } catch (err) {
+    if (err.message.includes('must be')) {
+      return res.status(400).json({ error: err.message });
+    }
+    console.error('[billing/guardrails PUT] Error:', err.message);
+    res.status(500).json({ error: 'Failed to update guardrails' });
+  }
+});
+
+router.get('/api/billing/forecast', requireAuth, async (req, res) => {
+  try {
+    const forecast = await getSpendForecast(req.session.userId);
+    res.json(forecast);
+  } catch (err) {
+    console.error('[billing/forecast] Error:', err.message);
+    res.status(500).json({ error: 'Failed to calculate forecast' });
+  }
+});
+
+// ── Team management ───────────────────────────────────────────────────────────
+
+router.get('/api/team/members',             requireAuth,       teamController.listMembers);
+router.post('/api/team/invite',             requireAuth, csrf, teamController.inviteMember);
+router.get('/api/team/invite/accept',                          teamController.previewInviteAcceptance); // no requireAuth — handles redirect to login
+router.post('/api/team/invite/accept',      requireAuth, csrf, teamController.acceptInvite);
+router.patch('/api/team/members/:id/role',  requireAuth, csrf, teamController.updateMemberRole);
+router.delete('/api/team/members/:id',      requireAuth, csrf, teamController.removeMember);
+router.delete('/api/team/invites/:id',      requireAuth, csrf, teamController.revokeInvite);
 
 // Getting started guide
 router.get('/getting-started', requireAuth, gettingStartedController.showGettingStarted);

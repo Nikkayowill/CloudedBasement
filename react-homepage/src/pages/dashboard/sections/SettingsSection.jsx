@@ -784,6 +784,475 @@ function NotificationChannelsCard({ csrfToken, slackWebhookUrl, discordWebhookUr
   );
 }
 
+const ROLE_COLORS = {
+  owner:     { bg: 'rgba(250,204,21,0.08)',  border: 'rgba(250,204,21,0.25)',  text: '#fde047' },
+  admin:     { bg: 'rgba(239,68,68,0.08)',   border: 'rgba(239,68,68,0.2)',    text: '#fca5a5' },
+  developer: { bg: 'rgba(59,130,246,0.08)',  border: 'rgba(59,130,246,0.2)',   text: '#93c5fd' },
+  viewer:    { bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.09)', text: '#a1a1a1' },
+};
+
+function RoleBadge({ role }) {
+  const c = ROLE_COLORS[role] ?? ROLE_COLORS.viewer;
+  return (
+    <span style={{
+      fontSize: '0.5625rem', fontWeight: 600, letterSpacing: '0.05em',
+      textTransform: 'uppercase', padding: '0.15rem 0.45rem',
+      borderRadius: '0.2rem', background: c.bg, border: `1px solid ${c.border}`,
+      color: c.text, whiteSpace: 'nowrap',
+    }}>
+      {role}
+    </span>
+  );
+}
+
+const DEMO_MEMBERS = [
+  { id: 1, user_id: 2, email: 'alice@example.com', role: 'admin',     created_at: '2026-03-01T00:00:00Z' },
+  { id: 2, user_id: 3, email: 'bob@example.com',   role: 'developer', created_at: '2026-04-01T00:00:00Z' },
+];
+const DEMO_INVITES = [
+  { id: 1, email: 'carol@example.com', role: 'viewer', status: 'pending', expires_at: '2026-04-21T00:00:00Z' },
+];
+
+function TeamManagementCard({ csrfToken, isDemo }) {
+  const [members, setMembers]         = useState([]);
+  const [invites, setInvites]         = useState([]);
+  const [loading, setLoading]         = useState(true);
+
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole]   = useState('developer');
+  const [inviting, setInviting]       = useState(false);
+  const [inviteResult, setInviteResult] = useState(null);
+
+  const [actionResult, setActionResult] = useState(null);
+
+  async function loadMembers() {
+    if (isDemo) {
+      setMembers(DEMO_MEMBERS);
+      setInvites(DEMO_INVITES);
+      setLoading(false);
+      return;
+    }
+    try {
+      const r = await fetch('/api/team/members', { credentials: 'same-origin' });
+      const d = await r.json();
+      if (r.ok) { setMembers(d.members ?? []); setInvites(d.pending_invites ?? []); }
+    } catch { /* non-fatal */ } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { loadMembers(); }, []);
+
+  async function sendInvite(e) {
+    e.preventDefault();
+    setInviting(true); setInviteResult(null);
+    if (isDemo) {
+      await new Promise(r => setTimeout(r, 700));
+      setInviting(false);
+      setInviteResult({ type: 'success', message: `Invite sent to ${inviteEmail}` });
+      setInvites(prev => [...prev, { id: Date.now(), email: inviteEmail, role: inviteRole, status: 'pending', expires_at: new Date(Date.now() + 72*3600*1000).toISOString() }]);
+      setInviteEmail('');
+      return;
+    }
+    try {
+      const r = await fetch('/api/team/invite', {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrfToken },
+        body: JSON.stringify({ email: inviteEmail, role: inviteRole }),
+      });
+      const d = await r.json();
+      if (r.ok && d.success) {
+        setInviteResult({ type: 'success', message: d.message });
+        setInviteEmail('');
+        loadMembers();
+      } else {
+        setInviteResult({ type: 'error', message: d.error || `Error ${r.status}` });
+      }
+    } catch {
+      setInviteResult({ type: 'error', message: 'Network error.' });
+    } finally {
+      setInviting(false);
+    }
+  }
+
+  async function changeRole(membershipId, role) {
+    setActionResult(null);
+    if (isDemo) {
+      setMembers(prev => prev.map(m => m.id === membershipId ? { ...m, role } : m));
+      return;
+    }
+    try {
+      const r = await fetch(`/api/team/members/${membershipId}/role`, {
+        method: 'PATCH', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrfToken },
+        body: JSON.stringify({ role }),
+      });
+      if (r.ok) {
+        setMembers(prev => prev.map(m => m.id === membershipId ? { ...m, role } : m));
+      } else {
+        const d = await r.json();
+        setActionResult({ type: 'error', message: d.error || 'Failed to update role.' });
+      }
+    } catch {
+      setActionResult({ type: 'error', message: 'Network error.' });
+    }
+  }
+
+  async function removeMember(membershipId) {
+    setActionResult(null);
+    if (isDemo) {
+      setMembers(prev => prev.filter(m => m.id !== membershipId));
+      return;
+    }
+    try {
+      const r = await fetch(`/api/team/members/${membershipId}`, {
+        method: 'DELETE', credentials: 'same-origin',
+        headers: { 'x-csrf-token': csrfToken },
+      });
+      if (r.ok) {
+        setMembers(prev => prev.filter(m => m.id !== membershipId));
+      } else {
+        const d = await r.json();
+        setActionResult({ type: 'error', message: d.error || 'Failed to remove member.' });
+      }
+    } catch {
+      setActionResult({ type: 'error', message: 'Network error.' });
+    }
+  }
+
+  async function revokeInvite(inviteId) {
+    setActionResult(null);
+    if (isDemo) {
+      setInvites(prev => prev.filter(i => i.id !== inviteId));
+      return;
+    }
+    try {
+      const r = await fetch(`/api/team/invites/${inviteId}`, {
+        method: 'DELETE', credentials: 'same-origin',
+        headers: { 'x-csrf-token': csrfToken },
+      });
+      if (r.ok) {
+        setInvites(prev => prev.filter(i => i.id !== inviteId));
+      } else {
+        const d = await r.json();
+        setActionResult({ type: 'error', message: d.error || 'Failed to revoke invite.' });
+      }
+    } catch {
+      setActionResult({ type: 'error', message: 'Network error.' });
+    }
+  }
+
+  const rowStyle = {
+    display: 'flex', alignItems: 'center', gap: '0.625rem', flexWrap: 'wrap',
+    padding: '0.5625rem 0', borderBottom: '1px solid rgba(255,255,255,0.04)',
+  };
+  const emailStyle = {
+    flex: 1, minWidth: '8rem', fontSize: '0.8125rem',
+    color: 'var(--dash-text-secondary, #a1a1a1)', wordBreak: 'break-all',
+  };
+  const smallBtnStyle = {
+    padding: '0.25rem 0.5rem', fontSize: '0.6875rem', borderRadius: '0.25rem',
+    background: 'transparent', border: '1px solid rgba(255,255,255,0.1)',
+    color: 'var(--dash-text-muted, #525252)', cursor: 'pointer', whiteSpace: 'nowrap',
+  };
+
+  return (
+    <CardShell title="Team Management">
+      {loading ? (
+        <p style={{ fontSize: '0.8125rem', color: 'var(--dash-text-muted, #525252)', margin: 0 }}>Loading…</p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+
+          {/* Current members */}
+          {members.length > 0 && (
+            <div>
+              <p style={{ fontSize: '0.75rem', color: 'var(--dash-text-muted, #525252)', marginBottom: '0.5rem' }}>Members</p>
+              {members.map(m => (
+                <div key={m.id} style={rowStyle}>
+                  <span style={emailStyle}>{m.email}</span>
+                  <RoleBadge role={m.role} />
+                  <select
+                    value={m.role}
+                    onChange={e => changeRole(m.id, e.target.value)}
+                    style={{
+                      padding: '0.2rem 0.4rem', fontSize: '0.6875rem',
+                      background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
+                      borderRadius: '0.25rem', color: 'var(--dash-text-secondary, #a1a1a1)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {['admin', 'developer', 'viewer'].map(r => (
+                      <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>
+                    ))}
+                  </select>
+                  <button onClick={() => removeMember(m.id)} style={{ ...smallBtnStyle, color: '#fca5a5', borderColor: 'rgba(239,68,68,0.2)' }}>
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Pending invites */}
+          {invites.length > 0 && (
+            <div>
+              <p style={{ fontSize: '0.75rem', color: 'var(--dash-text-muted, #525252)', marginBottom: '0.5rem' }}>Pending invites</p>
+              {invites.map(i => (
+                <div key={i.id} style={rowStyle}>
+                  <span style={emailStyle}>{i.email}</span>
+                  <RoleBadge role={i.role} />
+                  <span style={{ fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)', whiteSpace: 'nowrap' }}>
+                    expires {new Date(i.expires_at).toLocaleDateString()}
+                  </span>
+                  <button onClick={() => revokeInvite(i.id)} style={smallBtnStyle}>
+                    Revoke
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {members.length === 0 && invites.length === 0 && (
+            <p style={{ fontSize: '0.8125rem', color: 'var(--dash-text-muted, #525252)', margin: 0 }}>
+              No team members yet. Invite someone below.
+            </p>
+          )}
+
+          {actionResult && <InlineAlert type={actionResult.type} message={actionResult.message} />}
+
+          {/* Invite form */}
+          <form onSubmit={sendInvite} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <p style={{ fontSize: '0.75rem', color: 'var(--dash-text-muted, #525252)', margin: 0 }}>Invite a team member</p>
+            <div style={{ display: 'flex', gap: '0.625rem', flexWrap: 'wrap' }}>
+              <input
+                type="email" required value={inviteEmail}
+                onChange={e => setInviteEmail(e.target.value)}
+                placeholder="colleague@example.com"
+                style={{ ...inputStyle, flex: 1, minWidth: '10rem' }}
+                onFocus={e => { e.currentTarget.style.borderColor = 'rgba(59,130,246,0.5)'; }}
+                onBlur={e  => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+              />
+              <select
+                value={inviteRole}
+                onChange={e => setInviteRole(e.target.value)}
+                style={{
+                  padding: '0.5rem 0.75rem', fontSize: '0.875rem',
+                  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '0.375rem', color: 'var(--dash-text-secondary, #a1a1a1)',
+                  cursor: 'pointer',
+                }}
+              >
+                <option value="admin">Admin</option>
+                <option value="developer">Developer</option>
+                <option value="viewer">Viewer</option>
+              </select>
+            </div>
+            {inviteResult && <InlineAlert type={inviteResult.type} message={inviteResult.message} />}
+            <button type="submit" disabled={inviting} style={{
+              alignSelf: 'flex-start', padding: '0.5rem 1.125rem',
+              background: '#2563eb', border: 'none', borderRadius: '0.375rem',
+              color: '#fff', fontSize: '0.875rem', fontWeight: 500,
+              cursor: inviting ? 'wait' : 'pointer', opacity: inviting ? 0.7 : 1,
+            }}>
+              {inviting ? 'Sending…' : 'Send Invite'}
+            </button>
+            <p style={{ fontSize: '0.75rem', color: 'var(--dash-text-muted, #525252)', margin: 0, lineHeight: 1.5 }}>
+              <strong>Admin</strong> — can manage members, deploy, and edit env vars.{' '}
+              <strong>Developer</strong> — can deploy and edit env vars.{' '}
+              <strong>Viewer</strong> — read-only access.
+            </p>
+          </form>
+        </div>
+      )}
+    </CardShell>
+  );
+}
+
+function SpendForecastCard({ isDemo }) {
+  const [forecast, setForecast] = useState(null);
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState(null);
+
+  const DEMO_FORECAST = {
+    cycle: '2026-04', spent_this_month: 29.00, forecast_month_end: 42.50,
+    days_elapsed: 18, days_in_month: 30,
+  };
+
+  async function load() {
+    setLoading(true); setError(null);
+    if (isDemo) {
+      await new Promise(r => setTimeout(r, 600));
+      setForecast(DEMO_FORECAST);
+      setLoading(false);
+      return;
+    }
+    try {
+      const r = await fetch('/api/billing/forecast', { credentials: 'same-origin' });
+      const d = await r.json();
+      if (r.ok) setForecast(d);
+      else setError(d.error || `Error ${r.status}`);
+    } catch {
+      setError('Network error.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { load(); }, []);
+
+  const fmt = v => `$${(v ?? 0).toFixed(2)}`;
+
+  return (
+    <CardShell title="Spend Forecast">
+      {loading && !forecast && (
+        <p style={{ fontSize: '0.8125rem', color: 'var(--dash-text-muted, #525252)', margin: 0 }}>Loading…</p>
+      )}
+      {error && <p style={{ fontSize: '0.8125rem', color: '#fca5a5', margin: 0 }}>{error}</p>}
+      {forecast && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem' }}>
+            {[
+              { label: 'Spent this month', value: fmt(forecast.spent_this_month) },
+              { label: 'Forecast (month-end)', value: fmt(forecast.forecast_month_end) },
+              { label: 'Days elapsed', value: `${forecast.days_elapsed} / ${forecast.days_in_month}` },
+              { label: 'Billing cycle', value: forecast.cycle },
+            ].map(({ label, value }) => (
+              <div key={label} style={{
+                padding: '0.625rem 0.875rem', borderRadius: '0.375rem',
+                border: '1px solid rgba(255,255,255,0.06)',
+                background: 'rgba(255,255,255,0.02)',
+              }}>
+                <p style={{ fontSize: '0.6875rem', color: 'var(--dash-text-muted, #525252)', marginBottom: '0.25rem' }}>{label}</p>
+                <p style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--dash-text-primary, #fafafa)', margin: 0 }}>{value}</p>
+              </div>
+            ))}
+          </div>
+          <p style={{ fontSize: '0.75rem', color: 'var(--dash-text-muted, #525252)', margin: 0, lineHeight: 1.5 }}>
+            Forecast is a linear projection based on spend so far this month.
+          </p>
+        </div>
+      )}
+    </CardShell>
+  );
+}
+
+function BillingGuardrailsCard({ csrfToken, isDemo }) {
+  const [guardrail, setGuardrail] = useState(null);
+  const [limit, setLimit]         = useState('');
+  const [warnPct, setWarnPct]     = useState('80');
+  const [enabled, setEnabled]     = useState(true);
+  const [saving, setSaving]       = useState(false);
+  const [result, setResult]       = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      if (isDemo) {
+        setGuardrail({ monthly_limit: 50, warn_at_percent: 80, enabled: true });
+        setLimit('50'); setWarnPct('80'); setEnabled(true);
+        return;
+      }
+      try {
+        const r = await fetch('/api/billing/guardrails', { credentials: 'same-origin' });
+        const d = await r.json();
+        if (r.ok) {
+          setGuardrail(d);
+          setLimit(d.monthly_limit != null ? String(d.monthly_limit) : '');
+          setWarnPct(String(d.warn_at_percent ?? 80));
+          setEnabled(d.enabled ?? true);
+        }
+      } catch { /* non-fatal */ }
+    })();
+  }, []);
+
+  async function save(e) {
+    e.preventDefault();
+    setSaving(true); setResult(null);
+    if (isDemo) {
+      await new Promise(r => setTimeout(r, 700));
+      setSaving(false);
+      setResult({ type: 'success', message: 'Guardrails saved.' });
+      return;
+    }
+    try {
+      const body = {
+        enabled,
+        warn_at_percent: parseInt(warnPct, 10),
+      };
+      if (limit.trim()) body.monthly_limit = parseFloat(limit);
+      else body.monthly_limit = null;
+
+      const r = await fetch('/api/billing/guardrails', {
+        method: 'PUT', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrfToken },
+        body: JSON.stringify(body),
+      });
+      const d = await r.json();
+      if (r.ok && d.success) {
+        setResult({ type: 'success', message: 'Guardrails saved.' });
+        setGuardrail(d.guardrail);
+      } else {
+        setResult({ type: 'error', message: d.error || `Error ${r.status}` });
+      }
+    } catch {
+      setResult({ type: 'error', message: 'Network error.' });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <CardShell title="Billing Guardrails">
+      <form onSubmit={save} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+          <input
+            type="checkbox" id="guardrail-enabled" checked={enabled}
+            onChange={e => setEnabled(e.target.checked)}
+            style={{ accentColor: '#2563eb', width: '1rem', height: '1rem' }}
+          />
+          <label htmlFor="guardrail-enabled" style={{ fontSize: '0.875rem', color: 'var(--dash-text-secondary, #a1a1a1)', cursor: 'pointer' }}>
+            Enable spend alerts
+          </label>
+        </div>
+        <div>
+          <label style={labelStyle}>Monthly limit (USD)</label>
+          <input
+            type="number" min="0" step="0.01" value={limit}
+            onChange={e => setLimit(e.target.value)}
+            placeholder="e.g. 100"
+            disabled={!enabled}
+            style={{ ...inputStyle, opacity: enabled ? 1 : 0.5 }}
+            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(59,130,246,0.5)'; }}
+            onBlur={e  => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+          />
+          <p style={{ fontSize: '0.75rem', color: 'var(--dash-text-muted, #525252)', marginTop: '0.25rem' }}>
+            Leave blank to track spend without a hard ceiling.
+          </p>
+        </div>
+        <div>
+          <label style={labelStyle}>Warn when spend reaches (% of limit)</label>
+          <input
+            type="number" min="1" max="99" step="1" value={warnPct}
+            onChange={e => setWarnPct(e.target.value)}
+            disabled={!enabled}
+            style={{ ...inputStyle, width: '6rem', opacity: enabled ? 1 : 0.5 }}
+            onFocus={e => { e.currentTarget.style.borderColor = 'rgba(59,130,246,0.5)'; }}
+            onBlur={e  => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+          />
+        </div>
+        {result && <InlineAlert type={result.type} message={result.message} />}
+        <button type="submit" disabled={saving} style={{
+          alignSelf: 'flex-start', padding: '0.5rem 1.125rem',
+          background: '#2563eb', border: 'none', borderRadius: '0.375rem',
+          color: '#fff', fontSize: '0.875rem', fontWeight: 500,
+          cursor: saving ? 'wait' : 'pointer', opacity: saving ? 0.7 : 1,
+        }}>
+          {saving ? 'Saving…' : 'Save Guardrails'}
+        </button>
+      </form>
+    </CardShell>
+  );
+}
+
 export default function SettingsSection({ data }) {
   const { csrfToken, notifyWebhookUrl, slackWebhookUrl, discordWebhookUrl, twofaEnabled } = data;
 
@@ -793,6 +1262,9 @@ export default function SettingsSection({ data }) {
       <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         <PlanCard data={data} />
         <BillingUsageCard />
+        <SpendForecastCard isDemo={!!data.isDemo} />
+        <BillingGuardrailsCard csrfToken={csrfToken} isDemo={!!data.isDemo} />
+        <TeamManagementCard csrfToken={csrfToken} isDemo={!!data.isDemo} />
         <WebhookCard csrfToken={csrfToken} notifyWebhookUrl={notifyWebhookUrl} />
         <NotificationChannelsCard csrfToken={csrfToken} slackWebhookUrl={slackWebhookUrl} discordWebhookUrl={discordWebhookUrl} />
         <TwoFACard csrfToken={csrfToken} twofaEnabled={twofaEnabled} />
