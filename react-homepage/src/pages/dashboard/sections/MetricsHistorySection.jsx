@@ -1,5 +1,15 @@
 import { useState, useEffect } from 'react';
 
+function SectionHeader({ title }) {
+  return (
+    <div className="border-b-faint" style={{ padding: '1.5rem 1.5rem 1rem' }}>
+      <h2 style={{ fontSize: '0.8125rem', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--dash-text-muted, #525252)' }}>
+        {title}
+      </h2>
+    </div>
+  );
+}
+
 // ── Metrics Line Chart ────────────────────────────────────────────────────────
 
 function SimpleLineChart({ data, label, color, height = 200 }) {
@@ -142,7 +152,8 @@ export function MetricsHistorySection() {
       const result = await response.json();
       setMetrics(result);
     } catch (err) {
-      setEmptyReason('Metrics are temporarily unavailable.');
+      setError('Unable to load metrics history right now.');
+      setEmptyReason('');
       console.warn('[METRICS HISTORY] Unable to load metrics history:', err?.message || err);
       setMetrics({ data: [] });
     } finally {
@@ -155,107 +166,113 @@ export function MetricsHistorySection() {
   const diskData = metrics.data?.map(d => d.disk) || [];
 
   return (
-    <div style={{ padding: '1.5rem 0' }}>
-      <div style={{ marginBottom: '1.5rem' }}>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>
-          Metrics History
-        </h2>
-        <p style={{ color: '#a0a0a0', fontSize: '0.875rem' }}>
-          View CPU, memory, and disk usage trends over time
-        </p>
+    <section>
+      <SectionHeader title="Metrics History" />
+
+      <div style={{ padding: '1.25rem 1.5rem' }}>
+        <style>{`
+          .metrics-period-button {
+            padding: 0.25rem 0.625rem;
+            border-radius: 0.3125rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--dash-text-secondary, #a1a1a1);
+            transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+          }
+
+          .metrics-period-button:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.18);
+            color: var(--dash-text-primary, #fafafa);
+          }
+
+          .metrics-period-button.metrics-period-button--active,
+          .metrics-period-button.metrics-period-button--active:hover {
+            background: rgba(59,130,246,0.18);
+            border-color: rgba(59,130,246,0.4);
+            color: #60a5fa;
+          }
+        `}</style>
+
+        {/* Card shell */}
+        <div style={{ border: '1px solid rgba(255,255,255,0.07)', borderRadius: '0.625rem', overflow: 'hidden' }}>
+
+          {/* Card header — title + period selector */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.875rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.05)', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <span style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--dash-text-primary, #fafafa)' }}>
+              CPU, Memory &amp; Disk Usage
+            </span>
+            <div style={{ display: 'flex', gap: '0.375rem' }}>
+              {['24h', '7d', '30d'].map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPeriod(p)}
+                  className={`metrics-period-button${period === p ? ' metrics-period-button--active' : ''}`}
+                >
+                  {p.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Card body */}
+          <div style={{ padding: '1rem 1.25rem' }}>
+
+            {error && (
+              <div style={{
+                padding: '0.625rem 0.875rem',
+                background: 'rgba(239,68,68,0.07)',
+                border: '1px solid rgba(239,68,68,0.2)',
+                borderRadius: '0.375rem',
+                color: '#fca5a5',
+                fontSize: '0.8125rem',
+                marginBottom: '1rem',
+              }}>
+                {error}
+              </div>
+            )}
+
+            {!loading && !error && emptyReason && (
+              <div style={{
+                padding: '0.625rem 0.875rem',
+                background: 'rgba(59,130,246,0.07)',
+                border: '1px solid rgba(59,130,246,0.2)',
+                borderRadius: '0.375rem',
+                color: '#93c5fd',
+                fontSize: '0.8125rem',
+                marginBottom: '1rem',
+              }}>
+                {emptyReason}
+              </div>
+            )}
+
+            {loading && (
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '8rem', color: 'var(--dash-text-muted, #525252)', fontSize: '0.8125rem' }}>
+                Loading metrics…
+              </div>
+            )}
+
+            {!loading && !error && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <SimpleLineChart data={cpuData}    label="CPU Usage"    color="#3b82f6" />
+                <SimpleLineChart data={memoryData} label="Memory Usage" color="#8b5cf6" />
+                <SimpleLineChart data={diskData}   label="Disk Usage"   color="#ec4899" />
+              </div>
+            )}
+
+            {!loading && !error && metrics.data?.length > 0 && (
+              <div style={{ marginTop: '0.75rem', fontSize: '0.75rem', color: 'var(--dash-text-muted, #525252)' }}>
+                {metrics.dataPoints ?? metrics.data?.length ?? 0} data points · last {period}
+              </div>
+            )}
+
+          </div>
+        </div>
       </div>
-
-      {/* Period selector */}
-      <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '0.5rem' }}>
-        {['24h', '7d', '30d'].map((p) => (
-          <button
-            key={p}
-            onClick={() => setPeriod(p)}
-            style={{
-              padding: '0.5rem 1rem',
-              background: period === p ? '#3b82f6' : 'rgba(255,255,255,0.05)',
-              border: `1px solid ${period === p ? '#3b82f6' : 'rgba(255,255,255,0.1)'}`,
-              color: '#ffffff',
-              borderRadius: '0.375rem',
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              if (period !== p) e.target.style.background = 'rgba(255,255,255,0.08)';
-            }}
-            onMouseLeave={(e) => {
-              if (period !== p) e.target.style.background = 'rgba(255,255,255,0.05)';
-            }}
-          >
-            {p.toUpperCase()}
-          </button>
-        ))}
-      </div>
-
-      {error && (
-        <div style={{
-          padding: '0.875rem 1rem',
-          background: 'rgba(239,68,68,0.1)',
-          border: '1px solid rgba(239,68,68,0.3)',
-          borderRadius: '0.375rem',
-          color: '#fca5a5',
-          fontSize: '0.875rem',
-          marginBottom: '1.5rem',
-        }}>
-          {error}
-        </div>
-      )}
-
-      {!loading && !error && emptyReason && (
-        <div style={{
-          padding: '0.875rem 1rem',
-          background: 'rgba(59,130,246,0.08)',
-          border: '1px solid rgba(59,130,246,0.22)',
-          borderRadius: '0.375rem',
-          color: '#93c5fd',
-          fontSize: '0.875rem',
-          marginBottom: '1.5rem',
-        }}>
-          {emptyReason}
-        </div>
-      )}
-
-      {loading && (
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '200px',
-          color: '#525252',
-        }}>
-          Loading metrics...
-        </div>
-      )}
-
-      {!loading && !error && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
-          <SimpleLineChart data={cpuData} label="CPU Usage" color="#3b82f6" />
-          <SimpleLineChart data={memoryData} label="Memory Usage" color="#8b5cf6" />
-          <SimpleLineChart data={diskData} label="Disk Usage" color="#ec4899" />
-        </div>
-      )}
-
-      {!loading && !error && metrics.data?.length > 0 && (
-        <div style={{
-          marginTop: '1rem',
-          padding: '0.875rem 1rem',
-          background: 'rgba(255,255,255,0.02)',
-          border: '1px solid rgba(255,255,255,0.06)',
-          borderRadius: '0.375rem',
-          fontSize: '0.75rem',
-          color: '#525252',
-        }}>
-          Showing {metrics.dataPoints ?? metrics.data?.length ?? 0} data points for the last {period}
-        </div>
-      )}
-    </div>
+    </section>
   );
 }
 

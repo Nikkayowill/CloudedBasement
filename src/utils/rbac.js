@@ -50,6 +50,42 @@ function isAdminSession(req) {
   return hasRole(req?.session?.userRole, [ROLE_ADMIN]);
 }
 
+// ── Team roles ────────────────────────────────────────────────────────────────
+// Account-level roles layered on top of the platform user/admin roles.
+// owner is not stored in account_memberships — it is implied by account_owner_id.
+
+const TEAM_ROLE_OWNER     = 'owner';
+const TEAM_ROLE_ADMIN     = 'admin';
+const TEAM_ROLE_DEVELOPER = 'developer';
+const TEAM_ROLE_VIEWER    = 'viewer';
+
+const TEAM_ROLE_RANK = {
+  [TEAM_ROLE_OWNER]:     4,
+  [TEAM_ROLE_ADMIN]:     3,
+  [TEAM_ROLE_DEVELOPER]: 2,
+  [TEAM_ROLE_VIEWER]:    1,
+};
+
+const VALID_TEAM_ROLES = Object.keys(TEAM_ROLE_RANK);
+
+function teamRoleAtLeast(userTeamRole, minRole) {
+  const userRank = TEAM_ROLE_RANK[userTeamRole] ?? 0;
+  const minRank  = TEAM_ROLE_RANK[minRole]      ?? 99;
+  return userRank >= minRank;
+}
+
+const TEAM_PERMISSIONS = {
+  [TEAM_ROLE_OWNER]:     new Set(['*']),
+  [TEAM_ROLE_ADMIN]:     new Set(['deploy', 'env:write', 'billing:read', 'members:manage']),
+  [TEAM_ROLE_DEVELOPER]: new Set(['deploy', 'env:write', 'billing:read']),
+  [TEAM_ROLE_VIEWER]:    new Set(['deploy:read', 'env:read', 'billing:read']),
+};
+
+function hasTeamPermission(teamRole, permission) {
+  const perms = TEAM_PERMISSIONS[teamRole] ?? TEAM_PERMISSIONS[TEAM_ROLE_VIEWER];
+  return perms.has('*') || perms.has(permission);
+}
+
 module.exports = {
   ROLE_USER,
   ROLE_ADMIN,
@@ -57,5 +93,13 @@ module.exports = {
   normalizeRole,
   hasRole,
   hasPermission,
-  isAdminSession
+  isAdminSession,
+  TEAM_ROLE_OWNER,
+  TEAM_ROLE_ADMIN,
+  TEAM_ROLE_DEVELOPER,
+  TEAM_ROLE_VIEWER,
+  VALID_TEAM_ROLES,
+  TEAM_ROLE_RANK,
+  teamRoleAtLeast,
+  hasTeamPermission,
 };

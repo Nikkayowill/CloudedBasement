@@ -210,7 +210,7 @@ function MetricsGrid() {
     ] })
   ] });
 }
-function SectionHeader$7({ title }) {
+function SectionHeader$8({ title }) {
   return /* @__PURE__ */ jsx("div", { className: "border-b-faint", style: { padding: "1.5rem 1.5rem 1rem" }, children: /* @__PURE__ */ jsx("h2", { style: { fontSize: "0.8125rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--dash-text-muted, #525252)" }, children: title }) });
 }
 function DataRow({ label, value, valueStyle }) {
@@ -409,6 +409,14 @@ function UpdatesCard({ pendingUpdates = [], updateHistory = [], csrfToken, hasSe
     if (!window.confirm(`Apply ${pendingUpdates.length} update(s) to your server?`)) return;
     setApplying(true);
     setMsg(null);
+    const decodeSafe = (value) => {
+      if (typeof value !== "string" || !value.trim()) return "";
+      try {
+        return decodeURIComponent(value);
+      } catch {
+        return value;
+      }
+    };
     try {
       const body = new URLSearchParams({ _csrf: csrfToken });
       const r = await fetch("/apply-updates", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body });
@@ -421,13 +429,27 @@ function UpdatesCard({ pendingUpdates = [], updateHistory = [], csrfToken, hasSe
         setMsg({ type: "error", text: errorText });
         return;
       }
-      const finalUrl = new URL(r.url, window.location.origin);
-      const success = finalUrl.searchParams.get("success");
-      const warning = finalUrl.searchParams.get("warning");
-      const error = finalUrl.searchParams.get("error");
-      if (error) setMsg({ type: "error", text: decodeURIComponent(error) });
-      else if (warning) setMsg({ type: "warning", text: decodeURIComponent(warning) });
-      else setMsg({ type: "success", text: decodeURIComponent(success || "Done.") });
+      let success = "";
+      let warning = "";
+      let error = "";
+      if (r.redirected) {
+        const finalUrl = new URL(r.url, window.location.origin);
+        success = decodeSafe(finalUrl.searchParams.get("success") || "");
+        warning = decodeSafe(finalUrl.searchParams.get("warning") || "");
+        error = decodeSafe(finalUrl.searchParams.get("error") || "");
+      } else {
+        let payload = null;
+        try {
+          payload = await r.json();
+        } catch {
+        }
+        success = decodeSafe(String(payload?.success || ""));
+        warning = decodeSafe(String(payload?.warning || ""));
+        error = decodeSafe(String(payload?.error || ""));
+      }
+      if (error) setMsg({ type: "error", text: error });
+      else if (warning) setMsg({ type: "warning", text: warning });
+      else setMsg({ type: "success", text: success || "Done." });
     } catch (err) {
       setMsg({ type: "error", text: err.message });
     } finally {
@@ -796,7 +818,7 @@ function OverviewSection({ data, onNav }) {
   } = data;
   const atLimit = siteCount >= siteLimit;
   return /* @__PURE__ */ jsxs("section", { children: [
-    /* @__PURE__ */ jsx(SectionHeader$7, { title: "Overview" }),
+    /* @__PURE__ */ jsx(SectionHeader$8, { title: "Overview" }),
     /* @__PURE__ */ jsxs("div", { style: { padding: "1.5rem" }, children: [
       /* @__PURE__ */ jsx(GetStartedCard, { data, onNav }),
       !hasServer && !isProvisioning && /* @__PURE__ */ jsxs("div", { style: {
@@ -937,7 +959,7 @@ function OverviewSection({ data, onNav }) {
     ] })
   ] });
 }
-function SectionHeader$6({ title }) {
+function SectionHeader$7({ title }) {
   return /* @__PURE__ */ jsx("div", { className: "border-b-faint", style: { padding: "1.5rem 1.5rem 1rem" }, children: /* @__PURE__ */ jsx("h2", { style: { fontSize: "0.8125rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--dash-text-muted, #525252)" }, children: title === "Sites" ? "Domains" : title }) });
 }
 function DomainRow({ domain, csrfToken, hasServer }) {
@@ -1019,7 +1041,7 @@ function SitesSection({ data }) {
   const { domains = [], hasServer, csrfToken } = data;
   const [domainInput, setDomainInput] = useState("");
   return /* @__PURE__ */ jsxs("section", { children: [
-    /* @__PURE__ */ jsx(SectionHeader$6, { title: "Domains" }),
+    /* @__PURE__ */ jsx(SectionHeader$7, { title: "Domains" }),
     /* @__PURE__ */ jsxs("div", { style: { padding: "1.5rem" }, children: [
       domains.length > 0 ? /* @__PURE__ */ jsx("div", { style: { border: "1px solid rgba(255,255,255,0.07)", borderRadius: "0.625rem", marginBottom: "1.25rem", overflow: "hidden" }, children: domains.map((d) => /* @__PURE__ */ jsx(DomainRow, { domain: d, csrfToken, hasServer }, d.id)) }) : /* @__PURE__ */ jsx("div", { style: {
         border: "1px solid rgba(255,255,255,0.07)",
@@ -1068,7 +1090,7 @@ function SitesSection({ data }) {
     ] })
   ] });
 }
-function SectionHeader$5({ title }) {
+function SectionHeader$6({ title }) {
   return /* @__PURE__ */ jsx("div", { className: "border-b-faint", style: { padding: "1.5rem 1.5rem 1rem" }, children: /* @__PURE__ */ jsx("h2", { style: { fontSize: "0.8125rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--dash-text-muted, #525252)" }, children: title }) });
 }
 const STATUS = {
@@ -1385,7 +1407,7 @@ function DeploySection({ data }) {
   const atLimit = siteCount >= siteLimit;
   if (!hasServer) {
     return /* @__PURE__ */ jsxs("section", { children: [
-      /* @__PURE__ */ jsx(SectionHeader$5, { title: "Deploy" }),
+      /* @__PURE__ */ jsx(SectionHeader$6, { title: "Deploy" }),
       /* @__PURE__ */ jsx("div", { style: { padding: "1.5rem" }, children: /* @__PURE__ */ jsxs("div", { style: {
         border: "1px solid rgba(255,255,255,0.07)",
         borderRadius: "0.625rem",
@@ -1408,7 +1430,7 @@ function DeploySection({ data }) {
     ] });
   }
   return /* @__PURE__ */ jsxs("section", { children: [
-    /* @__PURE__ */ jsx(SectionHeader$5, { title: "Deploy" }),
+    /* @__PURE__ */ jsx(SectionHeader$6, { title: "Deploy" }),
     /* @__PURE__ */ jsxs("div", { style: { padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }, children: [
       /* @__PURE__ */ jsxs("div", { style: { border: "1px solid rgba(255,255,255,0.07)", borderRadius: "0.625rem", overflow: "hidden" }, children: [
         /* @__PURE__ */ jsxs("div", { style: { padding: "1rem 1.25rem", borderBottom: "1px solid rgba(255,255,255,0.05)" }, children: [
@@ -1568,7 +1590,7 @@ function DeploySection({ data }) {
     ] })
   ] });
 }
-function SectionHeader$4({ title }) {
+function SectionHeader$5({ title }) {
   return /* @__PURE__ */ jsx("div", { className: "border-b-faint", style: { padding: "1.5rem 1.5rem 1rem" }, children: /* @__PURE__ */ jsx("h2", { style: { fontSize: "0.8125rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--dash-text-muted, #525252)" }, children: title }) });
 }
 const MONO = { fontFamily: "JetBrains Mono, monospace" };
@@ -1889,7 +1911,7 @@ function DevToolsSection({ data }) {
   }
   if (!hasServer) {
     return /* @__PURE__ */ jsxs("section", { children: [
-      /* @__PURE__ */ jsx(SectionHeader$4, { title: "Dev Tools" }),
+      /* @__PURE__ */ jsx(SectionHeader$5, { title: "Dev Tools" }),
       /* @__PURE__ */ jsx("div", { style: { padding: "1.5rem" }, children: /* @__PURE__ */ jsxs("div", { style: {
         border: "1px solid rgba(255,255,255,0.07)",
         borderRadius: "0.625rem",
@@ -1913,7 +1935,7 @@ function DevToolsSection({ data }) {
   }
   const sshCommand = `ssh ${sshUsername || "root"}@${ipAddress}`;
   return /* @__PURE__ */ jsxs("section", { children: [
-    /* @__PURE__ */ jsx(SectionHeader$4, { title: "Dev Tools" }),
+    /* @__PURE__ */ jsx(SectionHeader$5, { title: "Dev Tools" }),
     /* @__PURE__ */ jsxs("div", { style: { padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }, children: [
       !revealed && /* @__PURE__ */ jsxs("div", { style: {
         display: "flex",
@@ -2039,7 +2061,7 @@ function DevToolsSection({ data }) {
     ] })
   ] });
 }
-function SectionHeader$3({ title }) {
+function SectionHeader$4({ title }) {
   return /* @__PURE__ */ jsx("div", { className: "border-b-faint", style: { padding: "1.5rem 1.5rem 1rem" }, children: /* @__PURE__ */ jsx("h2", { style: { fontSize: "0.8125rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--dash-text-muted, #525252)" }, children: title }) });
 }
 function CardShell$1({ title, subtitle, children }) {
@@ -2116,6 +2138,7 @@ function BulkImportCard({ csrfToken, onImported }) {
     const saved = [];
     let errors = 0;
     for (const { key, value } of pairs) {
+      if (!isMounted.current) return;
       try {
         const r = await fetch("/api/env-vars", {
           method: "POST",
@@ -2123,12 +2146,15 @@ function BulkImportCard({ csrfToken, onImported }) {
           headers: { "Content-Type": "application/json", "x-csrf-token": csrfToken },
           body: JSON.stringify({ key, value })
         });
+        if (!isMounted.current) return;
         const d = await r.json();
+        if (!isMounted.current) return;
         if (r.ok && d.envVar) saved.push(d.envVar);
         else errors++;
       } catch {
         errors++;
       }
+      if (!isMounted.current) return;
       setProgress((p) => ({ ...p, done: p.done + 1, errors }));
     }
     if (!isMounted.current) return;
@@ -2268,7 +2294,7 @@ function EnvSection({ data }) {
   }
   if (!hasServer) {
     return /* @__PURE__ */ jsxs("section", { children: [
-      /* @__PURE__ */ jsx(SectionHeader$3, { title: "Environment Variables" }),
+      /* @__PURE__ */ jsx(SectionHeader$4, { title: "Environment Variables" }),
       /* @__PURE__ */ jsx("div", { style: { padding: "1.5rem" }, children: /* @__PURE__ */ jsxs("div", { style: {
         border: "1px solid rgba(255,255,255,0.07)",
         borderRadius: "0.625rem",
@@ -2291,7 +2317,7 @@ function EnvSection({ data }) {
     ] });
   }
   return /* @__PURE__ */ jsxs("section", { children: [
-    /* @__PURE__ */ jsx(SectionHeader$3, { title: "Environment Variables" }),
+    /* @__PURE__ */ jsx(SectionHeader$4, { title: "Environment Variables" }),
     /* @__PURE__ */ jsxs("div", { style: { padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }, children: [
       /* @__PURE__ */ jsxs("div", { style: {
         padding: "0.75rem 1rem",
@@ -2432,7 +2458,7 @@ function EnvSection({ data }) {
     ] })
   ] });
 }
-function SectionHeader$2({ title }) {
+function SectionHeader$3({ title }) {
   return /* @__PURE__ */ jsx("div", { className: "border-b-faint", style: { padding: "1.5rem 1.5rem 1rem" }, children: /* @__PURE__ */ jsx("h2", { style: { fontSize: "0.8125rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--dash-text-muted, #525252)" }, children: title }) });
 }
 function CardShell({ title, children }) {
@@ -3242,7 +3268,7 @@ function NotificationChannelsCard({ csrfToken, slackWebhookUrl, discordWebhookUr
 function SettingsSection({ data }) {
   const { csrfToken, notifyWebhookUrl, slackWebhookUrl, discordWebhookUrl, twofaEnabled } = data;
   return /* @__PURE__ */ jsxs("section", { children: [
-    /* @__PURE__ */ jsx(SectionHeader$2, { title: "Settings" }),
+    /* @__PURE__ */ jsx(SectionHeader$3, { title: "Settings" }),
     /* @__PURE__ */ jsxs("div", { style: { padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }, children: [
       /* @__PURE__ */ jsx(PlanCard, { data }),
       /* @__PURE__ */ jsx(BillingUsageCard, {}),
@@ -3254,7 +3280,7 @@ function SettingsSection({ data }) {
     ] })
   ] });
 }
-function SectionHeader$1({ title }) {
+function SectionHeader$2({ title }) {
   return /* @__PURE__ */ jsx("div", { className: "border-b-faint", style: { padding: "1.5rem 1.5rem 1rem" }, children: /* @__PURE__ */ jsx("h2", { style: { fontSize: "0.8125rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--dash-text-muted, #525252)" }, children: title }) });
 }
 function formatDate(ts) {
@@ -3601,7 +3627,7 @@ function ApiKeysSection({ data }) {
   }
   return /* @__PURE__ */ jsxs("div", { style: { color: "#f5f5f5" }, children: [
     revealedKey && /* @__PURE__ */ jsx(KeyRevealModal, { apiKey: revealedKey, onClose: () => setRevealedKey(null) }),
-    /* @__PURE__ */ jsx(SectionHeader$1, { title: "API Keys" }),
+    /* @__PURE__ */ jsx(SectionHeader$2, { title: "API Keys" }),
     /* @__PURE__ */ jsxs("div", { style: { padding: "1rem 1.5rem", borderBottom: "1px solid rgba(255,255,255,0.04)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem" }, children: [
       /* @__PURE__ */ jsxs("p", { style: { fontSize: "0.8125rem", color: "#6b7280", margin: 0, lineHeight: 1.5 }, children: [
         "Use API keys to authenticate programmatic deploys (CI/CD, scripts). Send deploys via ",
@@ -3652,7 +3678,7 @@ function ApiKeysSection({ data }) {
     ] })
   ] });
 }
-function SectionHeader({ title }) {
+function SectionHeader$1({ title }) {
   return /* @__PURE__ */ jsx("div", { className: "border-b-faint", style: { padding: "1.5rem 1.5rem 1rem" }, children: /* @__PURE__ */ jsx("h2", { style: { fontSize: "0.8125rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--dash-text-muted, #525252)" }, children: title }) });
 }
 function repoLabel(gitUrl = "") {
@@ -3748,18 +3774,18 @@ function LogsSection({ data }) {
   };
   if (!hasServer || serverStatus !== "running") {
     return /* @__PURE__ */ jsxs("section", { children: [
-      /* @__PURE__ */ jsx(SectionHeader, { title: "Logs" }),
+      /* @__PURE__ */ jsx(SectionHeader$1, { title: "Logs" }),
       /* @__PURE__ */ jsx("div", { style: { padding: "3rem 1.5rem", textAlign: "center", color: "var(--dash-text-muted, #525252)", fontSize: "0.8125rem" }, children: "No running server." })
     ] });
   }
   if (successfulDeps.length === 0) {
     return /* @__PURE__ */ jsxs("section", { children: [
-      /* @__PURE__ */ jsx(SectionHeader, { title: "Logs" }),
+      /* @__PURE__ */ jsx(SectionHeader$1, { title: "Logs" }),
       /* @__PURE__ */ jsx("div", { style: { padding: "3rem 1.5rem", textAlign: "center", color: "var(--dash-text-muted, #525252)", fontSize: "0.8125rem" }, children: "No successful deployments yet. Deploy an app to stream its logs." })
     ] });
   }
   return /* @__PURE__ */ jsxs("section", { children: [
-    /* @__PURE__ */ jsx(SectionHeader, { title: "Logs" }),
+    /* @__PURE__ */ jsx(SectionHeader$1, { title: "Logs" }),
     /* @__PURE__ */ jsxs("div", { style: { padding: "1.25rem 1.5rem" }, children: [
       /* @__PURE__ */ jsxs("div", { style: { display: "flex", gap: "0.625rem", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap" }, children: [
         /* @__PURE__ */ jsx(
@@ -3824,6 +3850,9 @@ function LogsSection({ data }) {
       )
     ] })
   ] });
+}
+function SectionHeader({ title }) {
+  return /* @__PURE__ */ jsx("div", { className: "border-b-faint", style: { padding: "1.5rem 1.5rem 1rem" }, children: /* @__PURE__ */ jsx("h2", { style: { fontSize: "0.8125rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--dash-text-muted, #525252)" }, children: title }) });
 }
 function SimpleLineChart({ data, label, color, height = 200 }) {
   if (!data || data.length === 0) {
@@ -3932,7 +3961,8 @@ function MetricsHistorySection() {
       const result = await response.json();
       setMetrics(result);
     } catch (err) {
-      setEmptyReason("Metrics are temporarily unavailable.");
+      setError("Unable to load metrics history right now.");
+      setEmptyReason("");
       console.warn("[METRICS HISTORY] Unable to load metrics history:", err?.message || err);
       setMetrics({ data: [] });
     } finally {
@@ -3942,79 +3972,80 @@ function MetricsHistorySection() {
   const cpuData = metrics.data?.map((d) => d.cpu) || [];
   const memoryData = metrics.data?.map((d) => d.memory) || [];
   const diskData = metrics.data?.map((d) => d.disk) || [];
-  return /* @__PURE__ */ jsxs("div", { style: { padding: "1.5rem 0" }, children: [
-    /* @__PURE__ */ jsxs("div", { style: { marginBottom: "1.5rem" }, children: [
-      /* @__PURE__ */ jsx("h2", { style: { fontSize: "1.25rem", fontWeight: 600, marginBottom: "0.5rem" }, children: "Metrics History" }),
-      /* @__PURE__ */ jsx("p", { style: { color: "#a0a0a0", fontSize: "0.875rem" }, children: "View CPU, memory, and disk usage trends over time" })
-    ] }),
-    /* @__PURE__ */ jsx("div", { style: { marginBottom: "1.5rem", display: "flex", gap: "0.5rem" }, children: ["24h", "7d", "30d"].map((p) => /* @__PURE__ */ jsx(
-      "button",
-      {
-        onClick: () => setPeriod(p),
-        style: {
-          padding: "0.5rem 1rem",
-          background: period === p ? "#3b82f6" : "rgba(255,255,255,0.05)",
-          border: `1px solid ${period === p ? "#3b82f6" : "rgba(255,255,255,0.1)"}`,
-          color: "#ffffff",
-          borderRadius: "0.375rem",
-          cursor: "pointer",
-          fontSize: "0.875rem",
-          fontWeight: 500,
-          transition: "all 0.2s"
-        },
-        onMouseEnter: (e) => {
-          if (period !== p) e.target.style.background = "rgba(255,255,255,0.08)";
-        },
-        onMouseLeave: (e) => {
-          if (period !== p) e.target.style.background = "rgba(255,255,255,0.05)";
-        },
-        children: p.toUpperCase()
-      },
-      p
-    )) }),
-    error && /* @__PURE__ */ jsx("div", { style: {
-      padding: "0.875rem 1rem",
-      background: "rgba(239,68,68,0.1)",
-      border: "1px solid rgba(239,68,68,0.3)",
-      borderRadius: "0.375rem",
-      color: "#fca5a5",
-      fontSize: "0.875rem",
-      marginBottom: "1.5rem"
-    }, children: error }),
-    !loading && !error && emptyReason && /* @__PURE__ */ jsx("div", { style: {
-      padding: "0.875rem 1rem",
-      background: "rgba(59,130,246,0.08)",
-      border: "1px solid rgba(59,130,246,0.22)",
-      borderRadius: "0.375rem",
-      color: "#93c5fd",
-      fontSize: "0.875rem",
-      marginBottom: "1.5rem"
-    }, children: emptyReason }),
-    loading && /* @__PURE__ */ jsx("div", { style: {
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      height: "200px",
-      color: "#525252"
-    }, children: "Loading metrics..." }),
-    !loading && !error && /* @__PURE__ */ jsxs("div", { style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1rem" }, children: [
-      /* @__PURE__ */ jsx(SimpleLineChart, { data: cpuData, label: "CPU Usage", color: "#3b82f6" }),
-      /* @__PURE__ */ jsx(SimpleLineChart, { data: memoryData, label: "Memory Usage", color: "#8b5cf6" }),
-      /* @__PURE__ */ jsx(SimpleLineChart, { data: diskData, label: "Disk Usage", color: "#ec4899" })
-    ] }),
-    !loading && !error && metrics.data?.length > 0 && /* @__PURE__ */ jsxs("div", { style: {
-      marginTop: "1rem",
-      padding: "0.875rem 1rem",
-      background: "rgba(255,255,255,0.02)",
-      border: "1px solid rgba(255,255,255,0.06)",
-      borderRadius: "0.375rem",
-      fontSize: "0.75rem",
-      color: "#525252"
-    }, children: [
-      "Showing ",
-      metrics.dataPoints ?? metrics.data?.length ?? 0,
-      " data points for the last ",
-      period
+  return /* @__PURE__ */ jsxs("section", { children: [
+    /* @__PURE__ */ jsx(SectionHeader, { title: "Metrics History" }),
+    /* @__PURE__ */ jsxs("div", { style: { padding: "1.25rem 1.5rem" }, children: [
+      /* @__PURE__ */ jsx("style", { children: `
+          .metrics-period-button {
+            padding: 0.25rem 0.625rem;
+            border-radius: 0.3125rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--dash-text-secondary, #a1a1a1);
+            transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+          }
+
+          .metrics-period-button:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.18);
+            color: var(--dash-text-primary, #fafafa);
+          }
+
+          .metrics-period-button.metrics-period-button--active,
+          .metrics-period-button.metrics-period-button--active:hover {
+            background: rgba(59,130,246,0.18);
+            border-color: rgba(59,130,246,0.4);
+            color: #60a5fa;
+          }
+        ` }),
+      /* @__PURE__ */ jsxs("div", { style: { border: "1px solid rgba(255,255,255,0.07)", borderRadius: "0.625rem", overflow: "hidden" }, children: [
+        /* @__PURE__ */ jsxs("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.875rem 1.25rem", borderBottom: "1px solid rgba(255,255,255,0.05)", flexWrap: "wrap", gap: "0.5rem" }, children: [
+          /* @__PURE__ */ jsx("span", { style: { fontSize: "0.8125rem", fontWeight: 500, color: "var(--dash-text-primary, #fafafa)" }, children: "CPU, Memory & Disk Usage" }),
+          /* @__PURE__ */ jsx("div", { style: { display: "flex", gap: "0.375rem" }, children: ["24h", "7d", "30d"].map((p) => /* @__PURE__ */ jsx(
+            "button",
+            {
+              onClick: () => setPeriod(p),
+              className: `metrics-period-button${period === p ? " metrics-period-button--active" : ""}`,
+              children: p.toUpperCase()
+            },
+            p
+          )) })
+        ] }),
+        /* @__PURE__ */ jsxs("div", { style: { padding: "1rem 1.25rem" }, children: [
+          error && /* @__PURE__ */ jsx("div", { style: {
+            padding: "0.625rem 0.875rem",
+            background: "rgba(239,68,68,0.07)",
+            border: "1px solid rgba(239,68,68,0.2)",
+            borderRadius: "0.375rem",
+            color: "#fca5a5",
+            fontSize: "0.8125rem",
+            marginBottom: "1rem"
+          }, children: error }),
+          !loading && !error && emptyReason && /* @__PURE__ */ jsx("div", { style: {
+            padding: "0.625rem 0.875rem",
+            background: "rgba(59,130,246,0.07)",
+            border: "1px solid rgba(59,130,246,0.2)",
+            borderRadius: "0.375rem",
+            color: "#93c5fd",
+            fontSize: "0.8125rem",
+            marginBottom: "1rem"
+          }, children: emptyReason }),
+          loading && /* @__PURE__ */ jsx("div", { style: { display: "flex", justifyContent: "center", alignItems: "center", height: "8rem", color: "var(--dash-text-muted, #525252)", fontSize: "0.8125rem" }, children: "Loading metrics…" }),
+          !loading && !error && /* @__PURE__ */ jsxs("div", { style: { display: "flex", flexDirection: "column", gap: "1rem" }, children: [
+            /* @__PURE__ */ jsx(SimpleLineChart, { data: cpuData, label: "CPU Usage", color: "#3b82f6" }),
+            /* @__PURE__ */ jsx(SimpleLineChart, { data: memoryData, label: "Memory Usage", color: "#8b5cf6" }),
+            /* @__PURE__ */ jsx(SimpleLineChart, { data: diskData, label: "Disk Usage", color: "#ec4899" })
+          ] }),
+          !loading && !error && metrics.data?.length > 0 && /* @__PURE__ */ jsxs("div", { style: { marginTop: "0.75rem", fontSize: "0.75rem", color: "var(--dash-text-muted, #525252)" }, children: [
+            metrics.dataPoints ?? metrics.data?.length ?? 0,
+            " data points · last ",
+            period
+          ] })
+        ] })
+      ] })
     ] })
   ] });
 }

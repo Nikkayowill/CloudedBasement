@@ -64,6 +64,43 @@
 - Deployment build logs (`deployments.output`) may contain secrets if the user's build scripts echo env vars. Sanitization exists but is not exhaustive — users should be advised not to print secrets in build output.
 - `.env` is in `.gitignore`. Never commit it.
 
+### Secret scanning
+
+- Run `npm run check:secrets` to scan tracked files for likely hardcoded secrets.
+- Run `npm run security:check` to run secret scanning plus the system audit.
+- If CI is configured, add `npm run check:secrets` as a required step.
+
+### Local git hook enforcement (Husky)
+
+- `pre-commit` runs `pnpm run check:secrets` and blocks commits if a potential secret is detected.
+- `pre-push` blocks direct pushes to `main` and `master`.
+- `pre-push` also runs `pnpm run check:secrets` before allowing non-protected-branch pushes.
+- `commit-msg` enforces Conventional Commits format (for example: `feat: ...`, `fix(scope): ...`).
+
+Recommended workflow:
+
+1. Create a feature branch.
+2. Commit locally (hooks run automatically).
+3. Push the feature branch.
+4. Open a PR to `main`.
+
+### Key rotation checklist
+
+If any secret is exposed, rotate immediately in this order:
+
+1. Stripe secret key (`STRIPE_SECRET_KEY`) in Stripe Dashboard.
+2. Stripe webhook secret (`STRIPE_WEBHOOK_SECRET`) for each endpoint.
+3. DigitalOcean token (`DIGITALOCEAN_TOKEN`) in DO API tokens page.
+4. Session/CSRF/app secrets (`SESSION_SECRET`, `CSRF_SECRET`, other app signing keys).
+5. SMTP/API provider keys.
+
+After rotation:
+
+1. Update environment variables in each environment (local, staging, production).
+2. Restart application processes.
+3. Verify webhook signature validation and payment flows.
+4. Re-run `npm run check:secrets` to confirm no tracked leakage remains.
+
 ---
 
 ## Known concerns

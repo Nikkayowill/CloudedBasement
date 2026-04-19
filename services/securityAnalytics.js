@@ -427,8 +427,7 @@ async function runFilteredAnalytics(rawFilters = {}) {
     errors.push({
       phase: 'database',
       message: 'Failed to run filtered analytics queries',
-      errorMessage: err?.message || String(err),
-      errorStack: err?.stack,
+      errorCode: 'FILTERED_ANALYTICS_QUERY_FAILED',
     });
   }
 
