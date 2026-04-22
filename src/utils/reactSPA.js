@@ -6,7 +6,6 @@ const fs = require('fs');
 const { getGoogleAnalyticsTags } = require('./helpers');
 
 const SPA_TEMPLATE = path.join(__dirname, '../../react-homepage/dist/index.html');
-
 let _spaTemplate;
 
 function getSPATemplate() {
@@ -27,6 +26,7 @@ function addNonceToAllScriptTags(html, nonce) {
   if (!nonce) return html;
   return html.replace(/<script(?![^>]*\bnonce=)/gi, `<script nonce="${nonce}"`);
 }
+
 
 /**
  * Render the React SPA HTML string with GA tags and CSP nonce injected.

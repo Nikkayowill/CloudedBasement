@@ -36,12 +36,31 @@ function FaqItem({ q, a }) {
 export default function FaqSection() {
   return (
     <section id="faq">
-      <div className="cb-title-row">
-        <SectionTitle
-          text1="FAQ"
-          text2="Managed VPS hosting questions"
-          text3="Clear answers for developers, startups, and small businesses moving to automated cloud hosting."
+      <div className="cb-title-row" style={{ position: 'relative', overflow: 'hidden' }}>
+        <img
+          src="/Images/chess.png"
+          alt=""
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center',
+            opacity: 0.12,
+            pointerEvents: 'none',
+            userSelect: 'none',
+            zIndex: 1,
+          }}
         />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <SectionTitle
+            text1="FAQ"
+            text2="Managed VPS hosting questions"
+            text3="Clear answers for developers, startups, and small businesses moving to automated cloud hosting."
+          />
+        </div>
       </div>
 
       <div className="pt-16 px-10 pb-28 max-w-2xl mx-auto">

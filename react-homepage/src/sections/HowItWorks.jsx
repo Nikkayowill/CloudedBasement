@@ -191,9 +191,27 @@ export default function HowItWorks() {
   return (
     <section ref={sectionRef} className="hiw-section">
       <div className="hiw-sticky border-b-faint" style={{ display: 'flex', flexDirection: 'column' }}>
-        <div className="pt-14 px-10 pb-10 border-b-dim shrink-0">
-          <p className="funnel-kicker mb-3">How it works</p>
-          <h2 className="funnel-heading-2">Three steps to automated cloud hosting</h2>
+        <div className="pt-14 px-10 pb-10 border-b-dim shrink-0" style={{ position: 'relative', overflow: 'hidden' }}>
+          {/* Chess background image */}
+          <img
+            src="/Images/chess-example.png"
+            alt=""
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center',
+              opacity: 0.12,
+              pointerEvents: 'none',
+              userSelect: 'none',
+              zIndex: 0,
+            }}
+          />
+          <p className="funnel-kicker mb-3" style={{ position: 'relative', zIndex: 1 }}>How it works</p>
+          <h2 className="funnel-heading-2" style={{ position: 'relative', zIndex: 1 }}>Three steps to automated cloud hosting</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2" style={{ flex: 1, minHeight: 0 }}>

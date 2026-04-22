@@ -5,6 +5,7 @@ import SearchOverlay from './SearchOverlay';
 export default function ResponsiveNav() {
   const [visible, setVisible] = useState(true);
   const lastY = useRef(0);
+  const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
@@ -20,6 +21,7 @@ export default function ResponsiveNav() {
   useEffect(() => {
     function onScroll() {
       const y = window.scrollY;
+      setScrolled(y > 20);
       if (y < 80) { setVisible(true); }
       else { setVisible(y < lastY.current); }
       lastY.current = y;
@@ -55,11 +57,11 @@ export default function ResponsiveNav() {
         zIndex: mobileOpen ? 1200 : 50,
         opacity: visible ? 1 : 0,
         pointerEvents: visible ? 'auto' : 'none',
-        transition: 'opacity 280ms ease',
-        background: 'rgba(22,23,29,0.88)',
-        backdropFilter: 'blur(14px)',
-        WebkitBackdropFilter: 'blur(14px)',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
+        transition: 'opacity 280ms ease, background 300ms ease, border-color 300ms ease',
+        background: scrolled ? 'rgba(22,23,29,0.88)' : 'transparent',
+        backdropFilter: scrolled ? 'blur(14px)' : 'none',
+        WebkitBackdropFilter: scrolled ? 'blur(14px)' : 'none',
+        borderBottom: `1px solid ${scrolled ? 'rgba(255,255,255,0.07)' : 'transparent'}`,
       }}>
         <div style={{
           display: 'flex',
@@ -74,9 +76,9 @@ export default function ResponsiveNav() {
             flexShrink: 0, height: '3.5rem', textDecoration: 'none',
           }}>
             <img
-              src="/CB-logo-icon.svg"
+              src="/CB-last-final.svg"
               alt="Clouded Basement"
-              style={{ height: '2rem', width: 'auto', display: 'block' }}
+              style={{ height: '2.5rem', width: 'auto', display: 'block', transform: 'translateY(0.8rem) scale(6.3)', transformOrigin: 'left center' }}
             />
           </a>
 
@@ -149,10 +151,15 @@ export default function ResponsiveNav() {
             <button
               className="md:hidden"
               onClick={() => setMobileOpen((o) => !o)}
-              style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: '0.25rem' }}
+              style={{ background: 'none', border: 'none', color: '#4b5563', cursor: 'pointer', padding: '0.25rem' }}
               aria-label="Toggle menu"
             >
-              {mobileOpen ? <XIcon size={22} /> : <MenuIcon size={22} />}
+              {mobileOpen ? <XIcon size={22} /> : (
+                <svg width="22" height="14" viewBox="0 0 22 14" fill="none" aria-hidden="true">
+                  <line x1="0" y1="2.5" x2="22" y2="2.5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
+                  <line x1="0" y1="11.5" x2="22" y2="11.5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
+                </svg>
+              )}
             </button>
           </div>
         </div>
@@ -176,9 +183,9 @@ export default function ResponsiveNav() {
             padding: '1rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.08)',
           }}>
             <img
-              src="/CB-logo-icon.svg"
+              src="/CB-last-final.svg"
               alt="Clouded Basement"
-              style={{ height: '1.6rem', width: 'auto', display: 'block' }}
+              style={{ height: '2rem', width: 'auto', display: 'block' }}
             />
             <button
               onClick={() => setMobileOpen(false)}

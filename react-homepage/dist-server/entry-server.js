@@ -650,9 +650,114 @@ function HeroSection() {
           /* @__PURE__ */ jsx("a", { href: "/docs", className: "funnel-btn funnel-btn-subtle", children: "Documentation" })
         ] })
       ] }),
-      /* @__PURE__ */ jsxs("div", { className: "cb-content-pad pt-20 pb-28 md:pt-28 md:pb-32 flex flex-col items-center justify-center gap-4", children: [
-        /* @__PURE__ */ jsx(TerminalCard$1, {}),
-        /* @__PURE__ */ jsx("p", { className: "funnel-mono text-[11px] text-center text-white/20", children: "automate the server work. keep shipping product." })
+      /* @__PURE__ */ jsxs("div", { className: "cb-content-pad pt-20 pb-28 md:pt-28 md:pb-32 flex flex-col items-center justify-center gap-5 relative overflow-hidden", children: [
+        /* @__PURE__ */ jsx(
+          "div",
+          {
+            "aria-hidden": "true",
+            style: {
+              position: "absolute",
+              inset: 0,
+              pointerEvents: "none",
+              background: "radial-gradient(ellipse 80% 55% at 85% 15%, rgba(59,130,246,0.08) 0%, transparent 70%)"
+            }
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          "img",
+          {
+            src: "/Images/chess.png",
+            alt: "",
+            "aria-hidden": "true",
+            draggable: "false",
+            style: {
+              position: "absolute",
+              bottom: 0,
+              right: 0,
+              width: "58%",
+              opacity: 0.055,
+              filter: "blur(1px)",
+              pointerEvents: "none",
+              userSelect: "none",
+              maskImage: "radial-gradient(ellipse 85% 70% at 90% 92%, black 15%, transparent 72%)",
+              WebkitMaskImage: "radial-gradient(ellipse 85% 70% at 90% 92%, black 15%, transparent 72%)"
+            }
+          }
+        ),
+        /* @__PURE__ */ jsx("div", { style: { position: "relative", zIndex: 1, width: "100%", display: "flex", justifyContent: "center" }, children: /* @__PURE__ */ jsx(TerminalCard$1, {}) }),
+        /* @__PURE__ */ jsxs(
+          "div",
+          {
+            className: "hidden md:flex flex-col items-end self-end",
+            style: { position: "relative", zIndex: 1 },
+            children: [
+              /* @__PURE__ */ jsxs("div", { style: {
+                width: "240px",
+                border: "1px solid rgba(255,255,255,0.09)",
+                borderRadius: "0.5rem",
+                overflow: "hidden",
+                background: "#11111b",
+                boxShadow: "0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03)"
+              }, children: [
+                /* @__PURE__ */ jsxs("div", { style: {
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  padding: "7px 10px",
+                  borderBottom: "1px solid rgba(255,255,255,0.06)",
+                  background: "rgba(255,255,255,0.02)"
+                }, children: [
+                  /* @__PURE__ */ jsx("span", { style: { width: 7, height: 7, borderRadius: "50%", background: "#f38ba8", flexShrink: 0 } }),
+                  /* @__PURE__ */ jsx("span", { style: { width: 7, height: 7, borderRadius: "50%", background: "#f9e2af", flexShrink: 0 } }),
+                  /* @__PURE__ */ jsx("span", { style: { width: 7, height: 7, borderRadius: "50%", background: "#a6e3a1", flexShrink: 0 } }),
+                  /* @__PURE__ */ jsx("span", { style: {
+                    marginLeft: 7,
+                    flex: 1,
+                    height: 14,
+                    background: "rgba(255,255,255,0.04)",
+                    borderRadius: 3,
+                    display: "flex",
+                    alignItems: "center",
+                    paddingInline: 7,
+                    fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+                    fontSize: 9,
+                    color: "rgba(255,255,255,0.22)"
+                  }, children: "chess.example.com" })
+                ] }),
+                /* @__PURE__ */ jsx(
+                  "img",
+                  {
+                    src: "/Images/chess-example.png",
+                    alt: "Chess app deployed on Clouded Basement",
+                    style: { display: "block", width: "100%", height: "auto" },
+                    draggable: "false"
+                  }
+                )
+              ] }),
+              /* @__PURE__ */ jsxs("div", { style: {
+                marginTop: "0.5rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.375rem"
+              }, children: [
+                /* @__PURE__ */ jsx("span", { style: {
+                  width: 5,
+                  height: 5,
+                  borderRadius: "50%",
+                  background: "#4ade80",
+                  boxShadow: "0 0 5px rgba(74,222,128,0.55)",
+                  flexShrink: 0
+                } }),
+                /* @__PURE__ */ jsx("span", { style: {
+                  fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+                  fontSize: 10,
+                  color: "rgba(255,255,255,0.25)"
+                }, children: "deployed · running" })
+              ] })
+            ]
+          }
+        ),
+        /* @__PURE__ */ jsx("p", { className: "funnel-mono text-[11px] text-center text-white/20", style: { position: "relative", zIndex: 1 }, children: "automate the server work. keep shipping product." })
       ] })
     ] }),
     /* @__PURE__ */ jsx("div", { className: "border-t-faint cb-content-pad py-5 flex justify-center", children: /* @__PURE__ */ jsxs("ul", { className: "funnel-mono text-[11px] flex flex-row flex-wrap justify-center items-center gap-4 md:gap-10 w-full text-center text-white/30", children: [
