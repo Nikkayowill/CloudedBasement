@@ -2,7 +2,23 @@
 export default function CTASection() {
   return (
     <section className="relative flex flex-col items-center justify-center min-h-[32rem] overflow-hidden bg-transparent">
-    
+      <img
+        src="/Images/chess-example.png"
+        alt=""
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          objectPosition: 'center',
+          opacity: 0.12,
+          pointerEvents: 'none',
+          userSelect: 'none',
+          zIndex: 0,
+        }}
+      />
       {/* CTA content block with blur overlay */}
       <div className="flex items-center justify-center relative">
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl p-10 backdrop-blur-md bg-opacity-40 rounded-xl z-0" />

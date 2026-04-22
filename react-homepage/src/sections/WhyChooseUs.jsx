@@ -78,11 +78,29 @@ function ComparisonTable() {
 export default function WhyChooseUs() {
   return (
     <section id="compare">
-      <div className="cb-title-row">
-        <SectionTitle
-          text1="Why teams choose Clouded Basement"
-          text2="Managed VPS automation with real server ownership."
+      <div className="cb-title-row" style={{ position: 'relative', overflow: 'hidden' }}>
+        <img
+          src="/Images/chess-example.png"
+          alt=""
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center',
+            opacity: 0.12,
+            pointerEvents: 'none',
+            userSelect: 'none',
+          }}
         />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <SectionTitle
+            text1="Why teams choose Clouded Basement"
+            text2="Managed VPS automation with real server ownership."
+          />
+        </div>
       </div>
 
       <div className="cb-content-pad py-10">

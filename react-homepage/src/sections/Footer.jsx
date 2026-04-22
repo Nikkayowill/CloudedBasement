@@ -18,7 +18,7 @@ const LINKS = {
 
 export default function Footer() {
   return (
-    <footer className="funnel-footer">
+    <footer className="funnel-footer cb-section">
       {/* .cb parent handles max-width - no inner wrapper needed */}
       <div className="funnel-footer-grid mb-10">
         {/* Brand */}

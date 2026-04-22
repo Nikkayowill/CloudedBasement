@@ -17,11 +17,29 @@ function FeatureCell({ Icon, title, body }) {
 export default function Features() {
   return (
     <section id="features">
-      <div className="cb-title-row">
-        <SectionTitle
-          text1="What you get"
-          text2="Managed VPS hosting features built for startups, agencies, and developers."
+      <div className="cb-title-row" style={{ position: 'relative', overflow: 'hidden' }}>
+        <img
+          src="/Images/chess.png"
+          alt=""
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center',
+            opacity: 0.12,
+            pointerEvents: 'none',
+            userSelect: 'none',
+          }}
         />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <SectionTitle
+            text1="What you get"
+            text2="Managed VPS hosting features built for startups, agencies, and developers."
+          />
+        </div>
       </div>
 
       <div className="cb-grid-cells cb-grid-cells--features">

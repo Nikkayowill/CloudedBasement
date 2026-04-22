@@ -104,8 +104,25 @@ function TerminalCard() {
 export default function ProblemFrame() {
   return (
     <section>
-      <div className="cb-title-row">
-        <div className="text-center mb-10">
+      <div className="cb-title-row" style={{ position: 'relative', overflow: 'hidden' }}>
+        {/* Chess background image */}
+        <img
+          src="/Images/chess.png"
+          alt=""
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center',
+            opacity: 0.12,
+            pointerEvents: 'none',
+            userSelect: 'none',
+          }}
+        />
+        <div className="text-center mb-10" style={{ position: 'relative', zIndex: 1 }}>
           <p className="text-brand text-lg font-semibold mb-4">The hidden cost of DIY cloud hosting</p>
           <h2 className="text-3xl md:text-4xl font-bold mb-5 text-white">
             Build your product, not your server stack.
