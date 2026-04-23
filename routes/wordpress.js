@@ -48,4 +48,24 @@ router.get(
   wordpressController.getWpCredentials
 );
 
+// Run `wp core update` on a live site — SSH operation, rate-limited
+router.post(
+  '/wordpress/update-core/:siteId',
+  requireAuth,
+  deploymentLimiter,
+  csrf,
+  validateSiteId,
+  wordpressController.updateCore
+);
+
+// Configure msmtp SMTP relay on the droplet — SSH + DB write, rate-limited
+router.post(
+  '/wordpress/configure-smtp/:siteId',
+  requireAuth,
+  deploymentLimiter,
+  csrf,
+  validateSiteId,
+  wordpressController.configureSMTP
+);
+
 module.exports = router;

@@ -9,7 +9,7 @@
 //   GET  /api/wordpress/credentials/:siteId   — decrypt + return WP admin password (reveal/copy)
 
 const pool = require('../db');
-const { createWordPressServer } = require('../services/wordpress');
+const { createWordPressServer, updateWordPressCore, configureWordPressSMTP } = require('../services/wordpress');
 const { decrypt } = require('../src/utils/encryption');
 
 // ── Allowed plan slugs ──────────────────────────────────────────────────────
@@ -298,5 +298,130 @@ exports.getWpCredentials = async (req, res) => {
   } catch (err) {
     console.error('[WP Controller] getWpCredentials error:', err.message);
     return res.status(500).json({ error: 'Failed to retrieve credentials.' });
+  }
+};
+
+// ── POST /api/wordpress/update-core/:siteId ────────────────────────────────
+
+/**
+ * Run `wp core update` on the authenticated user's live WordPress site.
+ *
+ * Returns { updated, version, message } so the frontend can surface the result.
+ * No user-supplied strings reach the CLI — only ownership-validated DB values.
+ */
+exports.updateCore = async (req, res) => {
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ error: 'Authentication required.' });
+  }
+  const userId = req.session.userId;
+
+  const siteId = parseInt(req.params.siteId, 10);
+  if (!Number.isInteger(siteId) || siteId <= 0) {
+    return res.status(400).json({ error: 'Invalid site ID.' });
+  }
+
+  try {
+    const result = await updateWordPressCore(siteId, userId);
+    return res.json(result);
+  } catch (err) {
+    console.error('[WP Controller] updateCore error:', err.message);
+    if (err.message === 'Site not found or not live') {
+      return res.status(404).json({ error: 'Site not found or not yet live.' });
+    }
+    return res.status(500).json({ error: 'Failed to update WordPress core.' });
+  }
+};
+
+// ── POST /api/wordpress/configure-smtp/:siteId ────────────────────────────
+
+/**
+ * Install msmtp on the user's WordPress droplet and configure it with the
+ * provided SMTP credentials, so WordPress can send email (password resets,
+ * contact forms, WooCommerce notifications, etc.) without any plugin.
+ *
+ * Body: { smtpHost, smtpPort, smtpUser, smtpPass, smtpFrom }
+ *
+ * All values are validated strictly before use. smtpPass is written to the
+ * droplet via SSH stdin (never a CLI argument) and stored encrypted in the DB.
+ */
+exports.configureSMTP = async (req, res) => {
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ error: 'Authentication required.' });
+  }
+  const userId = req.session.userId;
+
+  const siteId = parseInt(req.params.siteId, 10);
+  if (!Number.isInteger(siteId) || siteId <= 0) {
+    return res.status(400).json({ error: 'Invalid site ID.' });
+  }
+
+  const { smtpHost, smtpPort, smtpUser, smtpPass, smtpFrom } = req.body;
+
+  // ── Validate smtpHost ──────────────────────────────────────────────────────
+  if (
+    !smtpHost ||
+    typeof smtpHost !== 'string' ||
+    !/^[a-zA-Z0-9]([a-zA-Z0-9._-]{0,251}[a-zA-Z0-9])?$/.test(smtpHost.trim())
+  ) {
+    return res.status(400).json({ error: 'Invalid SMTP host.' });
+  }
+
+  // ── Validate smtpPort ──────────────────────────────────────────────────────
+  const port = parseInt(smtpPort, 10);
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    return res.status(400).json({ error: 'Invalid SMTP port. Must be 1–65535.' });
+  }
+
+  // ── Validate smtpUser ──────────────────────────────────────────────────────
+  if (
+    !smtpUser ||
+    typeof smtpUser !== 'string' ||
+    smtpUser.trim().length === 0 ||
+    smtpUser.trim().length > 254
+  ) {
+    return res.status(400).json({ error: 'Invalid SMTP username.' });
+  }
+
+  // ── Validate smtpPass ──────────────────────────────────────────────────────
+  if (
+    !smtpPass ||
+    typeof smtpPass !== 'string' ||
+    smtpPass.length === 0 ||
+    smtpPass.length > 256
+  ) {
+    return res.status(400).json({ error: 'Invalid SMTP password.' });
+  }
+
+  // ── Validate smtpFrom ──────────────────────────────────────────────────────
+  if (
+    !smtpFrom ||
+    typeof smtpFrom !== 'string' ||
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(smtpFrom.trim()) ||
+    smtpFrom.trim().length > 254
+  ) {
+    return res.status(400).json({ error: 'Invalid from address. Must be a valid email.' });
+  }
+
+  // ── Guard: no newlines or null bytes (msmtp config injection prevention) ──
+  const forbidden = /[\r\n\0]/;
+  if ([smtpHost, smtpUser, smtpPass, smtpFrom].some(v => forbidden.test(v))) {
+    return res.status(400).json({ error: 'SMTP fields contain invalid characters.' });
+  }
+
+  try {
+    await configureWordPressSMTP(siteId, userId, {
+      host: smtpHost.trim(),
+      port,
+      user: smtpUser.trim(),
+      pass: smtpPass,
+      from: smtpFrom.trim(),
+    });
+    return res.json({ success: true, message: 'SMTP configured. WordPress can now send email.' });
+  } catch (err) {
+    console.error('[WP Controller] configureSMTP error:', err.message);
+    if (err.message === 'Site not found or not live') {
+      return res.status(404).json({ error: 'Site not found or not yet live.' });
+    }
+    return res.status(500).json({ error: 'Failed to configure SMTP.' });
   }
 };
