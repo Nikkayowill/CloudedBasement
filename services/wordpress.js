@@ -1090,6 +1090,198 @@ async function watchForServerRunning(serverId, wpSiteId) {
 }
 
 // ── Exports ───────────────────────────────────────────────────────────────────
+// ── WP Core Update ────────────────────────────────────────────────────────────
+
+/**
+ * Run `wp core update` on a live WordPress site over SSH.
+ *
+ * Security notes:
+ *  - IP address is validated against strict IPv4 regex before SSH.
+ *  - wp-cli is invoked with --allow-root; no user-supplied strings reach the CLI.
+ *  - Ownership is enforced via user_id in the DB query.
+ *
+ * @param {number} wpSiteId
+ * @param {number} userId
+ * @returns {Promise<{ updated: boolean, version: string, message: string }>}
+ */
+async function updateWordPressCore(wpSiteId, userId) {
+  const result = await pool.query(
+    `SELECT ws.id, ws.wp_version,
+            s.ip_address, s.ssh_password, s.ssh_password_iv
+     FROM wordpress_sites ws
+     JOIN servers s ON s.id = ws.server_id
+     WHERE ws.id = $1 AND ws.user_id = $2 AND ws.status = 'live'`,
+    [wpSiteId, userId]
+  );
+
+  if (!result.rows.length) {
+    throw new Error('Site not found or not live');
+  }
+  const wp = result.rows[0];
+
+  if (!/^\d{1,3}(\.\d{1,3}){3}$/.test(wp.ip_address)) {
+    throw new Error('[WP-UPDATE] Refusing — invalid IP address format');
+  }
+
+  const rootPassword = decrypt(wp.ssh_password, wp.ssh_password_iv);
+  const wpPath = '/var/www/wordpress';
+
+  let conn;
+  try {
+    conn = await sshConnect(wp.ip_address, rootPassword);
+    console.log(`[WP-UPDATE] SSH connected to ${wp.ip_address} for site ${wpSiteId}`);
+
+    // wp core update exits 0 whether an update happened or not; output distinguishes
+    const output = (await execSSH(
+      conn,
+      `wp core update --path=${wpPath} --allow-root 2>&1`,
+      120000
+    )).trim();
+
+    const newVersion = (await execSSH(
+      conn,
+      `wp core version --path=${wpPath} --allow-root`
+    )).trim();
+
+    await pool.query(
+      `UPDATE wordpress_sites SET wp_version = $1, updated_at = NOW() WHERE id = $2`,
+      [newVersion, wpSiteId]
+    );
+
+    const updated = !/already at the latest version/i.test(output);
+    return {
+      updated,
+      version: newVersion,
+      message: updated
+        ? `WordPress updated to ${newVersion}`
+        : `Already at the latest version (${newVersion})`,
+    };
+  } finally {
+    if (conn) conn.end();
+  }
+}
+
+// ── WordPress SMTP configuration ──────────────────────────────────────────────
+
+/**
+ * Install msmtp + msmtp-mta on the WordPress droplet and write /etc/msmtprc
+ * so that WordPress's wp_mail() (which calls PHP mail() → /usr/sbin/sendmail)
+ * is able to relay outbound email via the user's SMTP credentials.
+ *
+ * msmtp-mta drops a /usr/sbin/sendmail symlink, making this transparent to
+ * WordPress without any plugin or wp-config.php changes.
+ *
+ * Security notes:
+ *  - smtpConfig.pass is written to the server via execSSHWithInput (stdin),
+ *    never as a shell argument, so it won't appear in `ps aux` or shell history.
+ *  - /etc/msmtprc is chown root:www-data, chmod 640 — readable by PHP (www-data)
+ *    but not world-readable.
+ *  - The password is stored encrypted in the DB for future reconfiguration.
+ *  - smtpConfig values are validated by the caller before reaching this function.
+ *  - Ownership is enforced via user_id in the DB query.
+ *
+ * @param {number} wpSiteId
+ * @param {number} userId
+ * @param {{ host: string, port: number, user: string, pass: string, from: string }} smtpConfig
+ */
+async function configureWordPressSMTP(wpSiteId, userId, smtpConfig) {
+  const result = await pool.query(
+    `SELECT ws.id,
+            s.ip_address, s.ssh_password, s.ssh_password_iv
+     FROM wordpress_sites ws
+     JOIN servers s ON s.id = ws.server_id
+     WHERE ws.id = $1 AND ws.user_id = $2 AND ws.status = 'live'`,
+    [wpSiteId, userId]
+  );
+
+  if (!result.rows.length) {
+    throw new Error('Site not found or not live');
+  }
+  const wp = result.rows[0];
+
+  if (!/^\d{1,3}(\.\d{1,3}){3}$/.test(wp.ip_address)) {
+    throw new Error('[WP-SMTP] Refusing — invalid IP address format');
+  }
+
+  const rootPassword = decrypt(wp.ssh_password, wp.ssh_password_iv);
+
+  // Build msmtprc content — password goes in as file data, not a shell argument
+  const msmtpContent = [
+    '# Managed by Clouded Basement — do not edit manually',
+    'defaults',
+    '  tls on',
+    '  tls_starttls on',
+    '  logfile /var/log/msmtp.log',
+    '',
+    'account wordpress',
+    `  host ${smtpConfig.host}`,
+    `  port ${smtpConfig.port}`,
+    `  from ${smtpConfig.from}`,
+    '  auth on',
+    `  user ${smtpConfig.user}`,
+    `  password ${smtpConfig.pass}`,
+    '',
+    'account default : wordpress',
+    '',
+  ].join('\n');
+
+  let conn;
+  try {
+    conn = await sshConnect(wp.ip_address, rootPassword);
+    console.log(`[WP-SMTP] SSH connected to ${wp.ip_address} for site ${wpSiteId}`);
+
+    // Install msmtp (provides /usr/bin/msmtp) and msmtp-mta (/usr/sbin/sendmail symlink)
+    await execSSH(
+      conn,
+      'DEBIAN_FRONTEND=noninteractive apt-get install -y msmtp msmtp-mta',
+      90000
+    );
+
+    // Write /etc/msmtprc via stdin — smtpConfig.pass never touches a shell argument
+    await execSSHWithInput(conn, 'cat > /etc/msmtprc', msmtpContent);
+
+    // root:www-data 640 — PHP (www-data) can read; world cannot
+    await execSSH(conn, 'chown root:www-data /etc/msmtprc && chmod 640 /etc/msmtprc');
+
+    // Ensure msmtp log file exists and is writable by www-data
+    await execSSH(
+      conn,
+      'touch /var/log/msmtp.log && chown www-data:www-data /var/log/msmtp.log && chmod 660 /var/log/msmtp.log'
+    );
+
+    console.log(`[WP-SMTP] msmtp installed and configured for site ${wpSiteId}`);
+
+    // Encrypt password before DB write — plaintext never persisted
+    const encPass = encrypt(smtpConfig.pass);
+
+    await pool.query(
+      `UPDATE wordpress_sites
+          SET smtp_configured            = true,
+              smtp_host                  = $1,
+              smtp_port                  = $2,
+              smtp_from                  = $3,
+              smtp_user                  = $4,
+              encrypted_smtp_password    = $5,
+              encrypted_smtp_password_iv = $6,
+              updated_at                 = NOW()
+        WHERE id = $7`,
+      [
+        smtpConfig.host,
+        smtpConfig.port,
+        smtpConfig.from,
+        smtpConfig.user,
+        encPass.encrypted,
+        encPass.iv,
+        wpSiteId,
+      ]
+    );
+
+    console.log(`[WP-SMTP] Credentials stored (encrypted) for site ${wpSiteId}`);
+  } finally {
+    if (conn) conn.end();
+  }
+}
+
 module.exports = {
   generateSecurePassword,
   getWordPressUserData,
@@ -1098,4 +1290,6 @@ module.exports = {
   installWordPress,
   configureWordPressNginx,
   provisionWordPressSite,
+  updateWordPressCore,
+  configureWordPressSMTP,
 };
