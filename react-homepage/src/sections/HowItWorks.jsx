@@ -211,7 +211,7 @@ export default function HowItWorks() {
             }}
           />
           <p className="funnel-kicker mb-3" style={{ position: 'relative', zIndex: 1 }}>How it works</p>
-          <h2 className="funnel-heading-2" style={{ position: 'relative', zIndex: 1 }}>Three steps to automated cloud hosting</h2>
+          <h2 className="funnel-heading-2" style={{ position: 'relative', zIndex: 1 }}>Up and running in three steps.</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2" style={{ flex: 1, minHeight: 0 }}>

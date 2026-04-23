@@ -37,7 +37,7 @@ export default function Features() {
         <div style={{ position: 'relative', zIndex: 1 }}>
           <SectionTitle
             text1="What you get"
-            text2="Managed VPS hosting features built for startups, agencies, and developers."
+            text2="Everything included on every plan."
           />
         </div>
       </div>

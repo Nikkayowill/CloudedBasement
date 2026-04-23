@@ -2,7 +2,7 @@ export const pricingData = [
   {
     id: 'basic',
     name: 'Basic',
-    desc: 'Managed VPS for side projects and early startup builds',
+    desc: 'A solid server for side projects and early builds',
     monthly: { price: '$15', period: '/mo' },
     yearly: { price: '$162', period: '/yr', perMonth: '$13.50' },
     features: [
@@ -17,7 +17,7 @@ export const pricingData = [
   {
     id: 'pro',
     name: 'Pro',
-    desc: 'Developer-friendly cloud hosting for production apps',
+    desc: 'A production-ready server for your main project',
     monthly: { price: '$35', period: '/mo' },
     yearly: { price: '$378', period: '/yr', perMonth: '$31.50' },
     features: [
@@ -36,7 +36,7 @@ export const pricingData = [
   {
     id: 'premium',
     name: 'Premium',
-    desc: 'Automated cloud servers for high-growth teams and agencies',
+    desc: 'More resources and support for teams that are growing',
     monthly: { price: '$65', period: '/mo' },
     yearly: { price: '$702', period: '/yr', perMonth: '$58.50' },
     features: [

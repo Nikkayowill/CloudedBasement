@@ -72,8 +72,8 @@ export default function NewPricing() {
       <div className="cb-title-row">
         <SectionTitle
           text1="Pricing"
-          text2="Managed VPS plans with predictable pricing."
-          text3="Choose automated cloud hosting built for developers, startups, and small business websites."
+          text2="Pick a plan. Cancel anytime."
+          text3="All plans come with a 3-day free trial. No card needed."
         />
 
         <div className="flex justify-center mt-8">

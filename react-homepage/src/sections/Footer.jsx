@@ -31,7 +31,7 @@ export default function Footer() {
             />
           </a>
           <p className="funnel-body-sm" style={{ maxWidth: '16rem' }}>
-            Managed VPS hosting with cloud automation for developers, startups, and growing businesses.
+            Cloud servers, fully managed.
           </p>
         </div>
 
