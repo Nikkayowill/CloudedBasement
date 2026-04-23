@@ -97,8 +97,8 @@ export default function WhyChooseUs() {
         />
         <div style={{ position: 'relative', zIndex: 1 }}>
           <SectionTitle
-            text1="Why teams choose Clouded Basement"
-            text2="Managed VPS automation with real server ownership."
+            text1="Why Clouded Basement"
+            text2="You own the server. I keep it running."
           />
         </div>
       </div>

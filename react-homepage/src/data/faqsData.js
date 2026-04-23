@@ -1,7 +1,7 @@
 export const faqsData = [
   {
     q: 'What is Clouded Basement?',
-    a: 'Clouded Basement is managed VPS hosting for developers, startups, and small businesses. You get a real Ubuntu cloud server with automation for deploys, SSL, and maintenance.',
+    a: 'You get a real Ubuntu server — I handle deploys, SSL, backups, and maintenance. You keep full root access and your code stays yours.',
   },
   {
     q: 'How do I deploy my first app?',
@@ -9,7 +9,7 @@ export const faqsData = [
   },
   {
     q: 'Can I host WordPress and custom apps on the same server?',
-    a: 'Yes. You can run WordPress, Node.js, Python, and other Linux web apps on one managed VPS with full server control and domain-level SSL.',
+    a: 'Yes — WordPress, Node.js, Python, and most Linux web apps work fine. You get full root access and SSL on every domain.',
   },
   {
     q: 'Do I get database support?',

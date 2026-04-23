@@ -57,8 +57,7 @@ export default function FaqSection() {
         <div style={{ position: 'relative', zIndex: 1 }}>
           <SectionTitle
             text1="FAQ"
-            text2="Managed VPS hosting questions"
-            text3="Clear answers for developers, startups, and small businesses moving to automated cloud hosting."
+            text2="Common questions"
           />
         </div>
       </div>
